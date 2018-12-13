@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["kmain","This is the entry point for the kernel on x86_64. It is called from the UEFI bootloader and initialises the system, then passes control into the common part of the kernel."]],"mod":[["logger",""]]});
