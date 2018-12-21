@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["ceiling_log2",""],["flooring_log2","Fast integer `log2` that floors to the lower power-of-2 if `x` is not a power-of-2. `x` must not be 0."]]});

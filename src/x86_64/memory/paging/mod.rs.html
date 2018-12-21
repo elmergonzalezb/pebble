@@ -201,8 +201,8 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">page</span>::<span class="ident">Page</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>};
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FRAME_SIZE</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">0x1000</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PAGE_SIZE</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">0x1000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FRAME_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0x1000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PAGE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0x1000</span>;
 
 <span class="kw">use</span> <span class="self">self</span>::<span class="ident">table</span>::{<span class="ident">IdentityMapping</span>, <span class="ident">RecursiveMapping</span>, <span class="ident">TableMapping</span>};
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">PhysicalAddress</span>;
@@ -256,13 +256,13 @@
     <span class="kw">where</span>
         <span class="ident">N</span>: <span class="ident">TableMapping</span>,
     {
-        <span class="kw">let</span> <span class="ident">old_table_address</span> <span class="op">=</span> <span class="ident">PhysicalAddress</span>::<span class="ident">new</span>(<span class="macro">read_control_reg</span><span class="macro">!</span>(<span class="ident">cr3</span>)).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">old_table_address</span> <span class="op">=</span> <span class="ident">PhysicalAddress</span>::<span class="ident">new</span>(<span class="macro">read_control_reg</span><span class="macro">!</span>(<span class="ident">cr3</span>) <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">unwrap</span>();
 
         <span class="kw">unsafe</span> {
             <span class="comment">/*
              * NOTE: We don&#39;t need to flush the TLB here because it&#39;s cleared when CR3 changes.
              */</span>
-            <span class="macro">write_control_reg</span><span class="macro">!</span>(<span class="ident">cr3</span>, <span class="ident">u64</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">p4_frame</span>.<span class="ident">start_address</span>()));
+            <span class="macro">write_control_reg</span><span class="macro">!</span>(<span class="ident">cr3</span>, <span class="ident">usize</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">p4_frame</span>.<span class="ident">start_address</span>()) <span class="kw">as</span> <span class="ident">u64</span>);
         }
 
         (
@@ -288,13 +288,13 @@
     <span class="kw">where</span>
         <span class="ident">N</span>: <span class="ident">TableMapping</span>,
     {
-        <span class="kw">let</span> <span class="ident">old_table_address</span> <span class="op">=</span> <span class="ident">PhysicalAddress</span>::<span class="ident">new</span>(<span class="macro">read_control_reg</span><span class="macro">!</span>(<span class="ident">cr3</span>)).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">old_table_address</span> <span class="op">=</span> <span class="ident">PhysicalAddress</span>::<span class="ident">new</span>(<span class="macro">read_control_reg</span><span class="macro">!</span>(<span class="ident">cr3</span>) <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">unwrap</span>();
 
         <span class="kw">unsafe</span> {
             <span class="comment">/*
              * NOTE: We don&#39;t need to flush the TLB here because it&#39;s cleared when CR3 changes.
              */</span>
-            <span class="macro">write_control_reg</span><span class="macro">!</span>(<span class="ident">cr3</span>, <span class="ident">u64</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">p4_frame</span>.<span class="ident">start_address</span>()));
+            <span class="macro">write_control_reg</span><span class="macro">!</span>(<span class="ident">cr3</span>, <span class="ident">usize</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">p4_frame</span>.<span class="ident">start_address</span>()) <span class="kw">as</span> <span class="ident">u64</span>);
         }
 
         (

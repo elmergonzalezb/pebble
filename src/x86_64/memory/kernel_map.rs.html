@@ -39,6 +39,9 @@
 <span id="39">39</span>
 <span id="40">40</span>
 <span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! These constants define the layout of the memory map when the bootloader passes control to the</span>
 <span class="doccomment">//! kernel. We split the virtual address space into two regions - the kernel address space between</span>
@@ -70,16 +73,19 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KERNEL_BASE</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
     <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_8000_0000</span>) };
 
-<span class="comment">// /// This is the address of the start of the kernel heap.</span>
+<span class="doccomment">/// This is the address of the start of the kernel heap. The heap is 100 KiB.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HEAP_START</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
     <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_c000_0000</span>) };
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HEAP_END</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
-    <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_cfff_ffff</span>) };
+    <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_c00_18fff</span>) };
 
 <span class="comment">/*
- * Following the heap are a bunch of random memory-mapped configuration spaces and whatnot.
+ * From here, we place a bunch of hard-coded pages for various things, such as the `BootInfo`
+ * struct and memory-mapped configuration pages and stuff.
  */</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOCAL_APIC_CONFIG_PAGE</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BOOT_INFO</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
     <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_d000_0000</span>) };
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOCAL_APIC_CONFIG_PAGE</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
+    <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_d000_1000</span>) };
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g., <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g., <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g., <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../../";window.currentCrate = "x86_64";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-files.js"></script><script src="../../../source-script.js"></script><script defer src="../../../search-index.js"></script></body></html>
