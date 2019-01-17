@@ -74,10 +74,13 @@
 <span id="74">74</span>
 <span id="75">75</span>
 <span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! TODO</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">memory</span>::<span class="ident">paging</span>::<span class="ident">Frame</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">memory</span>::<span class="ident">PhysicalAddress</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">Range</span>;
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BOOT_INFO_MAGIC</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0xcafebabe</span>;
@@ -144,6 +147,7 @@
     <span class="kw">pub</span> <span class="ident">magic</span>: <span class="ident">u32</span>,
     <span class="kw">pub</span> <span class="ident">memory_map</span>: [<span class="ident">MemoryEntry</span>; <span class="ident">MEMORY_MAP_NUM_ENTRIES</span>],
     <span class="kw">pub</span> <span class="ident">num_memory_map_entries</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span> <span class="ident">rsdp_address</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PhysicalAddress</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">BootInfo</span> {

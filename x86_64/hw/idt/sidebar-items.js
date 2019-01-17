@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Idt",""],["IdtEntry",""],["InterruptStackFrame",""]],"type":[["HandlerFunc","The type of a function that can be used as an interrupt handler. It's marked as diverging because we don't exactly 'return' from an interrupt. This should not be used directly to create interrupt handlers; instead, use the `wrap_handler` macros."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Tss","Hardware task switching isn't supported on x86_64, so the TSS is just used as a vestigal place to stick stuff. It's used to store kernel-level stacks that should be used if interrupts occur (this is used to prevent triple-faults from occuring if we overflow the kernel stack)."]]});

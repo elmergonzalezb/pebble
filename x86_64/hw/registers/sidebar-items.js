@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["EFER",""]]});
+initSidebarItems({"constant":[["EFER",""]],"struct":[["CpuFlags","A wrapper for the `RFLAGS` register, providing a nice `Debug` implementation that details which flags are set and unset."]]});
