@@ -93,11 +93,15 @@
 <span id="93">93</span>
 <span id="94">94</span>
 <span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">paging</span>::<span class="ident">FRAME_SIZE</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">cmp</span>::<span class="ident">Ordering</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::{<span class="ident">Add</span>, <span class="ident">Sub</span>};
+<span class="kw">use</span> <span class="ident">core</span>::{
+    <span class="ident">cmp</span>::<span class="ident">Ordering</span>,
+    <span class="ident">fmt</span>,
+    <span class="ident">ops</span>::{<span class="ident">Add</span>, <span class="ident">Sub</span>},
+};
 
 <span class="doccomment">/// Represents an address in the physical memory space. A valid physical address is smaller than</span>
 <span class="doccomment">/// 2^52</span>

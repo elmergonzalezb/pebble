@@ -142,8 +142,6 @@
 <span id="142">142</span>
 <span id="143">143</span>
 <span id="144">144</span>
-<span id="145">145</span>
-<span id="146">146</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! One of the allocators we use to manage physical memory is the buddy allocator. With this</span>
 <span class="doccomment">//! allocator, memory is broken up into a number of blocks, each of which is a power-of-2 in size.</span>
@@ -158,11 +156,11 @@
 <span class="doccomment">//! improved in the future</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">math</span>::{<span class="ident">ceiling_log2</span>, <span class="ident">flooring_log2</span>};
-<span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">collections</span>::<span class="ident">BTreeSet</span>;
-<span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">vec</span>;
-<span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">vec</span>::<span class="ident">Vec</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">cmp</span>::<span class="ident">min</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">Range</span>;
+<span class="kw">use</span> <span class="ident">alloc</span>::{
+    <span class="ident">collections</span>::<span class="ident">BTreeSet</span>,
+    <span class="ident">vec</span>::{<span class="self">self</span>, <span class="ident">Vec</span>},
+};
+<span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">cmp</span>::<span class="ident">min</span>, <span class="ident">ops</span>::<span class="ident">Range</span>};
 <span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::{<span class="ident">paging</span>::<span class="ident">Frame</span>, <span class="ident">PhysicalAddress</span>};
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BuddyAllocator</span> {
@@ -177,16 +175,14 @@
 <span class="kw">impl</span> <span class="ident">BuddyAllocator</span> {
     <span class="doccomment">/// Create a new `BuddyAllocator`, with a maximum block size of `2^max_order`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">max_order</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">BuddyAllocator</span> {
-        <span class="ident">BuddyAllocator</span> {
-            <span class="ident">bins</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">BTreeSet</span>::<span class="ident">new</span>(); <span class="ident">max_order</span> <span class="op">+</span> <span class="number">1</span>],
-        }
+        <span class="ident">BuddyAllocator</span> { <span class="ident">bins</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">BTreeSet</span>::<span class="ident">new</span>(); <span class="ident">max_order</span> <span class="op">+</span> <span class="number">1</span>] }
     }
 
     <span class="doccomment">/// Add a range of `Frame`s to this allocator, marking them free to allocate.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_range</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&gt;</span>) {
         <span class="comment">/*
-         * Break the frame area into a set of blocks with power-of-2 sizes, and register each block
-         * as free to allocate.
+         * Break the frame area into a set of blocks with power-of-2 sizes, and register each
+         * block as free to allocate.
          */</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block_start</span> <span class="op">=</span> <span class="ident">range</span>.<span class="ident">start</span>;
 
@@ -222,8 +218,8 @@
 
         <span class="kw">if</span> <span class="ident">order</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">max_order</span>() {
             <span class="comment">/*
-             * Blocks of the maximum order can&#39;t be coalesced, because there isn&#39;t a bigger bin to
-             * put them into.
+             * Blocks of the maximum order can&#39;t be coalesced, because there isn&#39;t a bigger bin
+             * to put them into.
              */</span>
             <span class="self">self</span>.<span class="ident">bins</span>[<span class="ident">order</span>].<span class="ident">insert</span>(<span class="ident">start_frame</span>);
             <span class="kw">return</span>;

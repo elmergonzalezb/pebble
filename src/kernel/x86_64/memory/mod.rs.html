@@ -105,6 +105,13 @@
 <span id="105">105</span>
 <span id="106">106</span>
 <span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module contains the physical memory manager Pebble uses on x86_64.</span>
 
@@ -116,10 +123,20 @@
 <span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">collections</span>::<span class="ident">BTreeMap</span>;
 <span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
 <span class="kw">use</span> <span class="ident">log</span>::<span class="ident">info</span>;
-<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::<span class="ident">paging</span>::<span class="ident">entry</span>::<span class="ident">EntryFlags</span>;
-<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::<span class="ident">paging</span>::<span class="ident">table</span>::<span class="ident">RecursiveMapping</span>;
-<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::<span class="ident">paging</span>::{<span class="ident">ActivePageTable</span>, <span class="ident">Frame</span>, <span class="ident">Page</span>, <span class="ident">FRAME_SIZE</span>, <span class="ident">PAGE_SIZE</span>};
-<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::{<span class="ident">kernel_map</span>, <span class="ident">PhysicalAddress</span>, <span class="ident">VirtualAddress</span>};
+<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::{
+    <span class="ident">kernel_map</span>,
+    <span class="ident">paging</span>::{
+        <span class="ident">entry</span>::<span class="ident">EntryFlags</span>,
+        <span class="ident">table</span>::<span class="ident">RecursiveMapping</span>,
+        <span class="ident">ActivePageTable</span>,
+        <span class="ident">Frame</span>,
+        <span class="ident">Page</span>,
+        <span class="ident">FRAME_SIZE</span>,
+        <span class="ident">PAGE_SIZE</span>,
+    },
+    <span class="ident">PhysicalAddress</span>,
+    <span class="ident">VirtualAddress</span>,
+};
 
 <span class="doccomment">/// Type alias to hide the concrete type of the kernel&#39;s page tables, as most users won&#39;t care</span>
 <span class="doccomment">/// about the specifics.</span>
@@ -154,10 +171,7 @@
 
 <span class="kw">impl</span> <span class="ident">PhysicalRegionMapper</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">PhysicalRegionMapper</span> {
-        <span class="ident">PhysicalRegionMapper</span> {
-            <span class="ident">mappings</span>: <span class="ident">BTreeMap</span>::<span class="ident">new</span>(),
-            <span class="ident">virtual_area_bitmap</span>: <span class="number">0</span>,
-        }
+        <span class="ident">PhysicalRegionMapper</span> { <span class="ident">mappings</span>: <span class="ident">BTreeMap</span>::<span class="ident">new</span>(), <span class="ident">virtual_area_bitmap</span>: <span class="number">0</span> }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_physical_region</span>(

@@ -90,6 +90,7 @@
 <span id="90">90</span>
 <span id="91">91</span>
 <span id="92">92</span>
+<span id="93">93</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">memory</span>::<span class="ident">kernel_map</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ptr</span>;
@@ -135,11 +136,13 @@
     <span class="comment">// /// will signal on the specified vector.</span>
     <span class="comment">// TODO: maybe take a divisor directly here and time it in kernel::x86_64::interrupts::init</span>
     <span class="comment">// pub fn enable_timer(duration: usize, vector: u8) {</span>
-    <span class="comment">//     trace!(&quot;Timing local APIC bus frequency [freezing here suggests problem with PIT sleep]&quot;);</span>
-    <span class="comment">//     unsafe {</span>
+    <span class="comment">//     trace!(&quot;Timing local APIC bus frequency [freezing here suggests problem with PIT</span>
+    <span class="comment">// sleep]&quot;);     unsafe {</span>
     <span class="comment">//         /*</span>
-    <span class="comment">//          * Set divide value to 16 and initial counter value to -1. We use 16 because apparently</span>
-    <span class="comment">//          * some hardware has issues with other divide values (especially 1, which would be the</span>
+    <span class="comment">//          * Set divide value to 16 and initial counter value to -1. We use 16 because</span>
+    <span class="comment">//            apparently</span>
+    <span class="comment">//          * some hardware has issues with other divide values (especially 1, which would be</span>
+    <span class="comment">//            the</span>
     <span class="comment">//          * simplest otherwise). 16 seems to be the most supported.</span>
     <span class="comment">//          */</span>
     <span class="comment">//         Self::register(0x3e0).write(0x3);</span>
@@ -155,7 +158,8 @@
     <span class="comment">//         trace!(&quot;Timing of local APIC bus frequency complete&quot;);</span>
 
     <span class="comment">//         /*</span>
-    <span class="comment">//          * Start the APIC timer in Periodic mode with a divide value of 16 again, to interrupt</span>
+    <span class="comment">//          * Start the APIC timer in Periodic mode with a divide value of 16 again, to</span>
+    <span class="comment">//            interrupt</span>
     <span class="comment">//          * every 10 ms on the given vector.</span>
     <span class="comment">//          */</span>
     <span class="comment">//         Self::register(0x320).write(u32::from(vector) | 0x20000);</span>
@@ -166,9 +170,7 @@
 
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">register</span>(<span class="ident">offset</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">LocalApicRegister</span> {
         <span class="ident">LocalApicRegister</span>::<span class="ident">new</span>(
-            <span class="ident">kernel_map</span>::<span class="ident">LOCAL_APIC_CONFIG</span>
-                .<span class="ident">offset</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">isize</span>)
-                .<span class="ident">mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u32</span>,
+            <span class="ident">kernel_map</span>::<span class="ident">LOCAL_APIC_CONFIG</span>.<span class="ident">offset</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">isize</span>).<span class="ident">mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u32</span>
         )
     }
 

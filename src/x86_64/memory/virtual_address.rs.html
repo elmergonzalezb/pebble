@@ -186,11 +186,15 @@
 <span id="186">186</span>
 <span id="187">187</span>
 <span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">paging</span>::<span class="ident">PAGE_SIZE</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">cmp</span>::<span class="ident">Ordering</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::{<span class="ident">Add</span>, <span class="ident">Sub</span>};
+<span class="kw">use</span> <span class="ident">core</span>::{
+    <span class="ident">cmp</span>::<span class="ident">Ordering</span>,
+    <span class="ident">fmt</span>,
+    <span class="ident">ops</span>::{<span class="ident">Add</span>, <span class="ident">Sub</span>},
+};
 
 <span class="doccomment">/// Represents a canonical virtual address. To be canonical, the address must be in the ranges</span>
 <span class="doccomment">/// `0x0000_0000_0000_0000` to `0x0000_8000_0000_0000` or `0xffff_8000_0000_0000` to</span>
@@ -203,8 +207,8 @@
     <span class="doccomment">/// Create a new `VirtualAddress` from the given address. If the given address is not a valid</span>
     <span class="doccomment">/// canonical address, this returns `None`.</span>
     <span class="comment">/*
-     * TODO: this should be made `const` when CTFE supports matches, then we should use it for all
-     * the constants that currently use `new_unchecked`
+     * TODO: this should be made `const` when CTFE supports matches, then we should use it for
+     * all the constants that currently use `new_unchecked`
      */</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">address</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">VirtualAddress</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">address</span> {
@@ -280,8 +284,8 @@
              *   e.g. align         = 0b00001000
              *        align - 1     = 0b00000111
              *        !(align - 1)  = 0b11111000
-             *                               ^^^ Masks the address to the address below it with the
-             *                                   correct alignment
+             *                               ^^^ Masks the address to the address below it with
+             *                                   the correct alignment
              */</span>
             <span class="ident">VirtualAddress</span>::<span class="ident">new_canonicalise</span>(<span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="op">!</span>(<span class="ident">align</span> <span class="op">-</span> <span class="number">1</span>))
         }

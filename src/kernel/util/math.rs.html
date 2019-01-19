@@ -102,10 +102,6 @@
 <span id="102">102</span>
 <span id="103">103</span>
 <span id="104">104</span>
-<span id="105">105</span>
-<span id="106">106</span>
-<span id="107">107</span>
-<span id="108">108</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">cfg_if</span>::<span class="ident">cfg_if</span>;
 
@@ -185,11 +181,7 @@
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ceiling_log2</span>(<span class="ident">x</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
-    <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_power_of_two</span>() {
-        <span class="ident">x</span>
-    } <span class="kw">else</span> {
-        <span class="ident">x</span>.<span class="ident">next_power_of_two</span>()
-    };
+    <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_power_of_two</span>() { <span class="ident">x</span> } <span class="kw">else</span> { <span class="ident">x</span>.<span class="ident">next_power_of_two</span>() };
 
     <span class="comment">// `x` will always be a power of two now, so log(2) == the number of trailing zeros</span>
     <span class="ident">x</span>.<span class="ident">trailing_zeros</span>() <span class="kw">as</span> <span class="ident">u64</span>

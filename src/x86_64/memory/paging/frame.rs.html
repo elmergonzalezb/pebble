@@ -63,19 +63,13 @@
 <span id="63">63</span>
 <span id="64">64</span>
 <span id="65">65</span>
-<span id="66">66</span>
-<span id="67">67</span>
-<span id="68">68</span>
-<span id="69">69</span>
-<span id="70">70</span>
-<span id="71">71</span>
-<span id="72">72</span>
-<span id="73">73</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">FRAME_SIZE</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">memory</span>::<span class="ident">PhysicalAddress</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">iter</span>::<span class="ident">Step</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::{<span class="ident">Add</span>, <span class="ident">AddAssign</span>};
+<span class="kw">use</span> <span class="ident">core</span>::{
+    <span class="ident">iter</span>::<span class="ident">Step</span>,
+    <span class="ident">ops</span>::{<span class="ident">Add</span>, <span class="ident">AddAssign</span>},
+};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Frame</span> {
@@ -84,9 +78,7 @@
 
 <span class="kw">impl</span> <span class="ident">Frame</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains</span>(<span class="ident">address</span>: <span class="ident">PhysicalAddress</span>) <span class="op">-&gt;</span> <span class="ident">Frame</span> {
-        <span class="ident">Frame</span> {
-            <span class="ident">number</span>: <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">address</span>) <span class="op">/</span> <span class="ident">FRAME_SIZE</span>,
-        }
+        <span class="ident">Frame</span> { <span class="ident">number</span>: <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">address</span>) <span class="op">/</span> <span class="ident">FRAME_SIZE</span> }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">PhysicalAddress</span> {
@@ -99,9 +91,7 @@
 
     <span class="kw">fn</span> <span class="ident">add</span>(<span class="self">self</span>, <span class="ident">offset</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">PhysicalAddress</span>::<span class="ident">new</span>((<span class="self">self</span>.<span class="ident">number</span> <span class="op">+</span> <span class="ident">offset</span>) <span class="op">*</span> <span class="ident">FRAME_SIZE</span>).<span class="ident">is_some</span>());
-        <span class="ident">Frame</span> {
-            <span class="ident">number</span>: <span class="self">self</span>.<span class="ident">number</span> <span class="op">+</span> <span class="ident">offset</span>,
-        }
+        <span class="ident">Frame</span> { <span class="ident">number</span>: <span class="self">self</span>.<span class="ident">number</span> <span class="op">+</span> <span class="ident">offset</span> }
     }
 }
 
@@ -128,21 +118,15 @@
     }
 
     <span class="kw">fn</span> <span class="ident">add_one</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Frame</span> {
-            <span class="ident">number</span>: <span class="self">self</span>.<span class="ident">number</span> <span class="op">+</span> <span class="number">1</span>,
-        }
+        <span class="ident">Frame</span> { <span class="ident">number</span>: <span class="self">self</span>.<span class="ident">number</span> <span class="op">+</span> <span class="number">1</span> }
     }
 
     <span class="kw">fn</span> <span class="ident">sub_one</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Frame</span> {
-            <span class="ident">number</span>: <span class="self">self</span>.<span class="ident">number</span> <span class="op">-</span> <span class="number">1</span>,
-        }
+        <span class="ident">Frame</span> { <span class="ident">number</span>: <span class="self">self</span>.<span class="ident">number</span> <span class="op">-</span> <span class="number">1</span> }
     }
 
     <span class="kw">fn</span> <span class="ident">add_usize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">Frame</span> {
-            <span class="ident">number</span>: <span class="self">self</span>.<span class="ident">number</span>.<span class="ident">checked_add</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>)<span class="question-mark">?</span>,
-        })
+        <span class="prelude-val">Some</span>(<span class="ident">Frame</span> { <span class="ident">number</span>: <span class="self">self</span>.<span class="ident">number</span>.<span class="ident">checked_add</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>)<span class="question-mark">?</span> })
     }
 }
 </pre></div>

@@ -167,14 +167,18 @@
 <span id="167">167</span>
 <span id="168">168</span>
 <span id="169">169</span>
+<span id="170">170</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">registers</span>::<span class="ident">CpuFlags</span>;
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">DescriptorTablePointer</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">hw</span>::<span class="ident">gdt</span>::{<span class="ident">PrivilegeLevel</span>, <span class="ident">SegmentSelector</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">memory</span>::<span class="ident">VirtualAddress</span>;
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">registers</span>::<span class="ident">CpuFlags</span>, <span class="ident">DescriptorTablePointer</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">hw</span>::<span class="ident">gdt</span>::{<span class="ident">PrivilegeLevel</span>, <span class="ident">SegmentSelector</span>},
+    <span class="ident">memory</span>::<span class="ident">VirtualAddress</span>,
+};
 <span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">mem</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::{<span class="ident">Index</span>, <span class="ident">IndexMut</span>};
+<span class="kw">use</span> <span class="ident">core</span>::{
+    <span class="ident">mem</span>,
+    <span class="ident">ops</span>::{<span class="ident">Index</span>, <span class="ident">IndexMut</span>},
+};
 
 <span class="doccomment">/// The type of a function that can be used as an interrupt handler. It&#39;s marked as diverging</span>
 <span class="doccomment">/// because we don&#39;t exactly &#39;return&#39; from an interrupt. This should not be used directly to create</span>
@@ -190,9 +194,9 @@
     <span class="doccomment">/// this vector is handled. This is normally set to the kernel&#39;s code segment.</span>
     <span class="ident">segment_selector</span>: <span class="ident">u16</span>,
 
-    <span class="doccomment">/// If this is not `0`, this is used as an index into the Interrupt Stack Table described in the</span>
-    <span class="doccomment">/// currently active TSS. When this vector is handled, the address in that index of the IST</span>
-    <span class="doccomment">/// will be loaded into `RSP`. This allows us to nicely handle kernel stack overflows.</span>
+    <span class="doccomment">/// If this is not `0`, this is used as an index into the Interrupt Stack Table described in</span>
+    <span class="doccomment">/// the currently active TSS. When this vector is handled, the address in that index of the</span>
+    <span class="doccomment">/// IST will be loaded into `RSP`. This allows us to nicely handle kernel stack overflows.</span>
     <span class="ident">ist_offset</span>: <span class="ident">u8</span>,
 
     <span class="doccomment">///    7                           0</span>
@@ -269,9 +273,7 @@
 
 <span class="kw">impl</span> <span class="ident">Idt</span> {
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-&gt;</span> <span class="ident">Idt</span> {
-        <span class="ident">Idt</span> {
-            <span class="ident">entries</span>: [<span class="ident">IdtEntry</span>::<span class="ident">missing</span>(); <span class="number">256</span>],
-        }
+        <span class="ident">Idt</span> { <span class="ident">entries</span>: [<span class="ident">IdtEntry</span>::<span class="ident">missing</span>(); <span class="number">256</span>] }
     }
 
     <span class="macro">getter</span><span class="macro">!</span>(<span class="number">0</span>, <span class="ident">divide_error</span>);

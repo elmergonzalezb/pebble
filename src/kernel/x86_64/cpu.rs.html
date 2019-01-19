@@ -25,12 +25,10 @@
 <span id="25">25</span>
 <span id="26">26</span>
 <span id="27">27</span>
-<span id="28">28</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">boxed</span>::<span class="ident">Box</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">pin</span>::<span class="ident">Pin</span>;
-<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">hw</span>::<span class="ident">gdt</span>::<span class="ident">SegmentSelector</span>;
-<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">hw</span>::<span class="ident">tss</span>::<span class="ident">Tss</span>;
+<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">hw</span>::{<span class="ident">gdt</span>::<span class="ident">SegmentSelector</span>, <span class="ident">tss</span>::<span class="ident">Tss</span>};
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Cpu</span> {
     <span class="kw">pub</span> <span class="ident">processor_uid</span>: <span class="ident">u8</span>,

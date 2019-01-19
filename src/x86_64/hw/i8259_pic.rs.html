@@ -83,9 +83,9 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remap_and_disable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">master_vector_offset</span>: <span class="ident">u8</span>, <span class="ident">slave_vector_offset</span>: <span class="ident">u8</span>) {
         <span class="kw">unsafe</span> {
             <span class="comment">/*
-             * 0x80 is a port used by POST. It shouldn&#39;t do anything, but it&#39;ll take long enough to
-             * execute writes to it that we should block for long enough for the PICs to actually do
-             * what we ask them to.
+             * 0x80 is a port used by POST. It shouldn&#39;t do anything, but it&#39;ll take long enough
+             * to execute writes to it that we should block for long enough for the
+             * PICs to actually do what we ask them to.
              */</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wait_port</span>: <span class="ident">Port</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Port</span>::<span class="ident">new</span>(<span class="number">0x80</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wait</span> <span class="op">=</span> <span class="op">||</span> <span class="ident">wait_port</span>.<span class="ident">write</span>(<span class="number">0</span>);

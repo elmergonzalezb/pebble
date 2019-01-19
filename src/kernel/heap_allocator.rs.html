@@ -362,30 +362,13 @@
 <span id="362">362</span>
 <span id="363">363</span>
 <span id="364">364</span>
-<span id="365">365</span>
-<span id="366">366</span>
-<span id="367">367</span>
-<span id="368">368</span>
-<span id="369">369</span>
-<span id="370">370</span>
-<span id="371">371</span>
-<span id="372">372</span>
-<span id="373">373</span>
-<span id="374">374</span>
-<span id="375">375</span>
-<span id="376">376</span>
-<span id="377">377</span>
-<span id="378">378</span>
-<span id="379">379</span>
-<span id="380">380</span>
-<span id="381">381</span>
-<span id="382">382</span>
-<span id="383">383</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">alloc</span>::{<span class="ident">AllocErr</span>, <span class="ident">GlobalAlloc</span>, <span class="ident">Layout</span>};
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">cmp</span>::<span class="ident">max</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">mem</span>::{<span class="self">self</span>, <span class="ident">size_of</span>};
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">Deref</span>;
+<span class="kw">use</span> <span class="ident">core</span>::{
+    <span class="ident">alloc</span>::{<span class="ident">AllocErr</span>, <span class="ident">GlobalAlloc</span>, <span class="ident">Layout</span>},
+    <span class="ident">cmp</span>::<span class="ident">max</span>,
+    <span class="ident">mem</span>::{<span class="self">self</span>, <span class="ident">size_of</span>},
+    <span class="ident">ops</span>::<span class="ident">Deref</span>,
+};
 <span class="kw">use</span> <span class="ident">spin</span>::<span class="ident">Mutex</span>;
 <span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::<span class="ident">VirtualAddress</span>;
 
@@ -493,20 +476,9 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">Hole</span><span class="op">&gt;</span>() <span class="op">==</span> <span class="self">Self</span>::<span class="ident">get_min_size</span>());
 
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">hole_addr</span>.<span class="ident">mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Hole</span>;
-        <span class="ident">mem</span>::<span class="ident">replace</span>(
-            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">ptr</span>,
-            <span class="ident">Hole</span> {
-                <span class="ident">size</span>: <span class="ident">hole_size</span>,
-                <span class="ident">next</span>: <span class="prelude-val">None</span>,
-            },
-        );
+        <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">ptr</span>, <span class="ident">Hole</span> { <span class="ident">size</span>: <span class="ident">hole_size</span>, <span class="ident">next</span>: <span class="prelude-val">None</span> });
 
-        <span class="ident">HoleList</span> {
-            <span class="ident">first</span>: <span class="ident">Hole</span> {
-                <span class="ident">size</span>: <span class="number">0</span>,
-                <span class="ident">next</span>: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">ptr</span>),
-            },
-        }
+        <span class="ident">HoleList</span> { <span class="ident">first</span>: <span class="ident">Hole</span> { <span class="ident">size</span>: <span class="number">0</span>, <span class="ident">next</span>: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">ptr</span>) } }
     }
 
     <span class="doccomment">/// Search for a big enough hole for the given `Layout` with its required alignment. This uses</span>
@@ -562,9 +534,7 @@
          * We need to add front padding to correctly align the data
          * in the hole.
          */</span>
-        <span class="kw">let</span> <span class="ident">aligned_addr</span> <span class="op">=</span> (<span class="ident">hole</span>.<span class="ident">addr</span> <span class="op">+</span> <span class="ident">HoleList</span>::<span class="ident">get_min_size</span>())
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">align_up</span>(<span class="ident">required_align</span>);
+        <span class="kw">let</span> <span class="ident">aligned_addr</span> <span class="op">=</span> (<span class="ident">hole</span>.<span class="ident">addr</span> <span class="op">+</span> <span class="ident">HoleList</span>::<span class="ident">get_min_size</span>()).<span class="ident">unwrap</span>().<span class="ident">align_up</span>(<span class="ident">required_align</span>);
 
         (
             <span class="ident">aligned_addr</span>,
@@ -600,10 +570,7 @@
     };
 
     <span class="prelude-val">Some</span>(<span class="ident">Allocation</span> {
-        <span class="ident">info</span>: <span class="ident">HoleInfo</span> {
-            <span class="ident">addr</span>: <span class="ident">aligned_hole</span>.<span class="ident">addr</span>,
-            <span class="ident">size</span>: <span class="ident">required_size</span>,
-        },
+        <span class="ident">info</span>: <span class="ident">HoleInfo</span> { <span class="ident">addr</span>: <span class="ident">aligned_hole</span>.<span class="ident">addr</span>, <span class="ident">size</span>: <span class="ident">required_size</span> },
         <span class="ident">front_padding</span>: <span class="ident">front_pad</span>,
         <span class="ident">back_padding</span>: <span class="ident">back_pad</span>,
     })
@@ -611,10 +578,8 @@
 
 <span class="kw">fn</span> <span class="ident">allocate_first_fit</span>(<span class="kw-2">mut</span> <span class="ident">previous</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Hole</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Allocation</span>, <span class="ident">AllocErr</span><span class="op">&gt;</span> {
     <span class="kw">loop</span> {
-        <span class="kw">let</span> <span class="ident">allocation</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Allocation</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">previous</span>
-            .<span class="ident">next</span>
-            .<span class="ident">as_mut</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">current</span><span class="op">|</span> <span class="ident">split_hole</span>(<span class="ident">current</span>.<span class="ident">info</span>(), <span class="ident">layout</span>.<span class="ident">clone</span>()));
+        <span class="kw">let</span> <span class="ident">allocation</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Allocation</span><span class="op">&gt;</span> <span class="op">=</span>
+            <span class="ident">previous</span>.<span class="ident">next</span>.<span class="ident">as_mut</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">current</span><span class="op">|</span> <span class="ident">split_hole</span>(<span class="ident">current</span>.<span class="ident">info</span>(), <span class="ident">layout</span>.<span class="ident">clone</span>()));
 
         <span class="kw">match</span> <span class="ident">allocation</span> {
             <span class="prelude-val">Some</span>(<span class="ident">allocation</span>) <span class="op">=&gt;</span> {
@@ -713,7 +678,7 @@
                  *      After : ___XXX__FFFF__
                  */</span>
                 <span class="kw">let</span> <span class="ident">new_hole</span> <span class="op">=</span> <span class="ident">Hole</span> {
-                    <span class="ident">size</span>: <span class="ident">size</span>,
+                    <span class="ident">size</span>,
                     <span class="ident">next</span>: <span class="ident">hole</span>.<span class="ident">next</span>.<span class="ident">take</span>(), <span class="comment">// Ref to Y (if it exists)</span>
                 };
 
@@ -734,10 +699,7 @@
 <span class="doccomment">/// Get the greatest x with the given alignment such that x &lt;= the given address. The alignment</span>
 <span class="doccomment">/// must be a power of two.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">align_down</span>(<span class="ident">addr</span>: <span class="ident">usize</span>, <span class="ident">align</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
-    <span class="macro">assert</span><span class="macro">!</span>(
-        <span class="ident">align</span> <span class="op">==</span> <span class="number">0</span> <span class="op">||</span> <span class="ident">align</span>.<span class="ident">is_power_of_two</span>(),
-        <span class="string">&quot;Can only align to a power of two&quot;</span>
-    );
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">align</span> <span class="op">==</span> <span class="number">0</span> <span class="op">||</span> <span class="ident">align</span>.<span class="ident">is_power_of_two</span>(), <span class="string">&quot;Can only align to a power of two&quot;</span>);
 
     <span class="kw">if</span> <span class="ident">align</span>.<span class="ident">is_power_of_two</span>() {
         <span class="comment">/*

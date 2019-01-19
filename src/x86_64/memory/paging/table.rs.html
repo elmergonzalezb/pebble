@@ -218,12 +218,15 @@
 <span class="doccomment">//! use the correct terminology for the levels of page tables (as they&#39;re confusing in the Intel</span>
 <span class="doccomment">//! manual etc.) and so call them P4, P3, P2 and P1 respectively.</span>
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">entry</span>::{<span class="ident">Entry</span>, <span class="ident">EntryFlags</span>};
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">FrameAllocator</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">memory</span>::<span class="ident">kernel_map</span>::<span class="ident">P4_TABLE_ADDRESS</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">memory</span>::<span class="ident">VirtualAddress</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::{<span class="ident">Index</span>, <span class="ident">IndexMut</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{
+    <span class="ident">entry</span>::{<span class="ident">Entry</span>, <span class="ident">EntryFlags</span>},
+    <span class="ident">FrameAllocator</span>,
+};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">memory</span>::{<span class="ident">kernel_map</span>::<span class="ident">P4_TABLE_ADDRESS</span>, <span class="ident">VirtualAddress</span>};
+<span class="kw">use</span> <span class="ident">core</span>::{
+    <span class="ident">marker</span>::<span class="ident">PhantomData</span>,
+    <span class="ident">ops</span>::{<span class="ident">Index</span>, <span class="ident">IndexMut</span>},
+};
 
 <span class="doccomment">/// This points to the **currently installed** P4, **if** it is correctly recursively mapped. This</span>
 <span class="doccomment">/// **does not** hold in the bootloader before we install our own tables.</span>
@@ -268,10 +271,11 @@
 <span class="doccomment">/// easier by the identity mapping that UEFI gives us anyway, so we use it to our advantage.</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">IdentityMapping</span> {}
 
-<span class="doccomment">/// This is a marker type that specifies that we are in an environment where the active P4 page table</span>
-<span class="doccomment">/// should always have a recursive entry - an entry that contains the physical address of the P4</span>
-<span class="doccomment">/// itself. This allows us to access the backing memory of the page tables through special virtual</span>
-<span class="doccomment">/// addresses that &quot;loop&quot; through the recursive P4 entry to access every level of the page tables.</span>
+<span class="doccomment">/// This is a marker type that specifies that we are in an environment where the active P4 page</span>
+<span class="doccomment">/// table should always have a recursive entry - an entry that contains the physical address of the</span>
+<span class="doccomment">/// P4 itself. This allows us to access the backing memory of the page tables through special</span>
+<span class="doccomment">/// virtual addresses that &quot;loop&quot; through the recursive P4 entry to access every level of the page</span>
+<span class="doccomment">/// tables.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This mapping is used by the kernel, and should be safe from the point the initial kernel page</span>
 <span class="doccomment">/// tables are installed in the bootloader.</span>
@@ -324,9 +328,7 @@
              * the sign-extension bits, so we make sure to re-canonicalise it again.
              */</span>
             <span class="kw">let</span> <span class="ident">table_address</span> <span class="op">=</span> <span class="ident">table</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>;
-            <span class="prelude-val">Some</span>(<span class="ident">VirtualAddress</span>::<span class="ident">new_canonicalise</span>(
-                (<span class="ident">table_address</span> <span class="op">&lt;&lt;</span> <span class="number">9</span>) <span class="op">|</span> <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">index</span>) <span class="op">&lt;&lt;</span> <span class="number">12</span>,
-            ))
+            <span class="prelude-val">Some</span>(<span class="ident">VirtualAddress</span>::<span class="ident">new_canonicalise</span>((<span class="ident">table_address</span> <span class="op">&lt;&lt;</span> <span class="number">9</span>) <span class="op">|</span> <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">index</span>) <span class="op">&lt;&lt;</span> <span class="number">12</span>))
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
         }
@@ -384,9 +386,7 @@
     {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">next_table</span>(<span class="ident">index</span>).<span class="ident">is_none</span>() {
             <span class="macro">assert</span><span class="macro">!</span>(
-                <span class="op">!</span><span class="self">self</span>.<span class="ident">entries</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>]
-                    .<span class="ident">flags</span>()
-                    .<span class="ident">contains</span>(<span class="ident">EntryFlags</span>::<span class="ident">HUGE_PAGE</span>),
+                <span class="op">!</span><span class="self">self</span>.<span class="ident">entries</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">flags</span>().<span class="ident">contains</span>(<span class="ident">EntryFlags</span>::<span class="ident">HUGE_PAGE</span>),
                 <span class="string">&quot;mapping code does not support huge pages&quot;</span>
             );
 
