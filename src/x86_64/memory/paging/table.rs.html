@@ -213,6 +213,15 @@
 <span id="213">213</span>
 <span id="214">214</span>
 <span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module contains types for representing raw page tables in a type-safe way. We also don&#39;t</span>
 <span class="doccomment">//! use the correct terminology for the levels of page tables (as they&#39;re confusing in the Intel</span>
@@ -222,7 +231,10 @@
     <span class="ident">entry</span>::{<span class="ident">Entry</span>, <span class="ident">EntryFlags</span>},
     <span class="ident">FrameAllocator</span>,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">memory</span>::{<span class="ident">kernel_map</span>::<span class="ident">P4_TABLE_ADDRESS</span>, <span class="ident">VirtualAddress</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">memory</span>::{
+    <span class="ident">kernel_map</span>::{<span class="ident">KERNEL_P4_START</span>, <span class="ident">P4_TABLE_RECURSIVE_ADDRESS</span>},
+    <span class="ident">VirtualAddress</span>,
+};
 <span class="kw">use</span> <span class="ident">core</span>::{
     <span class="ident">marker</span>::<span class="ident">PhantomData</span>,
     <span class="ident">ops</span>::{<span class="ident">Index</span>, <span class="ident">IndexMut</span>},
@@ -230,7 +242,13 @@
 
 <span class="doccomment">/// This points to the **currently installed** P4, **if** it is correctly recursively mapped. This</span>
 <span class="doccomment">/// **does not** hold in the bootloader before we install our own tables.</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const</span> <span class="ident">P4</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Table</span><span class="op">&lt;</span><span class="ident">Level4</span>, <span class="ident">RecursiveMapping</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">P4_TABLE_ADDRESS</span>.<span class="ident">mut_ptr</span>();
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const</span> <span class="ident">P4</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Table</span><span class="op">&lt;</span><span class="ident">Level4</span>, <span class="ident">RecursiveMapping</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">P4_TABLE_RECURSIVE_ADDRESS</span>.<span class="ident">mut_ptr</span>();
+
+<span class="doccomment">/// This points to the kernel&#39;s P4 without using its recursive mapping. It is mainly used, instead</span>
+<span class="doccomment">/// of `P4`, when we&#39;ve put another set of page tables&#39; address in the kernel&#39;s table&#39;s recursive</span>
+<span class="doccomment">/// entry, so we can modify those using the recursive mapping.</span>
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const</span> <span class="ident">KERNEL_P4_NON_RECURSIVE</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Table</span><span class="op">&lt;</span><span class="ident">Level4</span>, <span class="ident">RecursiveMapping</span><span class="op">&gt;</span> <span class="op">=</span>
+    <span class="ident">KERNEL_P4_START</span>.<span class="ident">mut_ptr</span>();
 
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Level4</span> {}
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Level3</span> {}

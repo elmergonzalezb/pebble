@@ -139,9 +139,6 @@
 <span id="139">139</span>
 <span id="140">140</span>
 <span id="141">141</span>
-<span id="142">142</span>
-<span id="143">143</span>
-<span id="144">144</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! One of the allocators we use to manage physical memory is the buddy allocator. With this</span>
 <span class="doccomment">//! allocator, memory is broken up into a number of blocks, each of which is a power-of-2 in size.</span>
@@ -156,10 +153,7 @@
 <span class="doccomment">//! improved in the future</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">math</span>::{<span class="ident">ceiling_log2</span>, <span class="ident">flooring_log2</span>};
-<span class="kw">use</span> <span class="ident">alloc</span>::{
-    <span class="ident">collections</span>::<span class="ident">BTreeSet</span>,
-    <span class="ident">vec</span>::{<span class="self">self</span>, <span class="ident">Vec</span>},
-};
+<span class="kw">use</span> <span class="ident">alloc</span>::{<span class="ident">collections</span>::<span class="ident">BTreeSet</span>, <span class="ident">vec</span>::<span class="ident">Vec</span>};
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">cmp</span>::<span class="ident">min</span>, <span class="ident">ops</span>::<span class="ident">Range</span>};
 <span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::{<span class="ident">paging</span>::<span class="ident">Frame</span>, <span class="ident">PhysicalAddress</span>};
 

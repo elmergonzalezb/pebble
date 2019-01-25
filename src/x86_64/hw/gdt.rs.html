@@ -178,6 +178,22 @@
 <span id="178">178</span>
 <span id="179">179</span>
 <span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">tss</span>::<span class="ident">Tss</span>, <span class="ident">DescriptorTablePointer</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">memory</span>::<span class="ident">VirtualAddress</span>;
@@ -211,6 +227,7 @@
 
 <span class="kw">const</span> <span class="ident">ACCESSED</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">40</span>;
 <span class="kw">const</span> <span class="ident">READABLE</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">41</span>;
+<span class="kw">const</span> <span class="ident">WRITABLE</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">41</span>;
 <span class="kw">const</span> <span class="ident">USER_SEGMENT</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">44</span>;
 <span class="kw">const</span> <span class="ident">PRESENT</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">47</span>;
 <span class="kw">const</span> <span class="ident">LONG_MODE</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">53</span>;
@@ -233,6 +250,15 @@
                 <span class="op">+</span> <span class="ident">LONG_MODE</span>
                 <span class="op">+</span> ((<span class="ident">ring</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;&lt;</span> <span class="number">45</span>),
         )
+    }
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DataSegment</span>(<span class="ident">u64</span>);
+
+<span class="kw">impl</span> <span class="ident">DataSegment</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ring</span>: <span class="ident">PrivilegeLevel</span>) <span class="op">-&gt;</span> <span class="ident">DataSegment</span> {
+        <span class="ident">DataSegment</span>(<span class="ident">ACCESSED</span> <span class="op">+</span> <span class="ident">WRITABLE</span> <span class="op">+</span> <span class="ident">PRESENT</span> <span class="op">+</span> <span class="ident">USER_SEGMENT</span> <span class="op">+</span> ((<span class="ident">ring</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;&lt;</span> <span class="number">45</span>))
     }
 }
 
@@ -265,9 +291,12 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KERNEL_CODE_SELECTOR</span>: <span class="ident">SegmentSelector</span> <span class="op">=</span> <span class="ident">SegmentSelector</span>(<span class="number">0x8</span>);
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">USER_CODE_SELECTOR</span>: <span class="ident">SegmentSelector</span> <span class="op">=</span> <span class="ident">SegmentSelector</span>(<span class="number">0x10</span>);
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BOOTSTRAP_TSS_SELECTOR</span>: <span class="ident">SegmentSelector</span> <span class="op">=</span> <span class="ident">SegmentSelector</span>(<span class="number">0x18</span>);
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KERNEL_CODE_SELECTOR</span>: <span class="ident">SegmentSelector</span> <span class="op">=</span> <span class="ident">SegmentSelector</span>::<span class="ident">new</span>(<span class="number">1</span>, <span class="ident">PrivilegeLevel</span>::<span class="ident">Ring0</span>);
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">USER_CODE_SELECTOR</span>: <span class="ident">SegmentSelector</span> <span class="op">=</span> <span class="ident">SegmentSelector</span>::<span class="ident">new</span>(<span class="number">2</span>, <span class="ident">PrivilegeLevel</span>::<span class="ident">Ring3</span>);
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">USER_DATA_SELECTOR</span>: <span class="ident">SegmentSelector</span> <span class="op">=</span> <span class="ident">SegmentSelector</span>::<span class="ident">new</span>(<span class="number">3</span>, <span class="ident">PrivilegeLevel</span>::<span class="ident">Ring3</span>);
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BOOTSTRAP_TSS_SELECTOR</span>: <span class="ident">SegmentSelector</span> <span class="op">=</span> <span class="ident">SegmentSelector</span>::<span class="ident">new</span>(<span class="number">4</span>, <span class="ident">PrivilegeLevel</span>::<span class="ident">Ring0</span>);
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NUM_STATIC_ENTRIES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAX_CPUS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">8</span>;
 
 <span class="doccomment">/// A GDT suitable for the kernel to use. It contains two code segments, one for Ring 0 and another</span>
@@ -278,6 +307,7 @@
     <span class="ident">null</span>: <span class="ident">u64</span>,
     <span class="ident">kernel_code</span>: <span class="ident">CodeSegment</span>,
     <span class="ident">user_code</span>: <span class="ident">CodeSegment</span>,
+    <span class="ident">user_data</span>: <span class="ident">DataSegment</span>,
     <span class="ident">tsss</span>: [<span class="ident">TssSegment</span>; <span class="ident">MAX_CPUS</span>],
 
     <span class="doccomment">/// This field is not part of the actual GDT; we just use it to keep track of how many TSS</span>
@@ -286,14 +316,15 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Gdt</span> {
-    <span class="doccomment">/// Create a `Gdt` with pre-populated code segments, and `MAX_CPUS` empty TSSs. The kernel</span>
-    <span class="doccomment">/// should populate a TSS for each processor it plans to bring up, then call the `load` method</span>
-    <span class="doccomment">/// to load the new GDT and switch to the new code and (null) data segments.</span>
+    <span class="doccomment">/// Create a `Gdt` with pre-populated code and data segments, and `MAX_CPUS` empty TSSs. The</span>
+    <span class="doccomment">/// kernel should populate a TSS for each processor it plans to bring up, then call the</span>
+    <span class="doccomment">/// `load` method to load the new GDT and switch to the new kernel code and data segments.</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">Gdt</span> {
         <span class="ident">Gdt</span> {
             <span class="ident">null</span>: <span class="number">0</span>,
             <span class="ident">kernel_code</span>: <span class="ident">CodeSegment</span>::<span class="ident">new</span>(<span class="ident">PrivilegeLevel</span>::<span class="ident">Ring0</span>),
             <span class="ident">user_code</span>: <span class="ident">CodeSegment</span>::<span class="ident">new</span>(<span class="ident">PrivilegeLevel</span>::<span class="ident">Ring3</span>),
+            <span class="ident">user_data</span>: <span class="ident">DataSegment</span>::<span class="ident">new</span>(<span class="ident">PrivilegeLevel</span>::<span class="ident">Ring3</span>),
             <span class="ident">tsss</span>: [<span class="ident">TssSegment</span>::<span class="ident">empty</span>(); <span class="ident">MAX_CPUS</span>],
             <span class="ident">next_free_tss</span>: <span class="number">0</span>,
         }
@@ -327,7 +358,9 @@
         }
 
         <span class="kw">let</span> <span class="ident">gdt_ptr</span> <span class="op">=</span> <span class="ident">DescriptorTablePointer</span> {
-            <span class="ident">limit</span>: (((<span class="number">3</span> <span class="op">+</span> <span class="ident">MAX_CPUS</span>) <span class="op">*</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>()) <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">u16</span>,
+            <span class="ident">limit</span>: (<span class="ident">NUM_STATIC_ENTRIES</span> <span class="op">*</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>()
+                <span class="op">+</span> <span class="ident">MAX_CPUS</span> <span class="op">*</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">TssSegment</span><span class="op">&gt;</span>()
+                <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">u16</span>,
             <span class="ident">base</span>: <span class="ident">VirtualAddress</span>::<span class="ident">new</span>(<span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">unwrap</span>(),
         };
 
@@ -343,17 +376,16 @@
               mov ss, ax
               
               // Switch to the new code segment
-              push 0x08
+              push rbx
               lea rax, [rip+0x3]
               push rax
               retfq
               1:
               
               // Load the TSS
-              mov ax, 0x18
-              ltr ax&quot;</span>
+              ltr cx&quot;</span>
         :
-        : <span class="string">&quot;r&quot;</span>(<span class="kw-2">&amp;</span><span class="ident">gdt_ptr</span>)
+        : <span class="string">&quot;r&quot;</span>(<span class="kw-2">&amp;</span><span class="ident">gdt_ptr</span>), <span class="string">&quot;{rbx}&quot;</span>(<span class="ident">KERNEL_CODE_SELECTOR</span>), <span class="string">&quot;{rcx}&quot;</span>(<span class="ident">BOOTSTRAP_TSS_SELECTOR</span>)
         : <span class="string">&quot;rax&quot;</span>
         : <span class="string">&quot;intel&quot;</span>
         );

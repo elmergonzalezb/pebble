@@ -8,7 +8,7 @@ available to fulfil that allocation, a larger block is split into two <em>buddy<
 the size, one of which is used to satisfy the allocation, or is split recursively until it's
 the correct size. When a block is freed, the buddy is queried, and if it's free, the blocks are
 coalesced again into a larger block.</p>
-</td></tr><tr class='module-item'><td><a class="mod" href="physical/index.html" title='kernel::x86_64::memory::physical mod'>physical</a></td><td class='docblock-short'></td></tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+</td></tr><tr class='module-item'><td><a class="mod" href="physical/index.html" title='kernel::x86_64::memory::physical mod'>physical</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="mod" href="userspace_map/index.html" title='kernel::x86_64::memory::userspace_map mod'>userspace_map</a></td><td class='docblock-short'></td></tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table><tr class='module-item'><td><a class="struct" href="struct.PhysicalMapping.html" title='kernel::x86_64::memory::PhysicalMapping struct'>PhysicalMapping</a></td><td class='docblock-short'><p>Sometimes the system needs to access specific areas of physical memory. For example,
 memory-mapped hardware or configuration tables are located at specific physical addresses.
 <code>PhysicalMapping</code>s provide an easy way to map a given physical address to a virtual address in
