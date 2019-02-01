@@ -101,6 +101,28 @@
 <span id="101">101</span>
 <span id="102">102</span>
 <span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
@@ -171,39 +193,61 @@
 <span class="doccomment">/// is intended because writing to control registers can be kinda dangerous. The name of the control</span>
 <span class="doccomment">/// register should be passed as any of: `CR0`, `CR1`, `CR2`, `CR3`, `CR4`, `CR8`.</span>
 <span class="kw">pub</span> <span class="kw">macro</span> <span class="ident">write_control_reg</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">reg</span>: <span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>: <span class="ident">expr</span>) {
+    <span class="comment">/*
+     * This will cause a type-check error if $value isn&#39;t a u64.
+     */</span>
+    <span class="kw">let</span> <span class="ident">value_u64</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>;
     <span class="macro">asm</span><span class="macro">!</span>(<span class="macro">concat</span><span class="macro">!</span>(<span class="string">&quot;mov $0, %&quot;</span>, <span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">reg</span>))
          :
-         : <span class="string">&quot;r&quot;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>)
+         : <span class="string">&quot;r&quot;</span>(<span class="ident">value_u64</span>)
          : <span class="string">&quot;memory&quot;</span>
          : <span class="string">&quot;volatile&quot;</span>
         );
 }
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EFER</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0xC0000080</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EFER</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0xc0000080</span>;
+
+<span class="doccomment">/// Contains the Ring 0 and Ring 3 code-segment selectors loaded by `syscall` and `sysret`,</span>
+<span class="doccomment">/// respectively:</span>
+<span class="doccomment">/// * `syscall` loads bits 32-47 into CS (so this should be the Ring 0 code-segment)</span>
+<span class="doccomment">/// * `sysret` loads bits 48-63 into CS (so this should be the Ring 3 code-segment)</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// These instructions assume that the data-segment for each ring is directly after the</span>
+<span class="doccomment">/// code-segment.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IA32_STAR</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0xc0000081</span>;
+
+<span class="doccomment">/// Contains the virtual address of the handler to call upon `syscall`.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IA32_LSTAR</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0xc0000082</span>;
+
+<span class="doccomment">/// Upon `syscall`, the value of this MSR is used to mask `RFLAGS`. Specifically, if a bit is set</span>
+<span class="doccomment">/// in this MSR, that bit in RFLAGS is zerod.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IA32_FMASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0xc0000084</span>;
 
 <span class="doccomment">/// Read from a model-specific register.</span>
-<span class="kw">pub</span> <span class="kw">macro</span> <span class="ident">read_msr</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">reg</span>: <span class="ident">expr</span>) {{
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_msr</span>(<span class="ident">reg</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
     <span class="kw">let</span> (<span class="ident">high</span>, <span class="ident">low</span>): (<span class="ident">u32</span>, <span class="ident">u32</span>);
     <span class="kw">unsafe</span> {
         <span class="macro">asm</span><span class="macro">!</span>(<span class="string">&quot;rdmsr&quot;</span>
-             : <span class="string">&quot;={eax}&quot;</span>(<span class="ident">low</span>), <span class="string">&quot;={edx}&quot;</span>(<span class="ident">high</span>)
-             : <span class="string">&quot;{ecx}&quot;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">reg</span>)
-             : <span class="string">&quot;memory&quot;</span>
-             : <span class="string">&quot;volatile&quot;</span>
-            );
-    }
-    ((<span class="ident">high</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;&lt;</span> <span class="number">32</span> <span class="op">|</span> (<span class="ident">low</span> <span class="kw">as</span> <span class="ident">u64</span>))
-}}
-
-<span class="doccomment">/// Write to a model-specific register. This is unsafe, because writing to certain MSRs can</span>
-<span class="doccomment">/// compromise memory safety.</span>
-<span class="kw">pub</span> <span class="kw">macro</span> <span class="ident">write_msr</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">reg</span>: <span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>: <span class="ident">expr</span>) {
-    <span class="macro">asm</span><span class="macro">!</span>(<span class="string">&quot;wrmsr&quot;</span>
-         :
-         : <span class="string">&quot;{ecx}&quot;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">reg</span>), <span class="string">&quot;{eax}&quot;</span>((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>) <span class="kw">as</span> <span class="ident">u32</span>), <span class="string">&quot;{edx}&quot;</span>(((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>) <span class="op">&gt;&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <span class="ident">u32</span>)
+         : <span class="string">&quot;={eax}&quot;</span>(<span class="ident">low</span>), <span class="string">&quot;={edx}&quot;</span>(<span class="ident">high</span>)
+         : <span class="string">&quot;{ecx}&quot;</span>(<span class="ident">reg</span>)
          : <span class="string">&quot;memory&quot;</span>
          : <span class="string">&quot;volatile&quot;</span>
         );
+    }
+    ((<span class="ident">high</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;&lt;</span> <span class="number">32</span> <span class="op">|</span> (<span class="ident">low</span> <span class="kw">as</span> <span class="ident">u64</span>))
+}
+
+<span class="doccomment">/// Write to a model-specific register. This is unsafe, because writing to certain MSRs can</span>
+<span class="doccomment">/// compromise memory safety.</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">write_msr</span>(<span class="ident">reg</span>: <span class="ident">u32</span>, <span class="ident">value</span>: <span class="ident">u64</span>) {
+    <span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
+
+    <span class="macro">asm</span><span class="macro">!</span>(<span class="string">&quot;wrmsr&quot;</span>
+     :
+     : <span class="string">&quot;{ecx}&quot;</span>(<span class="ident">reg</span>), <span class="string">&quot;{eax}&quot;</span>(<span class="ident">value</span> <span class="kw">as</span> <span class="ident">u32</span>), <span class="string">&quot;{edx}&quot;</span>(<span class="ident">value</span>.<span class="ident">get_bits</span>(<span class="number">32</span>..<span class="number">64</span>) <span class="kw">as</span> <span class="ident">u32</span>)
+     : <span class="string">&quot;memory&quot;</span>
+     : <span class="string">&quot;volatile&quot;</span>
+    );
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g., <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g., <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g., <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../../";window.currentCrate = "x86_64";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
