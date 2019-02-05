@@ -125,6 +125,9 @@
 <span id="125">125</span>
 <span id="126">126</span>
 <span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">entry</span>::<span class="ident">EntryFlags</span>,
@@ -172,7 +175,10 @@
     <span class="doccomment">/// Get the `PhysicalAddress` a given `VirtualAddress` is mapped to by these page tables, if</span>
     <span class="doccomment">/// it&#39;s mapped. If these page tables don&#39;t map it to any physical frame, this returns `None`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">translate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">VirtualAddress</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PhysicalAddress</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">translate_page</span>(<span class="ident">Page</span>::<span class="ident">contains</span>(<span class="ident">address</span>))<span class="question-mark">?</span>.<span class="ident">start_address</span>() <span class="op">+</span> <span class="ident">address</span>.<span class="ident">offset_into_page</span>()
+        <span class="prelude-val">Some</span>(
+            <span class="self">self</span>.<span class="ident">translate_page</span>(<span class="ident">Page</span>::<span class="ident">contains</span>(<span class="ident">address</span>))<span class="question-mark">?</span>.<span class="ident">start_address</span>()
+                <span class="op">+</span> <span class="ident">address</span>.<span class="ident">offset_into_page</span>(),
+        )
     }
 
     <span class="doccomment">/// Get the physical `Frame` that a given virtual `Page` is mapped to, if it&#39;s mapped.</span>

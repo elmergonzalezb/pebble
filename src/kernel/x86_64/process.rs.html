@@ -273,7 +273,7 @@
          * areas.
          */</span>
         <span class="kw">let</span> <span class="ident">stack_bottom</span> <span class="op">=</span> <span class="ident">USER_STACKS_START</span>;
-        <span class="kw">let</span> <span class="ident">stack_top</span> <span class="op">=</span> (<span class="ident">stack_bottom</span> <span class="op">+</span> <span class="ident">INITIAL_STACK_SIZE</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">stack_top</span> <span class="op">=</span> <span class="ident">stack_bottom</span> <span class="op">+</span> <span class="ident">INITIAL_STACK_SIZE</span>;
 
         <span class="ident">arch</span>.<span class="ident">kernel_page_table</span>.<span class="ident">lock</span>().<span class="ident">with</span>(
             <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">page_table</span>,

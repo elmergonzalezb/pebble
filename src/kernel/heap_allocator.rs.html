@@ -359,9 +359,6 @@
 <span id="359">359</span>
 <span id="360">360</span>
 <span id="361">361</span>
-<span id="362">362</span>
-<span id="363">363</span>
-<span id="364">364</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">core</span>::{
     <span class="ident">alloc</span>::{<span class="ident">AllocErr</span>, <span class="ident">GlobalAlloc</span>, <span class="ident">Layout</span>},
@@ -534,7 +531,7 @@
          * We need to add front padding to correctly align the data
          * in the hole.
          */</span>
-        <span class="kw">let</span> <span class="ident">aligned_addr</span> <span class="op">=</span> (<span class="ident">hole</span>.<span class="ident">addr</span> <span class="op">+</span> <span class="ident">HoleList</span>::<span class="ident">get_min_size</span>()).<span class="ident">unwrap</span>().<span class="ident">align_up</span>(<span class="ident">required_align</span>);
+        <span class="kw">let</span> <span class="ident">aligned_addr</span> <span class="op">=</span> (<span class="ident">hole</span>.<span class="ident">addr</span> <span class="op">+</span> <span class="ident">HoleList</span>::<span class="ident">get_min_size</span>()).<span class="ident">align_up</span>(<span class="ident">required_align</span>);
 
         (
             <span class="ident">aligned_addr</span>,
@@ -564,7 +561,7 @@
          * use the extra space.
          */</span>
         <span class="prelude-val">Some</span>(<span class="ident">HoleInfo</span> {
-            <span class="ident">addr</span>: (<span class="ident">aligned_hole</span>.<span class="ident">addr</span> <span class="op">+</span> <span class="ident">required_size</span>).<span class="ident">unwrap</span>(),
+            <span class="ident">addr</span>: <span class="ident">aligned_hole</span>.<span class="ident">addr</span> <span class="op">+</span> <span class="ident">required_size</span>,
             <span class="ident">size</span>: <span class="ident">aligned_hole</span>.<span class="ident">size</span> <span class="op">-</span> <span class="ident">required_size</span>,
         })
     };
@@ -615,14 +612,11 @@
         } <span class="kw">else</span> {
             <span class="ident">VirtualAddress</span>::<span class="ident">new</span>(<span class="ident">hole</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">unwrap</span>()
         };
-        <span class="macro">assert</span><span class="macro">!</span>(
-            (<span class="ident">hole_addr</span> <span class="op">+</span> <span class="ident">hole</span>.<span class="ident">size</span>).<span class="ident">unwrap</span>() <span class="op">&lt;=</span> <span class="ident">addr</span>,
-            <span class="string">&quot;Invalid deallocation (probable double free)&quot;</span>
-        );
+        <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">hole_addr</span> <span class="op">+</span> <span class="ident">hole</span>.<span class="ident">size</span>) <span class="op">&lt;=</span> <span class="ident">addr</span>, <span class="string">&quot;Invalid deallocation (probable double free)&quot;</span>);
         <span class="kw">let</span> <span class="ident">next_hole_info</span> <span class="op">=</span> <span class="ident">hole</span>.<span class="ident">next</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">next</span><span class="op">|</span> <span class="ident">next</span>.<span class="ident">info</span>());
 
         <span class="kw">match</span> <span class="ident">next_hole_info</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="kw">if</span> <span class="ident">hole_addr</span> <span class="op">+</span> <span class="ident">hole</span>.<span class="ident">size</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">addr</span>) <span class="op">&amp;&amp;</span> <span class="ident">addr</span> <span class="op">+</span> <span class="ident">size</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>.<span class="ident">addr</span>) <span class="op">=&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="kw">if</span> (<span class="ident">hole_addr</span> <span class="op">+</span> <span class="ident">hole</span>.<span class="ident">size</span> <span class="op">==</span> <span class="ident">addr</span>) <span class="op">&amp;&amp;</span> (<span class="ident">addr</span> <span class="op">+</span> <span class="ident">size</span> <span class="op">==</span> <span class="ident">next</span>.<span class="ident">addr</span>) <span class="op">=&gt;</span> {
                 <span class="comment">/*
                  * The block exactly fills the gap between this hole and the next:
                  *      Before: ___XXX____YYYY___    (X=this hole, Y=next hole)
@@ -633,7 +627,7 @@
                 <span class="ident">hole</span>.<span class="ident">next</span> <span class="op">=</span> <span class="ident">hole</span>.<span class="ident">next</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">next</span>.<span class="ident">take</span>(); <span class="comment">// Remove Y</span>
             }
 
-            <span class="kw">_</span> <span class="kw">if</span> <span class="ident">hole_addr</span> <span class="op">+</span> <span class="ident">hole</span>.<span class="ident">size</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">addr</span>) <span class="op">=&gt;</span> {
+            <span class="kw">_</span> <span class="kw">if</span> <span class="ident">hole_addr</span> <span class="op">+</span> <span class="ident">hole</span>.<span class="ident">size</span> <span class="op">==</span> <span class="ident">addr</span> <span class="op">=&gt;</span> {
                 <span class="comment">/*
                  * The block is right behind this hole but there is used memory after it:
                  *      Before: ___XXX______YYYY___ (X=this hole, Y=next hole)
@@ -646,7 +640,7 @@
                 <span class="ident">hole</span>.<span class="ident">size</span> <span class="op">+=</span> <span class="ident">size</span>; <span class="comment">// Merge F into X</span>
             }
 
-            <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="kw">if</span> <span class="ident">addr</span> <span class="op">+</span> <span class="ident">size</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>.<span class="ident">addr</span>) <span class="op">=&gt;</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="kw">if</span> <span class="ident">addr</span> <span class="op">+</span> <span class="ident">size</span> <span class="op">==</span> <span class="ident">next</span>.<span class="ident">addr</span> <span class="op">=&gt;</span> {
                 <span class="comment">/*
                  * The block is right before the next hole but there is used memory before it:
                  *      Before: ___XXX______YYYY___
