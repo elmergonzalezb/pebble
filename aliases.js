@@ -4,6 +4,7 @@ ALIASES["bit_field"] = {};
 ALIASES["bitflags"] = {};
 ALIASES["cfg_if"] = {};
 ALIASES["kernel"] = {};
+ALIASES["libpebble"] = {};
 ALIASES["log"] = {};
 ALIASES["num"] = {};
 ALIASES["num_complex"] = {};

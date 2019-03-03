@@ -55,6 +55,9 @@
 <span id="55">55</span>
 <span id="56">56</span>
 <span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">test</span>), <span class="ident">no_std</span>)]</span>
 <span class="attribute">#![<span class="ident">feature</span>(
@@ -67,7 +70,8 @@
     <span class="ident">core_intrinsics</span>,
     <span class="ident">trait_alias</span>,
     <span class="ident">type_ascription</span>,
-    <span class="ident">naked_functions</span>
+    <span class="ident">naked_functions</span>,
+    <span class="ident">bind_by_move_pattern_guards</span>
 )]</span>
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
@@ -88,6 +92,8 @@
 
 <span class="kw">mod</span> <span class="ident">arch</span>;
 <span class="kw">mod</span> <span class="ident">heap_allocator</span>;
+<span class="kw">mod</span> <span class="ident">process_map</span>;
+<span class="kw">mod</span> <span class="ident">syscall</span>;
 <span class="kw">mod</span> <span class="ident">util</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">arch</span>::<span class="ident">Architecture</span>, <span class="ident">heap_allocator</span>::<span class="ident">LockedHoleAllocator</span>};

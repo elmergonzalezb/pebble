@@ -373,6 +373,46 @@
 <span id="373">373</span>
 <span id="374">374</span>
 <span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">Arch</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">binary_pretty_print</span>::<span class="ident">BinaryPrettyPrint</span>;
@@ -421,7 +461,7 @@
 
 <span class="kw">impl</span> <span class="ident">InterruptController</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">arch</span>: <span class="kw-2">&amp;</span><span class="ident">Arch</span>, <span class="ident">interrupt_model</span>: <span class="kw-2">&amp;</span><span class="ident">InterruptModel</span>) <span class="op">-&gt;</span> <span class="ident">InterruptController</span> {
-        <span class="self">Self</span>::<span class="ident">install_yield_handler</span>();
+        <span class="self">Self</span>::<span class="ident">install_syscall_handler</span>();
         <span class="self">Self</span>::<span class="ident">install_exception_handlers</span>();
 
         <span class="kw">unsafe</span> {
@@ -494,15 +534,13 @@
         <span class="macro">set_handler_with_error_code</span><span class="macro">!</span>(<span class="ident">double_fault</span>, <span class="ident">double_fault_handler</span>);
     }
 
-    <span class="kw">fn</span> <span class="ident">install_yield_handler</span>() {
+    <span class="kw">fn</span> <span class="ident">install_syscall_handler</span>() {
         <span class="comment">/*
-         * On x86_64, processes can use the `syscall` instruction to yield from userspace back
-         * into the kernel, as this instruction will always be present on x86_64.
-         * TODO: wondering if we could use fs or gs for this (per-cpu scheduling info kinda)?
+         * On x86_64, the `syscall` instruction will always be present, so we only support that
+         * for making system calls.
          *
          * Refer to the documentation comments of each MSR to understand what this code is doing.
          */</span>
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">x86_64</span>::<span class="ident">process</span>::<span class="ident">yield_handler</span>;
         <span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">hw</span>::{
             <span class="ident">gdt</span>::<span class="ident">USER_COMPAT_CODE_SELECTOR</span>,
             <span class="ident">registers</span>::{<span class="ident">IA32_FMASK</span>, <span class="ident">IA32_LSTAR</span>, <span class="ident">IA32_STAR</span>},
@@ -522,9 +560,90 @@
 
         <span class="kw">unsafe</span> {
             <span class="ident">write_msr</span>(<span class="ident">IA32_STAR</span>, <span class="ident">selectors</span>);
-            <span class="ident">write_msr</span>(<span class="ident">IA32_LSTAR</span>, <span class="macro">wrap_syscall_handler</span><span class="macro">!</span>(<span class="ident">yield_handler</span>));
+            <span class="ident">write_msr</span>(<span class="ident">IA32_LSTAR</span>, <span class="ident">syscall_handler</span> <span class="kw">as</span> <span class="ident">u64</span>);
             <span class="ident">write_msr</span>(<span class="ident">IA32_FMASK</span>, <span class="number">0</span>);
         }
+    }
+}
+
+<span class="attribute">#[<span class="ident">naked</span>]</span>
+<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">syscall_handler</span>() <span class="op">-&gt;</span> <span class="op">!</span> {
+    <span class="comment">/*
+     * TODO: we might want to switch to a kernel stack and stuff?
+     */</span>
+
+    <span class="comment">/*
+     * Save all the scratch registers onto the stack, **except `rax`**, because we put the return
+     * value of the system call into it anyways, so it doesn&#39;t need to be preserved.
+     *
+     * `syscall` puts the address of the instruction following it into `rcx`, and `rflags` into
+     * `r11`. Both of these are scratch registers under the System-V ABI, so they&#39;re saved and
+     * restored correctly when we preserve the scratch registers.
+     */</span>
+    <span class="kw">unsafe</span> {
+        <span class="macro">asm</span><span class="macro">!</span>(<span class="string">&quot;push rcx
+              push rdx
+              push rsi
+              push rdi
+              push r8
+              push r9
+              push r10
+              push r11&quot;</span>
+        :
+        :
+        :
+        : <span class="string">&quot;intel&quot;</span>
+        );
+    }
+
+    <span class="comment">/*
+     * Next, we extract the system call number and the potential parameters (depending on how
+     * many params the system call actually takes, some or all of these might actually just
+     * be random stuff from the userspace process - this is fine as long as our handling code
+     * is correct.
+     */</span>
+    <span class="kw">let</span> (<span class="ident">number</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">c</span>, <span class="ident">d</span>, <span class="ident">e</span>) <span class="op">=</span> <span class="kw">unsafe</span> {
+        <span class="kw">let</span> (<span class="ident">number</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">c</span>, <span class="ident">d</span>, <span class="ident">e</span>): (<span class="ident">usize</span>, <span class="ident">usize</span>, <span class="ident">usize</span>, <span class="ident">usize</span>, <span class="ident">usize</span>, <span class="ident">usize</span>);
+
+        <span class="macro">asm</span><span class="macro">!</span>(<span class="string">&quot;&quot;</span>
+        : <span class="string">&quot;={rax}&quot;</span>(<span class="ident">number</span>), <span class="string">&quot;={rdi}&quot;</span>(<span class="ident">a</span>), <span class="string">&quot;={rsi}&quot;</span>(<span class="ident">b</span>), <span class="string">&quot;={rdx}&quot;</span>(<span class="ident">c</span>), <span class="string">&quot;={r8}&quot;</span>(<span class="ident">d</span>), <span class="string">&quot;={r9}&quot;</span>(<span class="ident">e</span>)
+        :
+        :
+        :
+        );
+
+        (<span class="ident">number</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">c</span>, <span class="ident">d</span>, <span class="ident">e</span>)
+    };
+
+    <span class="comment">/*
+     * Call the architecture-independent handler.
+     */</span>
+    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">syscall</span>::<span class="ident">handle_syscall</span>(<span class="ident">number</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">c</span>, <span class="ident">d</span>, <span class="ident">e</span>);
+
+    <span class="comment">/*
+     * - Put the result of the system call in `rax`.
+     * - Restore all the scratch registers we saved (including `rcx` and `r11` so we can
+     *   `sysret`).
+     * - Return to userspace!
+     */</span>
+    <span class="kw">unsafe</span> {
+        <span class="macro">asm</span><span class="macro">!</span>(<span class="string">&quot;pop r11
+              pop r10
+              pop r9
+              pop r8
+              pop rdi
+              pop rsi
+              pop rdx
+              pop rcx
+
+              sysretq&quot;</span>
+        :
+        : <span class="string">&quot;{rax}&quot;</span>(<span class="ident">result</span>)
+        :
+        : <span class="string">&quot;intel&quot;</span>
+        );
+
+        <span class="macro">unreachable</span><span class="macro">!</span>();
     }
 }
 
@@ -600,6 +719,10 @@
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">spurious_handler</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">InterruptStackFrame</span>) {}
 
+<span class="doccomment">/// Macro to save the scratch registers. In System-V, `rbx`, `rbp`, `r12`, `r13`, `r14`, and `r15`</span>
+<span class="doccomment">/// must be restored by the callee, so Rust automatically generates code to restore them, but for</span>
+<span class="doccomment">/// the rest we have to manually preserve them. Use `restore_regs` to restore the scratch registers</span>
+<span class="doccomment">/// before returning from the handler.</span>
 <span class="kw">macro</span> <span class="ident">save_regs</span>() {
     <span class="macro">asm</span><span class="macro">!</span>(<span class="string">&quot;push rax
           push rcx
@@ -617,6 +740,7 @@
         );
 }
 
+<span class="doccomment">/// Restore the saved scratch registers.</span>
 <span class="kw">macro</span> <span class="ident">restore_regs</span>() {
     <span class="macro">asm</span><span class="macro">!</span>(<span class="string">&quot;pop r11
           pop r10
@@ -660,7 +784,7 @@
                      :
                      : <span class="string">&quot;intel&quot;</span>
                      );
-                <span class="ident">core</span>::<span class="ident">intrinsics</span>::<span class="ident">unreachable</span>();
+                <span class="macro">unreachable</span><span class="macro">!</span>();
             }
         }
 
@@ -698,55 +822,11 @@
                      :
                      : <span class="string">&quot;intel&quot;</span>
                     );
-                <span class="ident">core</span>::<span class="ident">intrinsics</span>::<span class="ident">unreachable</span>();
+                <span class="macro">unreachable</span><span class="macro">!</span>();
             }
         }
 
         <span class="ident">wrapper</span>
-    }
-}
-
-<span class="kw">macro</span> <span class="ident">wrap_syscall_handler</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>: <span class="ident">path</span>) {
-    {
-        <span class="attribute">#[<span class="ident">naked</span>]</span>
-        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">wrapper</span>() <span class="op">-&gt;</span> <span class="op">!</span> {
-            <span class="comment">/*
-             * `syscall` puts the address of the instruction following it into rcx, and RFLAGS into
-             * r11. We push them onto the userspace stack so we can restore them before doing a
-             * `sysret`.
-             */</span>
-            <span class="kw">unsafe</span> {
-                <span class="macro">asm</span><span class="macro">!</span>(<span class="string">&quot;push rcx
-                      push r11&quot;</span>
-                     :
-                     :
-                     :
-                     : <span class="string">&quot;intel&quot;</span>);
-            }
-
-            <span class="comment">/*
-             * TODO: we probably need to do some more special stuff (e.g. switch to a kernel stack)
-             */</span>
-
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>();
-
-            <span class="comment">/*
-             * To return to the process, we pop RFLAGS and the address of the next instruction off
-             * the userspace stack again, and `sysret`.
-             */</span>
-            <span class="kw">unsafe</span> {
-                <span class="macro">asm</span><span class="macro">!</span>(<span class="string">&quot;pop r11
-                      pop rcx
-                      sysretq&quot;</span>
-                     :
-                     :
-                     :
-                     : <span class="string">&quot;intel&quot;</span>);
-                <span class="ident">core</span>::<span class="ident">intrinsics</span>::<span class="ident">unreachable</span>();
-            }
-        }
-
-        <span class="ident">wrapper</span> <span class="kw">as</span> <span class="ident">u64</span>
     }
 }
 </pre></div>

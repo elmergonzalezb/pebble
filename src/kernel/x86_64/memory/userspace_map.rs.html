@@ -20,6 +20,8 @@
 <span id="20">20</span>
 <span id="21">21</span>
 <span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::{<span class="ident">paging</span>::<span class="ident">PAGE_SIZE</span>, <span class="ident">VirtualAddress</span>};
 
@@ -31,8 +33,10 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">INITIAL_STACK_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">PAGE_SIZE</span>;
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MEMORY_OBJECTS_START</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
+    <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0x00000006_00000000</span>) };
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RECEIVE_BUFFERS_START</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
     <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0x00000005_00000000</span>) };
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MESSAGE_BUFFERS_START</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SEND_BUFFERS_START</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
     <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0x00000004_00000000</span>) };
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KERNEL_STACKS_START</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
     <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0x00000003_00000000</span>) };
