@@ -102,8 +102,22 @@
 <span id="102">102</span>
 <span id="103">103</span>
 <span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">cfg_if</span>::<span class="ident">cfg_if</span>;
+
+<span class="doccomment">/// A constant such that `x * KIBIBYTES_TO_BYTES` is `x` KiB in bytes</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KIBIBYTES_TO_BYTES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1024</span>;
+<span class="doccomment">/// A constant such that `x * MEBIBYTES_TO_BYTES` is `x` MiB in bytes</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MEBIBYTES_TO_BYTES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1024</span> <span class="op">*</span> <span class="ident">KIBIBYTES_TO_BYTES</span>;
+<span class="doccomment">/// A constant such that `x * GIBIBYTES_TO_BYTES` is `x` GiB in bytes</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">GIBIBYTES_TO_BYTES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1024</span> <span class="op">*</span> <span class="ident">MEBIBYTES_TO_BYTES</span>;
 
 <span class="macro">cfg_if</span><span class="macro">!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tuning-fast_ctlz&quot;</span>)]</span> {

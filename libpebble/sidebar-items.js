@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["syscall",""]],"struct":[["ProcessId",""]],"type":[["Generation",""],["Index",""]]});
+initSidebarItems({"mod":[["object",""],["syscall",""]]});

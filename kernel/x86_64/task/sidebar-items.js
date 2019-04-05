@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["drop_to_usermode",""]],"struct":[["Task","This is the representation of a task on x86_64. It's basically just keeps information about the current instruction pointer and the stack, as all other registers are preserved on the task stack when it's suspended."]]});

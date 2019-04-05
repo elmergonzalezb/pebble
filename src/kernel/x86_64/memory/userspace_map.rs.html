@@ -22,7 +22,14 @@
 <span id="22">22</span>
 <span id="23">23</span>
 <span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">math</span>::<span class="ident">MEBIBYTES_TO_BYTES</span>;
 <span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::{<span class="ident">paging</span>::<span class="ident">PAGE_SIZE</span>, <span class="ident">VirtualAddress</span>};
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KERNEL_SPACE_START</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
@@ -30,7 +37,12 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KERNEL_SPACE_END</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
     <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffffffff_ffffffff</span>) };
 
+<span class="doccomment">/// The initial size of a task&#39;s user and kernel stacks. Must be a multiple of the page size.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">INITIAL_STACK_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">PAGE_SIZE</span>;
+<span class="doccomment">/// Each task&#39;s usermode stack can be a maximum of 2MiB in size. This allows us to use a single</span>
+<span class="doccomment">/// large page to map an entire stack (NOTE: this is not yet implemented; the paging system</span>
+<span class="doccomment">/// currently only suppports 4KiB pages).</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAX_STACK_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">MEBIBYTES_TO_BYTES</span>;
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MEMORY_OBJECTS_START</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
     <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0x00000006_00000000</span>) };

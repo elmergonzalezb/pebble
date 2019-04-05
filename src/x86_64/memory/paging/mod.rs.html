@@ -240,6 +240,9 @@
 <span id="240">240</span>
 <span id="241">241</span>
 <span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">entry</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">frame</span>;
@@ -439,14 +442,15 @@
     <span class="doccomment">/// isn&#39;t really mapped, you can&#39;t modify the *contents* of the mappings. To modify the</span>
     <span class="doccomment">/// physical memory, you will either need to switch to the `InactivePageTable`, or map the</span>
     <span class="doccomment">/// memory you want to modify into the `ActivePageTable` temporarily.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">F</span><span class="op">&gt;</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">table</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">InactivePageTable</span><span class="op">&lt;</span><span class="ident">RecursiveMapping</span><span class="op">&gt;</span>,
         <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>,
         <span class="ident">f</span>: <span class="ident">F</span>,
-    ) <span class="kw">where</span>
+    ) <span class="op">-&gt;</span> <span class="ident">R</span>
+    <span class="kw">where</span>
         <span class="ident">A</span>: <span class="ident">FrameAllocator</span>,
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Mapper</span><span class="op">&lt;</span><span class="ident">RecursiveMapping</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="ident">A</span>),
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Mapper</span><span class="op">&lt;</span><span class="ident">RecursiveMapping</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="ident">A</span>) <span class="op">-&gt;</span> <span class="ident">R</span>,
     {
         <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">kernel_map</span>::<span class="ident">RECURSIVE_ENTRY</span>;
 
@@ -470,7 +474,7 @@
          * because if we gave it a `ActivePageTable`, it could call `with` again, which
          * would not work.
          */</span>
-        <span class="ident">f</span>(<span class="self">self</span>, <span class="ident">allocator</span>);
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">f</span>(<span class="self">self</span>, <span class="ident">allocator</span>);
 
         <span class="comment">/*
          * Restore the kernel&#39;s recursive mapping and flush the TLB again.
@@ -481,6 +485,8 @@
         <span class="kw">let</span> <span class="ident">kernel_p4</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">KERNEL_P4_NON_RECURSIVE</span> };
         <span class="ident">kernel_p4</span>[<span class="ident">RECURSIVE_ENTRY</span>].<span class="ident">set</span>(<span class="ident">kernel_p4_frame</span>, <span class="ident">EntryFlags</span>::<span class="ident">PRESENT</span> <span class="op">|</span> <span class="ident">EntryFlags</span>::<span class="ident">WRITABLE</span>);
         <span class="ident">tlb</span>::<span class="ident">flush</span>();
+
+        <span class="ident">result</span>
     }
 }
 </pre></div>

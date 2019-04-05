@@ -1,1 +1,0 @@
-initSidebarItems({"constant":[["INITIAL_PROCESS_CAPACITY",""]],"enum":[["Entry",""]],"struct":[["ProcessMap","`P` can be any type the architecture-specific code wants to associate each process with. The indexes into this map start at index `1`, as an index of `0` refers to the kernel."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["TableState",""]],"struct":[["AddressSpace",""],["AddressSpaceState","Contains information about what is mapped in an `AddressSpace`. The methods on this type, given the `Mapper` from the table, alter the mappings of this address space."],["StackSet",""]]});

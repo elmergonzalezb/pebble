@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["INITIAL_OBJECT_CAPACITY",""]],"enum":[["Entry",""]],"struct":[["ObjectMap","Stores all the `KernelObject`s against their generational `KernelObjectId`s."]]});
