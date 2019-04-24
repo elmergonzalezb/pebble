@@ -3,15 +3,15 @@
 <p>Note that this might overflow, depending on <code>T</code>. For the primitive
 integer types, the following n are the largest ones for which there will
 be no overflow:</p>
-<table><thead><tr><th>type </th><th> n</th></tr></thead><tbody>
-<tr><td>u8   </td><td> 10</td></tr>
-<tr><td>i8   </td><td>  9</td></tr>
-<tr><td>u16  </td><td> 18</td></tr>
-<tr><td>i16  </td><td> 17</td></tr>
-<tr><td>u32  </td><td> 34</td></tr>
-<tr><td>i32  </td><td> 33</td></tr>
-<tr><td>u64  </td><td> 67</td></tr>
-<tr><td>i64  </td><td> 66</td></tr>
+<table><thead><tr><th>type </th><th>n</th></tr></thead><tbody>
+<tr><td>u8   </td><td>10</td></tr>
+<tr><td>i8   </td><td>9</td></tr>
+<tr><td>u16  </td><td>18</td></tr>
+<tr><td>i16  </td><td>17</td></tr>
+<tr><td>u32  </td><td>34</td></tr>
+<tr><td>i32  </td><td>33</td></tr>
+<tr><td>u64  </td><td>67</td></tr>
+<tr><td>i64  </td><td>66</td></tr>
 </tbody></table>
 <p>For larger n, <code>T</code> should be a bigint type.</p>
 </div></div><h2 id='implementations' class='small-section-header'>Trait Implementations<a href='#implementations' class='anchor'></a></h2><div id='implementations-list'><h3 id='impl-Iterator' class='impl'><code class='in-band'>impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html" title="trait core::iter::traits::iterator::Iterator">Iterator</a> for <a class="struct" href="../num_integer/struct.IterBinomial.html" title="struct num_integer::IterBinomial">IterBinomial</a>&lt;T&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;T: <a class="trait" href="../num_integer/trait.Integer.html" title="trait num_integer::Integer">Integer</a> + <a class="trait" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a>,&nbsp;</span></code><a href='#impl-Iterator' class='anchor'></a><a class='srclink' href='../src/num_integer/lib.rs.html#722-743' title='goto source code'>[src]</a></h3><div class='impl-items'><h4 id='associatedtype.Item' class="type"><code id='Item.t'>type <a href='https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item' class="type">Item</a> = T</code></h4><div class='docblock'><p>The type of the elements being iterated over.</p>
