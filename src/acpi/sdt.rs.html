@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/build/pebble-os/pebble/acpi/src/sdt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sdt.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../acpi/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/build/pebble-os/pebble/lib/acpi/acpi/src/sdt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sdt.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../acpi/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -183,12 +183,66 @@
 <span id="183">183</span>
 <span id="184">184</span>
 <span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">mem</span>, <span class="ident">str</span>};
-<span class="kw">use</span> <span class="ident">fadt</span>::<span class="ident">Fadt</span>;
-<span class="kw">use</span> <span class="ident">hpet</span>::<span class="ident">Hpet</span>;
-<span class="kw">use</span> <span class="ident">madt</span>::<span class="ident">Madt</span>;
-<span class="kw">use</span> {<span class="ident">AcpiError</span>, <span class="ident">AcpiHandler</span>, <span class="ident">AcpiStaticInfo</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">fadt</span>::<span class="ident">Fadt</span>, <span class="ident">hpet</span>::<span class="ident">HpetTable</span>, <span class="ident">madt</span>::<span class="ident">Madt</span>, <span class="ident">Acpi</span>, <span class="ident">AcpiError</span>, <span class="ident">AcpiHandler</span>, <span class="ident">AmlTable</span>};
+<span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">marker</span>::<span class="ident">PhantomData</span>, <span class="ident">mem</span>, <span class="ident">str</span>};
+<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">trace</span>, <span class="ident">warn</span>};
+<span class="kw">use</span> <span class="ident">typenum</span>::<span class="ident">Unsigned</span>;
+
+<span class="doccomment">/// A union that represents a field that is not necessarily present and is only present in a later</span>
+<span class="doccomment">/// ACPI version (represented by the compile time number and type parameter `R`)</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>, <span class="ident">packed</span>)]</span>
+<span class="kw">pub</span> <span class="ident">union</span> <span class="ident">ExtendedField</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Copy</span>, <span class="ident">R</span>: <span class="ident">Unsigned</span><span class="op">&gt;</span> {
+    <span class="ident">field</span>: <span class="ident">T</span>,
+    <span class="ident">nothing</span>: (),
+    <span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Copy</span>, <span class="ident">R</span>: <span class="ident">Unsigned</span><span class="op">&gt;</span> <span class="ident">ExtendedField</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">R</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Checks that the given revision is greater than `R` (typenum revision number) and then</span>
+    <span class="doccomment">/// returns the field, otherwise returning `None`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Unsafety</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is unsafe as the given `revision` could be incorrect or fabricated. However, it should</span>
+    <span class="doccomment">/// be safe if it represents the revision of the table this field is present in.</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">revision</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">revision</span> <span class="op">&gt;=</span> <span class="ident">R</span>::<span class="ident">to_u8</span>() {
+            <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">field</span>)
+        } <span class="kw">else</span> {
+            <span class="prelude-val">None</span>
+        }
+    }
+}
 
 <span class="doccomment">/// All SDTs share the same header, and are `length` bytes long. The signature tells us which SDT</span>
 <span class="doccomment">/// this is.</span>
@@ -318,7 +372,7 @@
 <span class="doccomment">/// This takes the physical address of an SDT, maps it correctly and dispatches it to whatever</span>
 <span class="doccomment">/// function parses that table.</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">dispatch_sdt</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(
-    <span class="ident">static_info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">AcpiStaticInfo</span>,
+    <span class="ident">acpi</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Acpi</span>,
     <span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>,
     <span class="ident">physical_address</span>: <span class="ident">usize</span>,
 ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AcpiError</span><span class="op">&gt;</span>
@@ -326,8 +380,8 @@
     <span class="ident">H</span>: <span class="ident">AcpiHandler</span>,
 {
     <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">peek_at_sdt_header</span>(<span class="ident">handler</span>, <span class="ident">physical_address</span>);
-    <span class="macro">info</span><span class="macro">!</span>(
-        <span class="string">&quot;Dispatching SDT with signature {:?} and length {:?}&quot;</span>,
+    <span class="macro">trace</span><span class="macro">!</span>(
+        <span class="string">&quot;Found ACPI table with signature {:?} and length {:?}&quot;</span>,
         <span class="ident">header</span>.<span class="ident">signature</span>(),
         <span class="ident">header</span>.<span class="ident">length</span>()
     );
@@ -340,23 +394,25 @@
         <span class="string">&quot;FACP&quot;</span> <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">fadt_mapping</span> <span class="op">=</span>
                 <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">Fadt</span><span class="op">&gt;</span>(<span class="ident">physical_address</span>, <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">Fadt</span><span class="op">&gt;</span>());
-            ::<span class="ident">fadt</span>::<span class="ident">parse_fadt</span>(<span class="ident">static_info</span>, <span class="ident">handler</span>, <span class="kw-2">&amp;</span><span class="ident">fadt_mapping</span>)<span class="question-mark">?</span>;
+            <span class="kw">crate</span>::<span class="ident">fadt</span>::<span class="ident">parse_fadt</span>(<span class="ident">acpi</span>, <span class="ident">handler</span>, <span class="kw-2">&amp;</span><span class="ident">fadt_mapping</span>)<span class="question-mark">?</span>;
             <span class="ident">handler</span>.<span class="ident">unmap_physical_region</span>(<span class="ident">fadt_mapping</span>);
         }
 
         <span class="string">&quot;HPET&quot;</span> <span class="op">=&gt;</span> {
-            <span class="kw">let</span> <span class="ident">hpet_mapping</span> <span class="op">=</span>
-                <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">Hpet</span><span class="op">&gt;</span>(<span class="ident">physical_address</span>, <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">Hpet</span><span class="op">&gt;</span>());
-            ::<span class="ident">hpet</span>::<span class="ident">parse_hpet</span>(<span class="kw-2">&amp;</span><span class="ident">hpet_mapping</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">hpet_mapping</span> <span class="op">=</span> <span class="ident">handler</span>
+                .<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">HpetTable</span><span class="op">&gt;</span>(<span class="ident">physical_address</span>, <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">HpetTable</span><span class="op">&gt;</span>());
+            <span class="kw">crate</span>::<span class="ident">hpet</span>::<span class="ident">parse_hpet</span>(<span class="ident">acpi</span>, <span class="kw-2">&amp;</span><span class="ident">hpet_mapping</span>)<span class="question-mark">?</span>;
             <span class="ident">handler</span>.<span class="ident">unmap_physical_region</span>(<span class="ident">hpet_mapping</span>);
         }
 
         <span class="string">&quot;APIC&quot;</span> <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">madt_mapping</span> <span class="op">=</span>
                 <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">Madt</span><span class="op">&gt;</span>(<span class="ident">physical_address</span>, <span class="ident">header</span>.<span class="ident">length</span>() <span class="kw">as</span> <span class="ident">usize</span>);
-            ::<span class="ident">madt</span>::<span class="ident">parse_madt</span>(<span class="ident">static_info</span>, <span class="ident">handler</span>, <span class="kw-2">&amp;</span><span class="ident">madt_mapping</span>)<span class="question-mark">?</span>;
+            <span class="kw">crate</span>::<span class="ident">madt</span>::<span class="ident">parse_madt</span>(<span class="ident">acpi</span>, <span class="ident">handler</span>, <span class="kw-2">&amp;</span><span class="ident">madt_mapping</span>)<span class="question-mark">?</span>;
             <span class="ident">handler</span>.<span class="ident">unmap_physical_region</span>(<span class="ident">madt_mapping</span>);
         }
+
+        <span class="string">&quot;SSDT&quot;</span> <span class="op">=&gt;</span> <span class="ident">acpi</span>.<span class="ident">ssdts</span>.<span class="ident">push</span>(<span class="ident">AmlTable</span>::<span class="ident">new</span>(<span class="ident">physical_address</span>, <span class="ident">header</span>.<span class="ident">length</span>())),
 
         <span class="ident">signature</span> <span class="op">=&gt;</span> {
             <span class="comment">/*

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/build/pebble-os/pebble/acpi/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../acpi/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/build/pebble-os/pebble/lib/acpi/acpi/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../acpi/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -249,76 +249,42 @@
 <span id="249">249</span>
 <span id="250">250</span>
 <span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="attribute">#![<span class="ident">no_std</span>]</span>
-<span class="attribute">#![<span class="ident">feature</span>(
-    <span class="ident">nll</span>,
-    <span class="ident">alloc</span>,
-    <span class="ident">exclusive_range_pattern</span>,
-    <span class="ident">range_contains</span>,
-    <span class="ident">box_syntax</span>,
-    <span class="ident">decl_macro</span>,
-    <span class="ident">type_ascription</span>
-)]</span>
+<span class="doccomment">//! A library for parsing ACPI tables. This crate can be used by bootloaders and kernels for</span>
+<span class="doccomment">//! architectures that support ACPI. The crate is far from feature-complete, but can still be used</span>
+<span class="doccomment">//! for finding and parsing the static tables, which is enough to set up hardware such as the APIC</span>
+<span class="doccomment">//! and HPET on x86_64.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The crate is designed for use in conjunction with the `aml_parser` crate, which is the (much</span>
+<span class="doccomment">//! less complete) AML parser used to parse the DSDT and SSDTs. These crates are separate because</span>
+<span class="doccomment">//! some kernels may want to detect the static tables, but delay AML parsing to a later stage.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ### Usage</span>
+<span class="doccomment">//! To use the library, you will need to provide an implementation of the `AcpiHandler` trait,</span>
+<span class="doccomment">//! which allows the library to make requests such as mapping a particular region of physical</span>
+<span class="doccomment">//! memory into the virtual address space.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! You should then call one of the entry points, based on how much information you have:</span>
+<span class="doccomment">//! * Call `parse_rsdp` if you have the physical address of the RSDP</span>
+<span class="doccomment">//! * Call `parse_rsdt` if you have the physical address of the RSDT / XSDT</span>
+<span class="doccomment">//! * Call `search_for_rsdp_bios` if you don&#39;t have the address of either structure, but **you know</span>
+<span class="doccomment">//! you&#39;re running on BIOS, not UEFI**</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! All of these methods return an instance of `Acpi`. This struct contains all the information</span>
+<span class="doccomment">//! gathered from the static tables, and can be queried to set up hardware etc.</span>
 
+<span class="attribute">#![<span class="ident">no_std</span>]</span>
+<span class="attribute">#![<span class="ident">feature</span>(<span class="ident">nll</span>)]</span>
+<span class="attribute">#![<span class="ident">feature</span>(<span class="ident">alloc</span>)]</span>
+<span class="attribute">#![<span class="ident">feature</span>(<span class="ident">exclusive_range_pattern</span>)]</span>
+
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">test</span>, <span class="ident">macro_use</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">std</span>;
 
-<span class="attribute">#[<span class="ident">macro_use</span>]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">log</span>;
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">bit_field</span>;
-
-<span class="kw">mod</span> <span class="ident">aml</span>;
 <span class="kw">mod</span> <span class="ident">fadt</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">handler</span>;
 <span class="kw">mod</span> <span class="ident">hpet</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">interrupt</span>;
 <span class="kw">mod</span> <span class="ident">madt</span>;
@@ -326,18 +292,15 @@
 <span class="kw">mod</span> <span class="ident">rsdp_search</span>;
 <span class="kw">mod</span> <span class="ident">sdt</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">aml</span>::{<span class="ident">AmlError</span>, <span class="ident">AmlNamespace</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">madt</span>::<span class="ident">MadtError</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">rsdp_search</span>::<span class="ident">search_for_rsdp_bios</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">handler</span>::{<span class="ident">AcpiHandler</span>, <span class="ident">PhysicalMapping</span>},
+    <span class="ident">madt</span>::<span class="ident">MadtError</span>,
+    <span class="ident">rsdp_search</span>::<span class="ident">search_for_rsdp_bios</span>,
+};
 
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">hpet</span>::<span class="ident">HpetInfo</span>, <span class="ident">interrupt</span>::<span class="ident">InterruptModel</span>, <span class="ident">rsdp</span>::<span class="ident">Rsdp</span>, <span class="ident">sdt</span>::<span class="ident">SdtHeader</span>};
 <span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">vec</span>::<span class="ident">Vec</span>;
-<span class="kw">use</span> <span class="ident">aml</span>::<span class="ident">AmlValue</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">mem</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">Deref</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ptr</span>::<span class="ident">NonNull</span>;
-<span class="kw">use</span> <span class="ident">interrupt</span>::<span class="ident">InterruptModel</span>;
-<span class="kw">use</span> <span class="ident">rsdp</span>::<span class="ident">Rsdp</span>;
-<span class="kw">use</span> <span class="ident">sdt</span>::<span class="ident">SdtHeader</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="comment">// TODO: manually implement Debug to print signatures correctly etc.</span>
@@ -352,11 +315,10 @@
     <span class="ident">SdtInvalidTableId</span>([<span class="ident">u8</span>; <span class="number">4</span>]),
     <span class="ident">SdtInvalidChecksum</span>([<span class="ident">u8</span>; <span class="number">4</span>]),
 
-    <span class="ident">InvalidAmlTable</span>([<span class="ident">u8</span>; <span class="number">4</span>], <span class="ident">AmlError</span>),
-
     <span class="ident">InvalidMadt</span>(<span class="ident">MadtError</span>),
 }
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>, <span class="ident">packed</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">GenericAddress</span> {
     <span class="ident">address_space</span>: <span class="ident">u8</span>,
@@ -379,7 +341,7 @@
     <span class="ident">Running</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Processor</span> {
     <span class="kw">pub</span> <span class="ident">processor_uid</span>: <span class="ident">u8</span>,
     <span class="kw">pub</span> <span class="ident">local_apic_id</span>: <span class="ident">u8</span>,
@@ -394,104 +356,52 @@
     <span class="kw">pub</span> <span class="ident">is_ap</span>: <span class="ident">bool</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">Processor</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">processor_uid</span>: <span class="ident">u8</span>,
-        <span class="ident">local_apic_id</span>: <span class="ident">u8</span>,
-        <span class="ident">state</span>: <span class="ident">ProcessorState</span>,
-        <span class="ident">is_ap</span>: <span class="ident">bool</span>,
-    ) <span class="op">-&gt;</span> <span class="ident">Processor</span> {
-        <span class="ident">Processor</span> {
-            <span class="ident">processor_uid</span>,
-            <span class="ident">local_apic_id</span>,
-            <span class="ident">state</span>,
-            <span class="ident">is_ap</span>,
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AmlTable</span> {
+    <span class="doccomment">/// Physical address of the start of the AML stream (excluding the table header).</span>
+    <span class="kw">pub</span> <span class="ident">address</span>: <span class="ident">usize</span>,
+    <span class="doccomment">/// Length (in bytes) of the AML stream.</span>
+    <span class="kw">pub</span> <span class="ident">length</span>: <span class="ident">u32</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">AmlTable</span> {
+    <span class="doccomment">/// Create an `AmlTable` from the address and length of the table **including the SDT header**.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">address</span>: <span class="ident">usize</span>, <span class="ident">length</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">AmlTable</span> {
+        <span class="ident">AmlTable</span> {
+            <span class="ident">address</span>: <span class="ident">address</span> <span class="op">+</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">SdtHeader</span><span class="op">&gt;</span>(),
+            <span class="ident">length</span>: <span class="ident">length</span> <span class="op">-</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">SdtHeader</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u32</span>,
         }
     }
 }
 
-<span class="doccomment">/// Describes a physical mapping created by `AcpiHandler::map_physical_region` and unmapped by</span>
-<span class="doccomment">/// `AcpiHandler::unmap_physical_region`. The region mapped must be at least `size_of::&lt;T&gt;()`</span>
-<span class="doccomment">/// bytes, but may be bigger.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PhysicalMapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">physical_start</span>: <span class="ident">usize</span>,
-    <span class="kw">pub</span> <span class="ident">virtual_start</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">region_length</span>: <span class="ident">usize</span>, <span class="comment">// Can be equal or larger than size_of::&lt;T&gt;()</span>
-    <span class="kw">pub</span> <span class="ident">mapped_length</span>: <span class="ident">usize</span>, <span class="comment">// Differs from `region_length` if padding is added for alignment</span>
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">PhysicalMapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">T</span>;
-
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
-        <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">virtual_start</span>.<span class="ident">as_ref</span>() }
-    }
-}
-
-<span class="doccomment">/// An implementation of this trait must be provided to allow `acpi` to access platform-specific</span>
-<span class="doccomment">/// functionality, such as mapping regions of physical memory. You are free to implement these</span>
-<span class="doccomment">/// however you please, as long as they conform to the documentation of each function.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AcpiHandler</span> {
-    <span class="doccomment">/// Given a starting physical address and a size, map a region of physical memory that contains</span>
-    <span class="doccomment">/// a `T` (but may be bigger than `size_of::&lt;T&gt;()`). The address doesn&#39;t have to be page-aligned,</span>
-    <span class="doccomment">/// so the implementation may have to add padding to either end. The given size must be greater</span>
-    <span class="doccomment">/// or equal to the size of a `T`. The virtual address the memory is mapped to does not matter,</span>
-    <span class="doccomment">/// as long as it is accessible from `acpi`.</span>
-    <span class="kw">fn</span> <span class="ident">map_physical_region</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">physical_address</span>: <span class="ident">usize</span>,
-        <span class="ident">size</span>: <span class="ident">usize</span>,
-    ) <span class="op">-&gt;</span> <span class="ident">PhysicalMapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
-
-    <span class="doccomment">/// Unmap the given physical mapping. Safe because we consume the mapping, and so it can&#39;t be</span>
-    <span class="doccomment">/// used after being passed to this function.</span>
-    <span class="kw">fn</span> <span class="ident">unmap_physical_region</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">region</span>: <span class="ident">PhysicalMapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-}
-
-<span class="doccomment">/// All the information from parsing the static tables. This is returned by the `from_*` methods,</span>
-<span class="doccomment">/// and is the first step of parsing the ACPI tables.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This purposely does not parse tables containing AML. This allows you to defer parsing these</span>
-<span class="doccomment">/// tables if you want to. For example, microkernels can choose to parse AML tables in userspace</span>
-<span class="doccomment">/// for added safety.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AcpiStaticInfo</span> {
-    <span class="ident">acpi_revision</span>: <span class="ident">u8</span>,
-    <span class="ident">boot_processor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Processor</span><span class="op">&gt;</span>,
-    <span class="ident">application_processors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Processor</span><span class="op">&gt;</span>,
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Acpi</span> {
+    <span class="kw">pub</span> <span class="ident">acpi_revision</span>: <span class="ident">u8</span>,
+
+    <span class="doccomment">/// The boot processor. Until you bring up any APs, this is the only processor running code.</span>
+    <span class="kw">pub</span> <span class="ident">boot_processor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Processor</span><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// Application processes. These are not brought up until you do so, and must be brought up in</span>
+    <span class="doccomment">/// the order they appear in this list.</span>
+    <span class="kw">pub</span> <span class="ident">application_processors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Processor</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// ACPI theoretically allows for more than one interrupt model to be supported by the same</span>
     <span class="doccomment">/// hardware. For simplicity and because hardware practically will only support one model, we</span>
     <span class="doccomment">/// just error in cases that the tables detail more than one.</span>
-    <span class="ident">interrupt_model</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">InterruptModel</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">interrupt_model</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">InterruptModel</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">hpet</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HpetInfo</span><span class="op">&gt;</span>,
 
-    <span class="ident">dsdt_physical_address</span>: <span class="ident">usize</span>,
-}
+    <span class="doccomment">/// Info about the DSDT, if we find it.</span>
+    <span class="kw">pub</span> <span class="ident">dsdt</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AmlTable</span><span class="op">&gt;</span>,
 
-<span class="kw">impl</span> <span class="ident">AcpiStaticInfo</span> {
-    <span class="doccomment">/// A description of the boot processor. Until you bring any more up, this is the only processor</span>
-    <span class="doccomment">/// running code, even on SMP systems.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">boot_processor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Processor</span><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">boot_processor</span>
-    }
-
-    <span class="doccomment">/// Descriptions of each of the application processors. These are not brought up until you do</span>
-    <span class="doccomment">/// so. The application processors must be brought up in the order that they appear in this</span>
-    <span class="doccomment">/// list.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">application_processors</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Processor</span><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">application_processors</span>
-    }
-
-    <span class="doccomment">/// The interrupt model supported by this system.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">interrupt_model</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">InterruptModel</span><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">interrupt_model</span>
-    }
+    <span class="doccomment">/// Info about any SSDTs, if there are any.</span>
+    <span class="kw">pub</span> <span class="ident">ssdts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AmlTable</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// This is the entry point of `acpi` if you have the **physical** address of the RSDP. It maps</span>
 <span class="doccomment">/// the RSDP, works out what version of ACPI the hardware supports, and passes the physical</span>
 <span class="doccomment">/// address of the RSDT/XSDT to `parse_rsdt`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_rsdp</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>, <span class="ident">rsdp_address</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AcpiStaticInfo</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_rsdp</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>, <span class="ident">rsdp_address</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Acpi</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">H</span>: <span class="ident">AcpiHandler</span>,
 {
@@ -504,7 +414,7 @@
 <span class="kw">fn</span> <span class="ident">parse_validated_rsdp</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(
     <span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>,
     <span class="ident">rsdp_mapping</span>: <span class="ident">PhysicalMapping</span><span class="op">&lt;</span><span class="ident">Rsdp</span><span class="op">&gt;</span>,
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AcpiStaticInfo</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
+) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Acpi</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">H</span>: <span class="ident">AcpiHandler</span>,
 {
@@ -538,16 +448,18 @@
     <span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>,
     <span class="ident">revision</span>: <span class="ident">u8</span>,
     <span class="ident">physical_address</span>: <span class="ident">usize</span>,
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AcpiStaticInfo</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
+) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Acpi</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">H</span>: <span class="ident">AcpiHandler</span>,
 {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">static_info</span> <span class="op">=</span> <span class="ident">AcpiStaticInfo</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">acpi</span> <span class="op">=</span> <span class="ident">Acpi</span> {
         <span class="ident">acpi_revision</span>: <span class="ident">revision</span>,
         <span class="ident">boot_processor</span>: <span class="prelude-val">None</span>,
         <span class="ident">application_processors</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
         <span class="ident">interrupt_model</span>: <span class="prelude-val">None</span>,
-        <span class="ident">dsdt_physical_address</span>: <span class="number">0</span>,
+        <span class="ident">hpet</span>: <span class="prelude-val">None</span>,
+        <span class="ident">dsdt</span>: <span class="prelude-val">None</span>,
+        <span class="ident">ssdts</span>: <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="number">0</span>),
     };
 
     <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">sdt</span>::<span class="ident">peek_at_sdt_header</span>(<span class="ident">handler</span>, <span class="ident">physical_address</span>);
@@ -566,11 +478,8 @@
             ((<span class="ident">mapping</span>.<span class="ident">virtual_start</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">+</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">SdtHeader</span><span class="op">&gt;</span>()) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u32</span>;
 
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">num_tables</span> {
-            <span class="ident">sdt</span>::<span class="ident">dispatch_sdt</span>(
-                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">static_info</span>,
-                <span class="ident">handler</span>,
-                <span class="kw">unsafe</span> { <span class="kw-2">*</span><span class="ident">tables_base</span>.<span class="ident">offset</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">isize</span>) } <span class="kw">as</span> <span class="ident">usize</span>,
-            )<span class="question-mark">?</span>;
+            <span class="ident">sdt</span>::<span class="ident">dispatch_sdt</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">acpi</span>, <span class="ident">handler</span>, <span class="kw">unsafe</span> { <span class="kw-2">*</span><span class="ident">tables_base</span>.<span class="ident">offset</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">isize</span>) }
+                <span class="kw">as</span> <span class="ident">usize</span>)<span class="question-mark">?</span>;
         }
     } <span class="kw">else</span> {
         <span class="comment">/*
@@ -584,16 +493,13 @@
             ((<span class="ident">mapping</span>.<span class="ident">virtual_start</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">+</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">SdtHeader</span><span class="op">&gt;</span>()) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u64</span>;
 
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">num_tables</span> {
-            <span class="ident">sdt</span>::<span class="ident">dispatch_sdt</span>(
-                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">static_info</span>,
-                <span class="ident">handler</span>,
-                <span class="kw">unsafe</span> { <span class="kw-2">*</span><span class="ident">tables_base</span>.<span class="ident">offset</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">isize</span>) } <span class="kw">as</span> <span class="ident">usize</span>,
-            )<span class="question-mark">?</span>;
+            <span class="ident">sdt</span>::<span class="ident">dispatch_sdt</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">acpi</span>, <span class="ident">handler</span>, <span class="kw">unsafe</span> { <span class="kw-2">*</span><span class="ident">tables_base</span>.<span class="ident">offset</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">isize</span>) }
+                <span class="kw">as</span> <span class="ident">usize</span>)<span class="question-mark">?</span>;
         }
     }
 
     <span class="ident">handler</span>.<span class="ident">unmap_physical_region</span>(<span class="ident">mapping</span>);
-    <span class="prelude-val">Ok</span>(<span class="ident">static_info</span>)
+    <span class="prelude-val">Ok</span>(<span class="ident">acpi</span>)
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g., <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g., <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g., <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../";window.currentCrate = "acpi";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

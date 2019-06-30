@@ -1,5 +1,6 @@
 var ALIASES = {};
 ALIASES["acpi"] = {};
+ALIASES["aml_parser"] = {};
 ALIASES["bit_field"] = {};
 ALIASES["bitflags"] = {};
 ALIASES["cfg_if"] = {};
@@ -13,4 +14,5 @@ ALIASES["num_iter"] = {};
 ALIASES["num_rational"] = {};
 ALIASES["num_traits"] = {};
 ALIASES["spin"] = {};
+ALIASES["typenum"] = {};
 ALIASES["x86_64"] = {"*":[{'crate':'x86_64','ty':8,'name':'Deref','desc':'Used for immutable dereferencing operations, like `*v`.','p':'x86_64::memory::paging'},{'crate':'x86_64','ty':8,'name':'DerefMut','desc':'Used for mutable dereferencing operations, like in `*v =…','p':'x86_64::memory::paging'}],"&*":[{'crate':'x86_64','ty':8,'name':'Deref','desc':'Used for immutable dereferencing operations, like `*v`.','p':'x86_64::memory::paging'}],};
