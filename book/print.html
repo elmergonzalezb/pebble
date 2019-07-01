@@ -1,0 +1,365 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Pebble OS</title>
+        
+        <meta name="robots" content="noindex" />
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body class="light">
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme + ' js';
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li><a href="introduction/index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="kernel/index.html"><strong aria-hidden="true">2.</strong> The Kernel</a></li><li><ol class="section"><li><a href="kernel/booting_x86_64.html"><strong aria-hidden="true">2.1.</strong> Booting (x86_64)</a></li><li><a href="kernel/process_ids.html"><strong aria-hidden="true">2.2.</strong> Process IDs</a></li><li><a href="kernel/syscalls.html"><strong aria-hidden="true">2.3.</strong> System calls</a></li></ol></li><li><a href="userspace/index.html"><strong aria-hidden="true">3.</strong> Userspace</a></li><li><ol class="section"><li><a href="userspace/memory_map_x86_64.html"><strong aria-hidden="true">3.1.</strong> Memory map (x86_64)</a></li></ol></li><li><a href="message_passing/index.html"><strong aria-hidden="true">4.</strong> Message Passing</a></li><li><ol class="section"><li><a href="message_passing/fmt.html"><strong aria-hidden="true">4.1.</strong> Message Format</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">Pebble OS</h1>
+
+                        <div class="right-buttons">
+                            <a href="print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#introduction" id="introduction">Introduction</a></h1>
+<p>Welcome to the Pebble Book, which serves as the main source of documentation for <a href="https://github.com/pebble-os">Pebble OS</a>.
+The Book aims to be both a 10,000-meter overview of Pebble for the interested observer, and a definitive reference for the inner workings of the kernel and userspace. </p>
+<p>Please note that this book (like the rest of the OS!) is still very early in development and not at all complete.
+If anything is unclear, please <a href="https://github.com/pebble-os/book/issues">file an issue</a>!</p>
+<p><strong>Some things documented in this book don't exist in Pebble yet. I use the book as in-progress documentation as I design stuff so I don't have to keep it all in my head.</strong></p>
+<h3><a class="header" href="#what-is-pebble" id="what-is-pebble">What is Pebble?</a></h3>
+<p>At heart, Pebble is a microkernel written in the <a href="https://rust-lang.org">Rust programming language</a>.
+Pebble becomes an &quot;OS&quot; when it's combined with other packages such as display and window servers, filesystems and user applications.</p>
+<p>Pebble is designed to be a modern microkernel, supporting a minimal system call interface and first-class support for message-passing-based IPC between userspace processes. Versatile message-passing allows
+Pebble to move much more out of the kernel than traditionally possible. For example, the kernel has no concept of a filesystem or of files - instead, the VFS and all filesystems are implemented entirely in
+userspace, and files are read and written to by passing messages.</p>
+<h3><a class="header" href="#why-rust" id="why-rust">Why Rust?</a></h3>
+<p>While Pebble's design is in theory language-agnostic, the implementation is very tied to Rust. Rust is a systems programming language with a rich type system and a novel ownership model that guarantees
+memory and thread safety <strong>in safe code</strong>. This qualification is important, as Pebble uses a lot of <code>unsafe</code> code out of necessity - it's important to understand that the use of Rust does not in any way
+mean that Pebble is automatically bug-free.</p>
+<p>However, Rust makes you think a lot more about how to make your programs safe, which is exactly the sort of code we want to be writing for a kernel. This focus on safety, as well as good ergonomics features
+and performance, makes Rust perfect for OS-level code.</p>
+<h1><a class="header" href="#booting-pebble-on-x86_64" id="booting-pebble-on-x86_64">Booting Pebble on x86_64</a></h1>
+<p>On x86_64, Pebble is booted by a UEFI application that can be found <a href="https://github.com/pebble-os/pebble/tree/master/bootloader">here</a>. We don't support booting from BIOS, mainly because the vast majority
+of current platforms now support UEFI, and I didn't want the maintenance burden of two bootloaders for one platform. Pebble's kernel and bootloaders are more coupled than on other platforms, and the
+bootloader does a lot more of the platform-specific initialization than generic bootloaders like GRUB2. On x86_64, doing this initialization in the bootloader allows us to use the Boot Services provided by
+the UEFI, which simplifies early bring-up considerably.</p>
+<p>The bootloader is responsible for setting up a sensible environment for the kernel to run in, as well as doing initialization that makes use of the Boot Services that are not available after we've loaded the
+kernel. This is much easier than it would be if we supported the BIOS, as UEFI already defines a fairly sane environment. The bootloader:</p>
+<ul>
+<li>Finds and switches to a suitable graphics mode</li>
+<li>Loads the kernel's image from the boot partition, loads its sections, and creates a set of page tables for it</li>
+<li>Loads the payload's image from the boot partition, loads its sections, and creates a set of page tables for it</li>
+<li>Allocates backing memory for the kernel heap</li>
+<li>Sets up paging and creates page tables with the correct kernel-space mappings</li>
+<li>Jumps into the kernel</li>
+</ul>
+<h3><a class="header" href="#loading-the-kernel" id="loading-the-kernel">Loading the kernel</a></h3>
+<p>The kernel is an ELF file on the boot partition. Only its allocatable sections are mapped into memory. The kernel is expected to have a couple of special symbols defined, which are used by the bootloader:</p>
+<ul>
+<li><code>_guard_page</code> - the start address of the guard page. This is purposefully unmapped by the bootloader, so that stack overflows cause page-faults</li>
+<li><code>_stack_bottom</code> and <code>_stack_top</code> - define the bottom and top of the stack, respectively. These are defined as part of the <code>.bss</code> section, so the bootloader doesn't have to manually allocate a stack. The 
+address is provided so the bootloader knows what to set <code>rsp</code> to before it jumps into the kernel</li>
+</ul>
+<h3><a class="header" href="#loading-the-kernel-payload" id="loading-the-kernel-payload">Loading the kernel payload</a></h3>
+<p>While we have the luxury of the UEFI's filesystem drivers being available, we also load another ELF image called the 'kernel payload'. This is the first process launched by the kernel, and is usually
+responsible for starting a set of other processes from an embedded initial filesystem. Alternatively, a simple application can be provided as a payload, for example in embedded contexts.</p>
+<p>While it seems like a strange choice, we load this in the bootloader so that the kernel doesn't have to have any logic to do so. Pebble The Microkernel has no concept of files, of ramdisks, or of what an ELF
+file looks like inside - it simply accepts sets of page tables and created processes out of them. This makes the kernel much simpler and less bug-prone, at the expense of making the bootloader slightly more
+complex.</p>
+<h1><a class="header" href="#process-ids" id="process-ids">Process IDs</a></h1>
+<p>Pebble uses a slighly different scheme for allocating process IDs to many other kernels. Inspired by an idea from <a href="https://www.youtube.com/watch?v=aKLntZcp27M">Catherine West's Rustconf 2018 keynote</a>, Pebble
+uses <strong>generational IDs</strong> for its PIDs. This means PIDs are comprised of two different numbers:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+pub struct ProcessId {
+    index: u16,
+    generation: u16,
+}
+#}</code></pre></pre>
+<p>Note that the meaning of these numbers is only related to how the kernel manages the allocation of IDs, and can be treated as a single ID by other parts of the system, and by programs.</p>
+<p>The key motivation behind this is called <a href="https://en.wikipedia.org/wiki/ABA_problem">the ABA problem</a>. Because Pebble makes heavy use of message passing, programs are expected to cache the PIDs of processes
+they want to message often, such as the VFS process or a logging service. However, because processes can be created and destroyed at any point, conventional PIDs could lead to processes messaging unrelated
+programs that have been allocated the PID of a previously-cached process. As shown by this example, this could even potentially lead to a malicious process being able to intercept messages meant for something
+else:</p>
+<ul>
+<li>A logging process is created and allocated PID <code>17</code></li>
+<li>Process A is created and wants to log stuff, so it looks up and caches the logger's PID</li>
+<li>The logger is destroyed, leaving PID <code>17</code> free to allocate again</li>
+<li>A malicious process is created, and is allocated PID <code>17</code></li>
+<li>Process A sends a message to PID <code>17</code> - which is now not the logger, but this malicious process</li>
+<li>The malicious process receives this message and exfiltrates it!</li>
+</ul>
+<p>Of course, this example is slightly convoluted because programs should not be logging sensitive information in the first place, but hopefully it's easy to see how this allocation scheme could lead to problems.</p>
+<p>Generational IDs solve this problem by introducing a second component to the ID - the generation counter. When a process is created, it is inserted into the generational data structure and allocated a free
+index - this forms the first part of the PID. The generation of the PID is the current generation of that index in the data structure. When the process is destroyed, it is removed from the data structure and
+its index's generation is incremented. If you try to get the element at a given index, but the generations don't match, the data structure acts if there's nothing at that index, because the thing you think
+is there no longer will be!</p>
+<p>With this new ID system, let's see what happens in the same situation with the logger:</p>
+<ul>
+<li>A logger process is created and allocated PID <code>(17, 0)</code></li>
+<li>Process A is created and wants to log stuff, so it looks up and caches the logger's PID</li>
+<li>The logger is destroyed, and the generation of PID <code>17</code> is increased from <code>0</code> to <code>1</code></li>
+<li>A malicious process is created, and is allocated PID <code>(17, 1)</code></li>
+<li>Process A sends a message to PID <code>(17, 0)</code> - which is now not the logger and no longer exists</li>
+<li>Process A receives a message saying the process at <code>(17, 0)</code> no longer exists</li>
+<li>The malicious process fails to intercept Process A's logging</li>
+</ul>
+<p>And with that, our very convoluted malicious process has been defeated!</p>
+<h1><a class="header" href="#system-calls" id="system-calls">System calls</a></h1>
+<p>Userspace code can interact with the kernel through system calls. Unlike traditional monolithic kernels, Pebble's system call interface is designed to be very minimal; many of the operations traditionally
+supported by system calls (such as filesystem operations) are not provided by the kernel in Pebble, and so are instead accessed through passing messages to other userspace processes.</p>
+<p>Pebble's original design had userspace processes communicate with the kernel by passing messages to it, like it would communicate with another userspace process. Having a system call interface has a few
+advantages over this design:</p>
+<ul>
+<li>System calls have much less overhead</li>
+<li>Programs that otherwise wouldn't need to pass messages don't need the extra machinery to talk to the kernel</li>
+<li>The kernel no longer has to deserialize messages. While it still contains some message-passing infrastructure, it only needs to pass the headers and <code>memcpy</code> stuff to the right place. This hugely reduces the
+attack surface of the kernel.</li>
+</ul>
+<p>Each system call has a unique number that is used to identify it. A system call can then take up to five parameters, each a maximum in size of the system's register width. It can return a single value, also
+the size of a register.</p>
+<h3><a class="header" href="#list-of-system-calls" id="list-of-system-calls">List of system calls</a></h3>
+<table><thead><tr><th>Number</th><th>System call</th><th>a</th><th>b</th><th>c</th><th>d</th><th>e</th><th>Return value</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>0</code></td><td><code>yield</code></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>Yield to the kernel.</td></tr>
+</tbody></table>
+<h3><a class="header" href="#making-a-system-call-on-x86_64" id="making-a-system-call-on-x86_64">Making a system call on x86_64</a></h3>
+<p>To make a system call on x86_64, populate these registers:</p>
+<table><thead><tr><th><code>rax</code></th><th><code>rdi</code></th><th><code>rsi</code></th><th><code>rdx</code></th><th><code>r8</code></th><th><code>r9</code></th></tr></thead><tbody>
+<tr><td>System call number</td><td><code>a</code></td><td><code>b</code></td><td><code>c</code></td><td><code>d</code></td><td><code>e</code></td></tr>
+</tbody></table>
+<p>You can then make the system call by executing <code>syscall</code>. Before the kernel returns to userspace, it will put the result of the system call (if there is one) in <code>rax</code>.
+If a system call takes less than five parameters, the unused parameter registers will be preserved across the system call.</p>
+<h1><a class="header" href="#userspace-memory-map-x86_64" id="userspace-memory-map-x86_64">Userspace memory map (x86_64)</a></h1>
+<p>x86_64 features an enormous 256TB virtual address space, most of which is available to userspace processes under Pebble. For this reason, things are spread throughout the virtual address space to make it
+easy to identify what a virtual address points to.</p>
+<h3><a class="header" href="#userspace-stacks" id="userspace-stacks">Userspace stacks</a></h3>
+<p>Within the virtual address space, the userspace stacks are allocated a 4GB range. Each task has a maximum stack size of 2MB, which puts a limit of 2048 tasks per address space.</p>
+<h1><a class="header" href="#message-format" id="message-format">Message Format</a></h1>
+<p>Rust's type system can't be used over process boundaries, and so we need another way to encode and decode messages reliably. The soundness of this is incredible important - message passing is Pebble's
+largest attack surface, and so the kernel must be able to correctly parse all malformed messaged without violating safety. We also want to make it as easy as possible for developers to build programs that
+can send and receive messages.</p>
+<p>Every message starts with a header, with the format (the meaning of the <code>ProcessId</code> depends on whether the message is in the Send or Receive buffer):</p>
+<pre><code>*----------------------------------* 0x00
+| Sender / Recepient (ProcessId)   |
+*----------------------------------* 0x02
+| Payload length (u16)             |
+*----------------------------------* 0x04
+</code></pre>
+<p>This header is followed by the message's payload, which can represent any type that can be serialized and deserialized by <code>serde</code>. This encoding needs to be compact, but also must be verifiable to be the
+correct type of message. Pebble uses a custom encoding format, heavily inspired by <a href="https://github.com/TyOverby/bincode">BinCode</a> and <a href="https://github.com/msgpack/msgpack/blob/master/spec.md">MessagePack</a>.
+By effectively having a tiny type system that closely resembles the Serde data model, we can sanity-check that the types we're deserializing into will make at least some sense.</p>
+<h3><a class="header" href="#encoding-types" id="encoding-types">Encoding types</a></h3>
+<p>To handle any type that can be serialized and deserialized using <code>serde</code>, we need to be able to handle the 29 types of the Serde Data Model. While lots of these types are specifically tagged, some are
+encoded transparently for simplicity and compactness (specifically <code>Newtype Struct</code> and <code>Newtype Variant</code>). All multi-byte structures are little-endian. <code>Struct</code>s and <code>Tuple</code>s are simply encoded by encoding
+each of their fields in order.</p>
+<p>TODO XXX: I don't think this is fully good yet. We should think about how long structures are actually going to be (e.g. how long should a string actually be able to be?), and decide if the extra compactness is worth it for e.g. missing out an extra 1 byte of length info...</p>
+<table><thead><tr><th>First byte</th><th>Number of following bytes</th><th>Format</th><th>Description</th></tr></thead><tbody>
+<tr><td>0x00</td><td>0</td><td></td><td><code>Unit</code>, <code>Unit Struct</code>, <code>Unit Variant</code></td></tr>
+<tr><td>0x01</td><td>0</td><td></td><td><code>bool</code> - False</td></tr>
+<tr><td>0x02</td><td>0</td><td></td><td><code>bool</code> - True</td></tr>
+<tr><td>0x03</td><td>0</td><td></td><td><code>None</code></td></tr>
+<tr><td>0x04</td><td><code>n</code></td><td>XX(<code>n</code>)</td><td><code>Some(T)</code> (this marks the <code>Some</code>. The <code>T</code> is then encoded after this byte)</td></tr>
+<tr><td>0x05</td><td>1</td><td>CC</td><td><code>char</code> - UTF-8 code point that requires 1 byte to encode</td></tr>
+<tr><td>0x06</td><td>2</td><td>CC-CC</td><td><code>char</code> - UTF-8 code point that requires 2 byte to encode</td></tr>
+<tr><td>0x07</td><td>3</td><td>CC-CC-CC</td><td><code>char</code> - UTF-8 code point that requires 3 byte to encode</td></tr>
+<tr><td>0x08</td><td>4</td><td>CC-CC-CC-CC</td><td><code>char</code> - UTF-8 code point that requires 4 byte to encode</td></tr>
+<tr><td>0x10</td><td>1</td><td>XX</td><td><code>u8</code></td></tr>
+<tr><td>0x11</td><td>2</td><td>XX-XX</td><td><code>u16</code></td></tr>
+<tr><td>0x12</td><td>4</td><td>XX-XX-XX-XX</td><td><code>u32</code></td></tr>
+<tr><td>0x13</td><td>8</td><td>XX-XX-XX-XX-XX-XX-XX-XX</td><td><code>u64</code></td></tr>
+<tr><td>0x14</td><td>16</td><td>XX(16)</td><td><code>u128</code></td></tr>
+<tr><td>0x20</td><td>1</td><td>ZZ</td><td><code>i8</code></td></tr>
+<tr><td>0x21</td><td>2</td><td>ZZ-ZZ</td><td><code>i16</code></td></tr>
+<tr><td>0x22</td><td>4</td><td>ZZ-ZZ-ZZ-ZZ</td><td><code>i32</code></td></tr>
+<tr><td>0x23</td><td>8</td><td>ZZ-ZZ-ZZ-ZZ-ZZ-ZZ-ZZ-ZZ</td><td><code>i64</code></td></tr>
+<tr><td>0x24</td><td>16</td><td>ZZ(16)</td><td><code>i128</code></td></tr>
+<tr><td>0x30</td><td>4</td><td>FF-FF-FF-FF</td><td><code>f32</code></td></tr>
+<tr><td>0x31</td><td>8</td><td>FF-FF-FF-FF-FF-FF-FF-FF</td><td><code>f64</code></td></tr>
+<tr><td>0x40-0x4F</td><td>(1-16){<code>n</code>} + <code>n</code> of data</td><td>NN(<code>first</code> - 0x3F)-CC(<code>n</code>)</td><td><code>String</code></td></tr>
+<tr><td>0x50-0x5F</td><td>(1-16){<code>n</code>} + <code>n</code> of data</td><td>NN(<code>first</code> - 0x4F)-XX(<code>n</code>)</td><td><code>Byte Array</code></td></tr>
+<tr><td>0x60</td><td>4{<code>n</code>} + <code>n</code> of data</td><td>NN-NN-NN-NN-XX(<code>n</code>)</td><td><code>Seq</code></td></tr>
+</tbody></table>
+<h4><a class="header" href="#strings" id="strings">Strings</a></h4>
+<p>Strings are encoded as UTF-8 byte arrays without null terminators. The first byte defines how many bytes are used to encode the length of the string, where <code>0x40</code> means 1 byte is used and <code>0x4F</code> means 16
+bytes are used (this is <code>x</code>). The following <code>x</code> bytes are used to encode the number of bytes used to encode the string (<code>n</code>). Following this are <code>n</code> bytes of UTF-8 string data.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+        
+        <script type="text/javascript">
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+        
+        
+
+    </body>
+</html>
