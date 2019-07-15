@@ -34,10 +34,15 @@
 <span id="34">34</span>
 <span id="35">35</span>
 <span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">memory</span>::<span class="ident">VirtualAddress</span>;
-<span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">boxed</span>::<span class="ident">Box</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">pin</span>::<span class="ident">Pin</span>;
+<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">marker</span>::<span class="ident">PhantomPinned</span>;
 
 <span class="doccomment">/// Hardware task switching isn&#39;t supported on x86_64, so the TSS is just used as a vestigal place</span>
 <span class="doccomment">/// to stick stuff. It&#39;s used to store kernel-level stacks that should be used if interrupts occur</span>
@@ -52,11 +57,17 @@
     <span class="ident">_reserved_3</span>: <span class="ident">u64</span>,
     <span class="ident">_reserved_4</span>: <span class="ident">u16</span>,
     <span class="kw">pub</span> <span class="ident">iomap_base</span>: <span class="ident">u16</span>,
+
+    <span class="doccomment">/// The memory pointed to by a task register will be used as the TSS until the task register</span>
+    <span class="doccomment">/// contents is replaced. This means the memory must never be moved, because then the task</span>
+    <span class="doccomment">/// register would no longer point to the TSS. To enforce this using the type system, we pin</span>
+    <span class="doccomment">/// the type.</span>
+    <span class="ident">_pin</span>: <span class="ident">PhantomPinned</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Tss</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Tss</span><span class="op">&gt;&gt;</span> {
-        <span class="ident">Pin</span>::<span class="ident">new</span>(<span class="kw">box</span> <span class="ident">Tss</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">Tss</span> {
+        <span class="ident">Tss</span> {
             <span class="ident">_reserved_1</span>: <span class="number">0</span>,
             <span class="ident">privilege_stack_table</span>: [<span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0</span>) }; <span class="number">3</span>],
             <span class="ident">_reserved_2</span>: <span class="number">0</span>,
@@ -64,7 +75,8 @@
             <span class="ident">_reserved_3</span>: <span class="number">0</span>,
             <span class="ident">_reserved_4</span>: <span class="number">0</span>,
             <span class="ident">iomap_base</span>: <span class="number">0</span>,
-        })
+            <span class="ident">_pin</span>: <span class="ident">PhantomPinned</span>,
+        }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_kernel_stack</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">address</span>: <span class="ident">VirtualAddress</span>) {

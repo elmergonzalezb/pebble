@@ -55,6 +55,8 @@
 <span id="55">55</span>
 <span id="56">56</span>
 <span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module probably looks rather sparse! Check the root of one of the architecture modules for</span>
 <span class="doccomment">//! an entry point.</span>
@@ -70,7 +72,8 @@
     <span class="ident">trait_alias</span>,
     <span class="ident">type_ascription</span>,
     <span class="ident">naked_functions</span>,
-    <span class="ident">bind_by_move_pattern_guards</span>
+    <span class="ident">bind_by_move_pattern_guards</span>,
+    <span class="ident">box_syntax</span>
 )]</span>
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
@@ -92,6 +95,7 @@
 <span class="kw">mod</span> <span class="ident">arch</span>;
 <span class="kw">mod</span> <span class="ident">heap_allocator</span>;
 <span class="kw">mod</span> <span class="ident">object</span>;
+<span class="kw">mod</span> <span class="ident">scheduler</span>;
 <span class="kw">mod</span> <span class="ident">syscall</span>;
 <span class="kw">mod</span> <span class="ident">util</span>;
 

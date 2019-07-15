@@ -4,7 +4,7 @@ sourcesIndex["aml_parser"] = {"name":"","files":["lib.rs","name_object.rs","opco
 sourcesIndex["bit_field"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["bitflags"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["cfg_if"] = {"name":"","files":["lib.rs"]};
-sourcesIndex["kernel"] = {"name":"","dirs":[{"name":"object","files":["map.rs","mod.rs"]},{"name":"util","files":["binary_pretty_print.rs","bitmap.rs","math.rs","mod.rs"]},{"name":"x86_64","dirs":[{"name":"memory","files":["buddy_allocator.rs","mod.rs","physical.rs","userspace_map.rs"]}],"files":["acpi_handler.rs","address_space.rs","cpu.rs","interrupts.rs","logger.rs","mod.rs","task.rs"]}],"files":["arch.rs","heap_allocator.rs","lib.rs","syscall.rs"]};
+sourcesIndex["kernel"] = {"name":"","dirs":[{"name":"object","files":["map.rs","mod.rs","task.rs"]},{"name":"util","files":["binary_pretty_print.rs","bitmap.rs","math.rs","mod.rs"]},{"name":"x86_64","dirs":[{"name":"memory","files":["buddy_allocator.rs","mod.rs","userspace_map.rs"]}],"files":["acpi_handler.rs","address_space.rs","cpu.rs","interrupts.rs","logger.rs","memory_object.rs","mod.rs","per_cpu.rs","task.rs"]}],"files":["arch.rs","heap_allocator.rs","lib.rs","scheduler.rs","syscall.rs"]};
 sourcesIndex["libpebble"] = {"name":"","dirs":[{"name":"syscall","files":["mod.rs","raw_x86_64.rs"]}],"files":["lib.rs","object.rs"]};
 sourcesIndex["log"] = {"name":"","files":["lib.rs","macros.rs"]};
 sourcesIndex["num"] = {"name":"","files":["lib.rs"]};
@@ -15,5 +15,5 @@ sourcesIndex["num_rational"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["num_traits"] = {"name":"","dirs":[{"name":"ops","files":["checked.rs","inv.rs","mod.rs","mul_add.rs","saturating.rs","wrapping.rs"]}],"files":["bounds.rs","cast.rs","float.rs","identities.rs","int.rs","lib.rs","macros.rs","pow.rs","sign.rs"]};
 sourcesIndex["spin"] = {"name":"","files":["lib.rs","mutex.rs","once.rs","rw_lock.rs"]};
 sourcesIndex["typenum"] = {"name":"","files":["array.rs","bit.rs","int.rs","lib.rs","marker_traits.rs","operator_aliases.rs","private.rs","type_operators.rs","uint.rs"]};
-sourcesIndex["x86_64"] = {"name":"","dirs":[{"name":"hw","files":["cpu.rs","gdt.rs","i8259_pic.rs","idt.rs","local_apic.rs","mod.rs","port.rs","registers.rs","serial.rs","tlb.rs","tss.rs"]},{"name":"memory","dirs":[{"name":"paging","files":["entry.rs","frame.rs","frame_allocator.rs","mapper.rs","mod.rs","page.rs","table.rs"]}],"files":["kernel_map.rs","mod.rs","physical_address.rs","virtual_address.rs"]}],"files":["boot.rs","lib.rs"]};
+sourcesIndex["x86_64"] = {"name":"","dirs":[{"name":"hw","files":["cpu.rs","gdt.rs","i8259_pic.rs","idt.rs","local_apic.rs","mod.rs","port.rs","registers.rs","serial.rs","tlb.rs","tss.rs"]},{"name":"memory","files":["frame.rs","frame_allocator.rs","kernel_map.rs","mod.rs","page.rs","page_table.rs","physical_address.rs","virtual_address.rs"]}],"files":["boot.rs","lib.rs"]};
 createSourceSidebar();

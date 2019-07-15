@@ -200,8 +200,35 @@
 <span id="200">200</span>
 <span id="201">201</span>
 <span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">paging</span>::<span class="ident">PAGE_SIZE</span>;
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">FrameSize</span>;
+<span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
 <span class="kw">use</span> <span class="ident">core</span>::{
     <span class="ident">cmp</span>::<span class="ident">Ordering</span>,
     <span class="ident">fmt</span>,
@@ -243,20 +270,14 @@
     }
 
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_page_table_offsets</span>(
-        <span class="ident">p4</span>: <span class="ident">u16</span>,
-        <span class="ident">p3</span>: <span class="ident">u16</span>,
-        <span class="ident">p2</span>: <span class="ident">u16</span>,
-        <span class="ident">p1</span>: <span class="ident">u16</span>,
+        <span class="ident">p4</span>: <span class="ident">usize</span>,
+        <span class="ident">p3</span>: <span class="ident">usize</span>,
+        <span class="ident">p2</span>: <span class="ident">usize</span>,
+        <span class="ident">p1</span>: <span class="ident">usize</span>,
         <span class="ident">offset</span>: <span class="ident">usize</span>,
     ) <span class="op">-&gt;</span> <span class="ident">VirtualAddress</span> {
-        <span class="ident">VirtualAddress</span>(
-            ((<span class="ident">p4</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;&lt;</span> <span class="number">39</span>)
-                <span class="op">|</span> ((<span class="ident">p3</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;&lt;</span> <span class="number">30</span>)
-                <span class="op">|</span> ((<span class="ident">p2</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;&lt;</span> <span class="number">21</span>)
-                <span class="op">|</span> ((<span class="ident">p1</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;&lt;</span> <span class="number">12</span>)
-                <span class="op">|</span> ((<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;&lt;</span> <span class="number">0</span>),
-        )
-        .<span class="ident">canonicalise</span>()
+        <span class="ident">VirtualAddress</span>((<span class="ident">p4</span> <span class="op">&lt;&lt;</span> <span class="number">39</span>) <span class="op">|</span> (<span class="ident">p3</span> <span class="op">&lt;&lt;</span> <span class="number">30</span>) <span class="op">|</span> (<span class="ident">p2</span> <span class="op">&lt;&lt;</span> <span class="number">21</span>) <span class="op">|</span> (<span class="ident">p1</span> <span class="op">&lt;&lt;</span> <span class="number">12</span>) <span class="op">|</span> (<span class="ident">offset</span> <span class="op">&lt;&lt;</span> <span class="number">0</span>))
+            .<span class="ident">canonicalise</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ptr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T</span> {
@@ -271,16 +292,16 @@
         <span class="ident">VirtualAddress</span>(((<span class="self">self</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">isize</span>) <span class="op">+</span> <span class="ident">offset</span>) <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">canonicalise</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_page_aligned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">%</span> <span class="ident">PAGE_SIZE</span> <span class="op">==</span> <span class="number">0</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">offset_into_page</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">FrameSize</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">%</span> <span class="ident">S</span>::<span class="ident">SIZE</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_page_aligned</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">FrameSize</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">offset_into_page</span>::<span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>() <span class="op">==</span> <span class="number">0</span>
     }
 
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_aligned_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">alignment</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="number">0</span> <span class="op">%</span> <span class="ident">alignment</span> <span class="op">==</span> <span class="number">0</span>
-    }
-
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">offset_into_page</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">%</span> <span class="ident">PAGE_SIZE</span>
     }
 
     <span class="doccomment">/// Get the greatest address `x` with the given alignment such that `x &lt;= self`. The alignment</span>
@@ -317,6 +338,22 @@
         <span class="kw">const</span> <span class="ident">SIGN_EXTENSION</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0o177777_000_000_000_000_0000</span>;
 
         <span class="ident">VirtualAddress</span>((<span class="ident">SIGN_EXTENSION</span> <span class="op">*</span> ((<span class="self">self</span>.<span class="number">0</span> <span class="op">&gt;&gt;</span> <span class="number">47</span>) <span class="op">&amp;</span> <span class="number">0b1</span>)) <span class="op">|</span> (<span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> ((<span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">48</span>) <span class="op">-</span> <span class="number">1</span>)))
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">p4_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get_bits</span>(<span class="number">39</span>..<span class="number">48</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">p3_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get_bits</span>(<span class="number">30</span>..<span class="number">39</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">p2_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get_bits</span>(<span class="number">21</span>..<span class="number">30</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">p1_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get_bits</span>(<span class="number">12</span>..<span class="number">21</span>)
     }
 }
 
@@ -401,6 +438,21 @@
 <span class="kw">impl</span> <span class="ident">Ord</span> <span class="kw">for</span> <span class="ident">VirtualAddress</span> {
     <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="ident">VirtualAddress</span>) <span class="op">-&gt;</span> <span class="ident">Ordering</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">rhs</span>.<span class="number">0</span>)
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">tests</span> {
+    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">memory</span>::<span class="kw-2">*</span>;
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_page_table_offsets</span>() {
+        <span class="kw">let</span> <span class="ident">start_of_kernel_space</span> <span class="op">=</span> <span class="ident">VirtualAddress</span>::<span class="ident">from_page_table_offsets</span>(<span class="number">511</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">start_of_kernel_space</span>.<span class="ident">p4_index</span>(), <span class="number">511</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">start_of_kernel_space</span>.<span class="ident">p3_index</span>(), <span class="number">0</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">start_of_kernel_space</span>.<span class="ident">p2_index</span>(), <span class="number">0</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">start_of_kernel_space</span>.<span class="ident">p1_index</span>(), <span class="number">0</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">start_of_kernel_space</span>.<span class="ident">offset_into_page</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>(), <span class="number">0</span>);
     }
 }
 </pre></div>

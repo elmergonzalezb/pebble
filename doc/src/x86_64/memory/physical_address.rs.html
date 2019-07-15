@@ -119,8 +119,31 @@
 <span id="119">119</span>
 <span id="120">120</span>
 <span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">paging</span>::<span class="ident">FRAME_SIZE</span>;
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">FrameSize</span>;
 <span class="kw">use</span> <span class="ident">core</span>::{
     <span class="ident">cmp</span>::<span class="ident">Ordering</span>,
     <span class="ident">fmt</span>,
@@ -145,16 +168,39 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new_unchecked</span>(<span class="ident">address</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">PhysicalAddress</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new_unchecked</span>(<span class="ident">address</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">PhysicalAddress</span> {
         <span class="ident">PhysicalAddress</span>(<span class="ident">address</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">offset_into_frame</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="number">0</span> <span class="op">%</span> <span class="ident">FRAME_SIZE</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">offset_into_frame</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">FrameSize</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">%</span> <span class="ident">S</span>::<span class="ident">SIZE</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_frame_aligned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">offset_into_frame</span>() <span class="op">==</span> <span class="number">0</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_frame_aligned</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">FrameSize</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">offset_into_frame</span>::<span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>() <span class="op">==</span> <span class="number">0</span>
+    }
+
+    <span class="doccomment">/// Get the greatest address less than or equal to this address with the given alignment.</span>
+    <span class="doccomment">/// `align` must be `0` or a power-of-two.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">align_down</span>(<span class="self">self</span>, <span class="ident">align</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">PhysicalAddress</span> {
+        <span class="kw">if</span> <span class="ident">align</span>.<span class="ident">is_power_of_two</span>() {
+            <span class="comment">/*
+             * E.g.
+             *      align       =   0b00001000
+             *      align-1     =   0b00000111
+             *      !(align-1)  =   0b11111000
+             *                             ^^^ Masks the address to the value below it with the
+             *                                 correct alignment
+             */</span>
+            <span class="ident">PhysicalAddress</span>(<span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="op">!</span>(<span class="ident">align</span> <span class="op">-</span> <span class="number">1</span>))
+        } <span class="kw">else</span> {
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">align</span> <span class="op">==</span> <span class="number">0</span>);
+            <span class="self">self</span>
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">align_up</span>(<span class="self">self</span>, <span class="ident">align</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">PhysicalAddress</span> {
+        <span class="ident">PhysicalAddress</span>(<span class="self">self</span>.<span class="number">0</span> <span class="op">+</span> <span class="ident">align</span> <span class="op">-</span> <span class="number">1</span>).<span class="ident">align_down</span>(<span class="ident">align</span>)
     }
 }
 

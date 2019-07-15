@@ -1,1 +1,0 @@
-initSidebarItems({"constant":[["BUDDY_ALLOCATOR_MAX_ORDER",""]],"struct":[["LockedPhysicalMemoryManager",""],["PhysicalMemoryManager","The main physical memory manager. It tracks all conventional physical memory and is used by the rest of the kernel to allocate physical memory."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["VirtualAddress","Represents a canonical virtual address. To be canonical, the address must be in the ranges `0x0000_0000_0000_0000` to `0x0000_8000_0000_0000` or `0xffff_8000_0000_0000` to `0xffff_ffff_ffff_ffff`."]]});

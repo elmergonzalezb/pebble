@@ -140,9 +140,6 @@
 <span id="140">140</span>
 <span id="141">141</span>
 <span id="142">142</span>
-<span id="143">143</span>
-<span id="144">144</span>
-<span id="145">145</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! One of the allocators we use to manage physical memory is the buddy allocator. With this</span>
 <span class="doccomment">//! allocator, memory is broken up into a number of blocks, each of which is a power-of-2 in size.</span>
@@ -159,7 +156,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">math</span>::{<span class="ident">ceiling_log2</span>, <span class="ident">flooring_log2</span>};
 <span class="kw">use</span> <span class="ident">alloc</span>::{<span class="ident">collections</span>::<span class="ident">BTreeSet</span>, <span class="ident">vec</span>::<span class="ident">Vec</span>};
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">cmp</span>::<span class="ident">min</span>, <span class="ident">ops</span>::<span class="ident">Range</span>};
-<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::{<span class="ident">paging</span>::<span class="ident">Frame</span>, <span class="ident">PhysicalAddress</span>};
+<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::{<span class="ident">Frame</span>, <span class="ident">PhysicalAddress</span>};
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BuddyAllocator</span> {
     <span class="doccomment">/// The bins of free blocks, where bin `i` contains blocks of size `2^i`. Uses `BTreeSet` to</span>
@@ -278,10 +275,7 @@
     <span class="doccomment">/// Finds the starting frame of the block that is the buddy of the block of order `order`,</span>
     <span class="doccomment">/// starting at `x`.</span>
     <span class="kw">fn</span> <span class="ident">buddy_of</span>(<span class="ident">x</span>: <span class="ident">Frame</span>, <span class="ident">order</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">Frame</span> {
-        <span class="comment">// TODO: work out how this works and document it</span>
-        <span class="ident">Frame</span>::<span class="ident">contains</span>(
-            <span class="ident">PhysicalAddress</span>::<span class="ident">new</span>(<span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">x</span>.<span class="ident">start_address</span>()) <span class="op">^</span> (<span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="ident">order</span>)).<span class="ident">unwrap</span>(),
-        )
+        <span class="ident">Frame</span>::<span class="ident">contains</span>(<span class="ident">PhysicalAddress</span>::<span class="ident">new</span>(<span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">x</span>.<span class="ident">start_address</span>) <span class="op">^</span> (<span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="ident">order</span>)).<span class="ident">unwrap</span>())
     }
 
     <span class="doccomment">/// Get the order of the largest block this allocator can track.</span>

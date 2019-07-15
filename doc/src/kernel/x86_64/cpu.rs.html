@@ -13,43 +13,19 @@
 <span id="13">13</span>
 <span id="14">14</span>
 <span id="15">15</span>
-<span id="16">16</span>
-<span id="17">17</span>
-<span id="18">18</span>
-<span id="19">19</span>
-<span id="20">20</span>
-<span id="21">21</span>
-<span id="22">22</span>
-<span id="23">23</span>
-<span id="24">24</span>
-<span id="25">25</span>
-<span id="26">26</span>
-<span id="27">27</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">boxed</span>::<span class="ident">Box</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">pin</span>::<span class="ident">Pin</span>;
-<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">hw</span>::{<span class="ident">gdt</span>::<span class="ident">SegmentSelector</span>, <span class="ident">tss</span>::<span class="ident">Tss</span>};
-
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Cpu</span> {
     <span class="kw">pub</span> <span class="ident">processor_uid</span>: <span class="ident">u8</span>,
     <span class="kw">pub</span> <span class="ident">local_apic_id</span>: <span class="ident">u8</span>,
     <span class="kw">pub</span> <span class="ident">is_ap</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span> <span class="ident">tss</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Tss</span><span class="op">&gt;&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">tss_selector</span>: <span class="ident">SegmentSelector</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Cpu</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_acpi</span>(
-        <span class="ident">acpi_info</span>: <span class="kw-2">&amp;</span><span class="ident">acpi</span>::<span class="ident">Processor</span>,
-        <span class="ident">tss</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Tss</span><span class="op">&gt;&gt;</span>,
-        <span class="ident">tss_selector</span>: <span class="ident">SegmentSelector</span>,
-    ) <span class="op">-&gt;</span> <span class="ident">Cpu</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_acpi</span>(<span class="ident">acpi_info</span>: <span class="kw-2">&amp;</span><span class="ident">acpi</span>::<span class="ident">Processor</span>) <span class="op">-&gt;</span> <span class="ident">Cpu</span> {
         <span class="ident">Cpu</span> {
             <span class="ident">processor_uid</span>: <span class="ident">acpi_info</span>.<span class="ident">processor_uid</span>,
             <span class="ident">local_apic_id</span>: <span class="ident">acpi_info</span>.<span class="ident">local_apic_id</span>,
             <span class="ident">is_ap</span>: <span class="ident">acpi_info</span>.<span class="ident">is_ap</span>,
-            <span class="ident">tss</span>,
-            <span class="ident">tss_selector</span>,
         }
     }
 }

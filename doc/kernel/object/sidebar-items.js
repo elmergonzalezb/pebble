@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["KernelObject",""]],"mod":[["map",""]]});
+initSidebarItems({"enum":[["KernelObject",""]],"mod":[["map",""],["task",""]],"struct":[["WrappedKernelObject",""]]});
