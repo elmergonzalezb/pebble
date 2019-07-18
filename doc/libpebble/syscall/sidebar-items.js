@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["SYSCALL_YIELD",""]],"fn":[["yield_to_kernel",""]],"mod":[["raw_x86_64",""]]});
+initSidebarItems({"constant":[["SYSCALL_EARLY_LOG",""],["SYSCALL_YIELD",""]],"fn":[["early_log",""],["yield_to_kernel",""]],"mod":[["raw_x86_64",""]]});

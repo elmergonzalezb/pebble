@@ -80,7 +80,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li><a href="introduction/index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="kernel/index.html"><strong aria-hidden="true">2.</strong> The Kernel</a></li><li><ol class="section"><li><a href="kernel/booting_x86_64.html"><strong aria-hidden="true">2.1.</strong> Booting (x86_64)</a></li><li><a href="kernel/process_ids.html"><strong aria-hidden="true">2.2.</strong> Process IDs</a></li><li><a href="kernel/syscalls.html"><strong aria-hidden="true">2.3.</strong> System calls</a></li></ol></li><li><a href="userspace/index.html"><strong aria-hidden="true">3.</strong> Userspace</a></li><li><ol class="section"><li><a href="userspace/memory_map_x86_64.html"><strong aria-hidden="true">3.1.</strong> Memory map (x86_64)</a></li></ol></li><li><a href="message_passing/index.html"><strong aria-hidden="true">4.</strong> Message Passing</a></li><li><ol class="section"><li><a href="message_passing/fmt.html"><strong aria-hidden="true">4.1.</strong> Message Format</a></li></ol></li></ol>
+                <ol class="chapter"><li><a href="introduction/index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="kernel/index.html"><strong aria-hidden="true">2.</strong> The Kernel</a></li><li><ol class="section"><li><a href="kernel/bootcmd.html"><strong aria-hidden="true">2.1.</strong> Bootcmd</a></li><li><a href="kernel/booting_x86_64.html"><strong aria-hidden="true">2.2.</strong> Booting (x86_64)</a></li><li><a href="kernel/process_ids.html"><strong aria-hidden="true">2.3.</strong> Process IDs</a></li><li><a href="kernel/syscalls.html"><strong aria-hidden="true">2.4.</strong> System calls</a></li></ol></li><li><a href="userspace/index.html"><strong aria-hidden="true">3.</strong> Userspace</a></li><li><ol class="section"><li><a href="userspace/capabilities.html"><strong aria-hidden="true">3.1.</strong> Capabilities</a></li><li><a href="userspace/memory_map_x86_64.html"><strong aria-hidden="true">3.2.</strong> Memory map (x86_64)</a></li></ol></li><li><a href="message_passing/index.html"><strong aria-hidden="true">4.</strong> Message Passing</a></li><li><ol class="section"><li><a href="message_passing/fmt.html"><strong aria-hidden="true">4.1.</strong> Message Format</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -165,6 +165,26 @@ memory and thread safety <strong>in safe code</strong>. This qualification is im
 mean that Pebble is automatically bug-free.</p>
 <p>However, Rust makes you think a lot more about how to make your programs safe, which is exactly the sort of code we want to be writing for a kernel. This focus on safety, as well as good ergonomics features
 and performance, makes Rust perfect for OS-level code.</p>
+<h1><a class="header" href="#bootcmd" id="bootcmd">Bootcmd</a></h1>
+<p>The <code>bootcmd</code> is a file loaded by the bootloader that contains instructions for booting into an instance of Pebble.
+It is located at the root of the boot medium (e.g. in the FAT partition if using the UEFI bootloader for x86_64),
+and consists of a series of line-separated commands that load / configure parts of the OS.</p>
+<h3><a class="header" href="#commands" id="commands">Commands</a></h3>
+<ul>
+<li><code>kernel {path}</code> - load the kernel image at the specified path into memory. This command must be present for the
+bootloader to successfully boot, and must only appear once in the <code>bootcmd</code>.</li>
+<li><code>image {path}</code> - load an initial task image into memory and pass information about it to the kernel. This
+command is used to load initial tasks for the kernel to run before it has functioning filesystem
+drivers. It can also be used to load all tasks needed in minimal systems. It can be present zero
+or more times in the <code>bootcmd</code>. The same image should not be loaded more than once, however.</li>
+<li><code>video_mode {desired width} {desired height}</code> - attempts to set up a video mode for initial graphics support (if
+a better driver isn't available / loaded). The exact behaviour of
+this command will depend on the platform being booted upon, but it
+will in general try to switch to an appropriate mode, pass
+information about that mode to the kernel, which will pass it on
+to the task with the <code>CAP_MAP_FRAMEBUFFER</code> capability (refer to
+the 'Userspace/Capabilities' section for more information)</li>
+</ul>
 <h1><a class="header" href="#booting-pebble-on-x86_64" id="booting-pebble-on-x86_64">Booting Pebble on x86_64</a></h1>
 <p>On x86_64, Pebble is booted by a UEFI application that can be found <a href="https://github.com/pebble-os/pebble/tree/master/bootloader">here</a>. We don't support booting from BIOS, mainly because the vast majority
 of current platforms now support UEFI, and I didn't want the maintenance burden of two bootloaders for one platform. Pebble's kernel and bootloaders are more coupled than on other platforms, and the
@@ -246,9 +266,10 @@ attack surface of the kernel.</li>
 </ul>
 <p>Each system call has a unique number that is used to identify it. A system call can then take up to five parameters, each a maximum in size of the system's register width. It can return a single value, also
 the size of a register.</p>
-<h3><a class="header" href="#list-of-system-calls" id="list-of-system-calls">List of system calls</a></h3>
+<h3><a class="header" href="#overview-of-system-calls" id="overview-of-system-calls">Overview of system calls</a></h3>
 <table><thead><tr><th>Number</th><th>System call</th><th>a</th><th>b</th><th>c</th><th>d</th><th>e</th><th>Return value</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>0</code></td><td><code>yield</code></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>Yield to the kernel.</td></tr>
+<tr><td><code>1</code></td><td><code>early_log</code></td><td>length</td><td>ptr to string</td><td>-</td><td>-</td><td>-</td><td>success/error</td><td>Log a message. Designed to be used from early processes.</td></tr>
 </tbody></table>
 <h3><a class="header" href="#making-a-system-call-on-x86_64" id="making-a-system-call-on-x86_64">Making a system call on x86_64</a></h3>
 <p>To make a system call on x86_64, populate these registers:</p>
@@ -257,6 +278,62 @@ the size of a register.</p>
 </tbody></table>
 <p>You can then make the system call by executing <code>syscall</code>. Before the kernel returns to userspace, it will put the result of the system call (if there is one) in <code>rax</code>.
 If a system call takes less than five parameters, the unused parameter registers will be preserved across the system call.</p>
+<h3><a class="header" href="#yield" id="yield"><code>yield</code></a></h3>
+<p>Used by a task that can't do any work at the moment, allowing the kernel to schedule other tasks.</p>
+<h3><a class="header" href="#early_log" id="early_log"><code>early_log</code></a></h3>
+<p>Used by tasks that are started early in the boot process, before reliable userspace logging support is running. Output is
+logged to the same place as kernel logging.</p>
+<p>This system call should not be used from standard usermode tasks, and so requires the <code>CAP_EARLY_LOGGING</code> capability to use.
+The first parameter (<code>a</code>) is the length of the string in bytes, and the second (<code>b</code>) is a UTF-8 encoded string that is not
+null-terminated. The maximum length of the string is 1024 chars.</p>
+<p>Returns:</p>
+<ul>
+<li><code>0</code> if the system call succeeded</li>
+<li><code>1</code> if the string was too long</li>
+<li><code>2</code> if the string was not valid UTF-8</li>
+</ul>
+<h1><a class="header" href="#capabilities" id="capabilities">Capabilities</a></h1>
+<p>Capabilities describe what a task is allowed to do, and are encoded in its image. This allows users to audit the
+permissions of the tasks they run at a much higher granularity than user-based permissions, and also allow us to
+move parts of the kernel into discrete userspace tasks by creating specialised capabilities to allow access to
+sensitive resources (such as the raw framebuffer) to only select tasks.</p>
+<h3><a class="header" href="#encoding-capabilities-in-the-elf-image" id="encoding-capabilities-in-the-elf-image">Encoding capabilities in the ELF image</a></h3>
+<p>Capabilities are encoded in an entry of a <code>PT_NOTE</code> segment of the ELF image of a task. This entry will have an
+owner (sometimes referred to in documentation as the 'name') of <code>PEBBLE</code> and a type of <code>0</code>. The descriptor will be
+an encoding of the capabilities as described by the 'Format' section. The descriptor must be padded such that the
+next descriptor is 4-byte aligned, and so a value of <code>0x00</code> is reserved to be used as padding.</p>
+<p>Initial images (tasks loaded by the bootloader before filesystem drivers are working) are limited to a capabilities
+encoding of 32 bytes (given the variable-length encoding, this does not equate to a fixed maximum number of
+capabilities).</p>
+<h3><a class="header" href="#format" id="format">Format</a></h3>
+<p>The capabilities format is variable-length - simple capabilities can be encoded as a single byte, while more
+complex / specific ones may need multiple bytes of prefix, and can also encode fixed-length data.</p>
+<h3><a class="header" href="#overview-of-capabilities" id="overview-of-capabilities">Overview of capabilities</a></h3>
+<p>This is an overview of all the capabilities the kernel supports. Complex capabilities are detailed in their own
+sections:</p>
+<table><thead><tr><th>First byte</th><th>Next byte(s)</th><th>Data</th><th>Arch specific?</th><th>Description</th><th>Status</th></tr></thead><tbody>
+<tr><td><code>0x00</code></td><td>-</td><td>-</td><td>-</td><td>No meaning - used to pad descriptor to required length (see above)</td><td>-</td></tr>
+<tr><td><code>0x01</code></td><td></td><td></td><td>No</td><td><code>CAP_CREATE_ADDRESS_SPACE</code></td><td>Planned</td></tr>
+<tr><td><code>0x02</code></td><td></td><td></td><td>No</td><td><code>CAP_CREATE_MEMORY_OBJECT</code></td><td>Planned</td></tr>
+<tr><td><code>0x03</code></td><td></td><td></td><td>No</td><td><code>CAP_CREATE_TASK</code></td><td>Planned</td></tr>
+<tr><td><code>0x04</code>-<code>0x1f</code></td><td></td><td></td><td></td><td>Reserved for future kernel objects</td><td></td></tr>
+<tr><td><code>0x20</code></td><td><code>0x00</code></td><td><code>u16</code> port number</td><td>Yes - x86_64</td><td><code>CAP_X86_64_ACCESS_IO_PORT</code></td><td>Planned</td></tr>
+<tr><td><code>0x21</code>-<code>0x2f</code></td><td></td><td></td><td></td><td>Reserved for future architectures</td><td></td></tr>
+<tr><td><code>0x30</code></td><td></td><td></td><td>No</td><td><code>CAP_MAP_FRAMEBUFFER</code></td><td>Planned</td></tr>
+<tr><td><code>0x31</code></td><td></td><td></td><td>No</td><td><code>CAP_EARLY_LOGGING</code></td><td>Planned</td></tr>
+</tbody></table>
+<h3><a class="header" href="#cap_map_framebuffer" id="cap_map_framebuffer"><code>CAP_MAP_FRAMEBUFFER</code></a></h3>
+<p>If a video mode was chosen in the <code>bootcmd</code> and successfully switched to by the bootloader, the framebuffer of that
+graphics device will be mapped into the task with this capability. Only one task, the backup framebuffer driver,
+should have this capability.</p>
+<p>TODO: work out what should happen if a video mode is not picked, but a task with this capability is still loaded.</p>
+<p><strong>NOTE:</strong> while this capability seems quite innocuous, it is anything but. A rouge task that has this capability
+could in theory skim sensitive information, such as passwords or credit card details using the framebuffer, if
+this driver is in use.</p>
+<h3><a class="header" href="#cap_early_logging" id="cap_early_logging"><code>CAP_EARLY_LOGGING</code></a></h3>
+<p>This capability is owned by tasks that are started early in the boot process, before robust userspace logging is
+running. It is used to emit logging messages to the kernel log that help debug the early boot process, using the
+<code>early_log</code> system call.</p>
 <h1><a class="header" href="#userspace-memory-map-x86_64" id="userspace-memory-map-x86_64">Userspace memory map (x86_64)</a></h1>
 <p>x86_64 features an enormous 256TB virtual address space, most of which is available to userspace processes under Pebble. For this reason, things are spread throughout the virtual address space to make it
 easy to identify what a virtual address points to.</p>

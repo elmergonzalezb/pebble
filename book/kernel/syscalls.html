@@ -78,7 +78,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li><a href="../introduction/index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="../kernel/index.html"><strong aria-hidden="true">2.</strong> The Kernel</a></li><li><ol class="section"><li><a href="../kernel/booting_x86_64.html"><strong aria-hidden="true">2.1.</strong> Booting (x86_64)</a></li><li><a href="../kernel/process_ids.html"><strong aria-hidden="true">2.2.</strong> Process IDs</a></li><li><a href="../kernel/syscalls.html" class="active"><strong aria-hidden="true">2.3.</strong> System calls</a></li></ol></li><li><a href="../userspace/index.html"><strong aria-hidden="true">3.</strong> Userspace</a></li><li><ol class="section"><li><a href="../userspace/memory_map_x86_64.html"><strong aria-hidden="true">3.1.</strong> Memory map (x86_64)</a></li></ol></li><li><a href="../message_passing/index.html"><strong aria-hidden="true">4.</strong> Message Passing</a></li><li><ol class="section"><li><a href="../message_passing/fmt.html"><strong aria-hidden="true">4.1.</strong> Message Format</a></li></ol></li></ol>
+                <ol class="chapter"><li><a href="../introduction/index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="../kernel/index.html"><strong aria-hidden="true">2.</strong> The Kernel</a></li><li><ol class="section"><li><a href="../kernel/bootcmd.html"><strong aria-hidden="true">2.1.</strong> Bootcmd</a></li><li><a href="../kernel/booting_x86_64.html"><strong aria-hidden="true">2.2.</strong> Booting (x86_64)</a></li><li><a href="../kernel/process_ids.html"><strong aria-hidden="true">2.3.</strong> Process IDs</a></li><li><a href="../kernel/syscalls.html" class="active"><strong aria-hidden="true">2.4.</strong> System calls</a></li></ol></li><li><a href="../userspace/index.html"><strong aria-hidden="true">3.</strong> Userspace</a></li><li><ol class="section"><li><a href="../userspace/capabilities.html"><strong aria-hidden="true">3.1.</strong> Capabilities</a></li><li><a href="../userspace/memory_map_x86_64.html"><strong aria-hidden="true">3.2.</strong> Memory map (x86_64)</a></li></ol></li><li><a href="../message_passing/index.html"><strong aria-hidden="true">4.</strong> Message Passing</a></li><li><ol class="section"><li><a href="../message_passing/fmt.html"><strong aria-hidden="true">4.1.</strong> Message Format</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -158,9 +158,10 @@ attack surface of the kernel.</li>
 </ul>
 <p>Each system call has a unique number that is used to identify it. A system call can then take up to five parameters, each a maximum in size of the system's register width. It can return a single value, also
 the size of a register.</p>
-<h3><a class="header" href="#list-of-system-calls" id="list-of-system-calls">List of system calls</a></h3>
+<h3><a class="header" href="#overview-of-system-calls" id="overview-of-system-calls">Overview of system calls</a></h3>
 <table><thead><tr><th>Number</th><th>System call</th><th>a</th><th>b</th><th>c</th><th>d</th><th>e</th><th>Return value</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>0</code></td><td><code>yield</code></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>Yield to the kernel.</td></tr>
+<tr><td><code>1</code></td><td><code>early_log</code></td><td>length</td><td>ptr to string</td><td>-</td><td>-</td><td>-</td><td>success/error</td><td>Log a message. Designed to be used from early processes.</td></tr>
 </tbody></table>
 <h3><a class="header" href="#making-a-system-call-on-x86_64" id="making-a-system-call-on-x86_64">Making a system call on x86_64</a></h3>
 <p>To make a system call on x86_64, populate these registers:</p>
@@ -169,6 +170,20 @@ the size of a register.</p>
 </tbody></table>
 <p>You can then make the system call by executing <code>syscall</code>. Before the kernel returns to userspace, it will put the result of the system call (if there is one) in <code>rax</code>.
 If a system call takes less than five parameters, the unused parameter registers will be preserved across the system call.</p>
+<h3><a class="header" href="#yield" id="yield"><code>yield</code></a></h3>
+<p>Used by a task that can't do any work at the moment, allowing the kernel to schedule other tasks.</p>
+<h3><a class="header" href="#early_log" id="early_log"><code>early_log</code></a></h3>
+<p>Used by tasks that are started early in the boot process, before reliable userspace logging support is running. Output is
+logged to the same place as kernel logging.</p>
+<p>This system call should not be used from standard usermode tasks, and so requires the <code>CAP_EARLY_LOGGING</code> capability to use.
+The first parameter (<code>a</code>) is the length of the string in bytes, and the second (<code>b</code>) is a UTF-8 encoded string that is not
+null-terminated. The maximum length of the string is 1024 chars.</p>
+<p>Returns:</p>
+<ul>
+<li><code>0</code> if the system call succeeded</li>
+<li><code>1</code> if the string was too long</li>
+<li><code>2</code> if the string was not valid UTF-8</li>
+</ul>
 
                     </main>
 

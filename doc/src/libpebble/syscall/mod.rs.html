@@ -14,6 +14,16 @@
 <span id="14">14</span>
 <span id="15">15</span>
 <span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="ident">cfg_if</span>::<span class="macro">cfg_if</span><span class="macro">!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>)]</span> {
@@ -25,10 +35,20 @@
 }
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYSCALL_YIELD</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYSCALL_EARLY_LOG</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">yield_to_kernel</span>() {
     <span class="kw">unsafe</span> {
         <span class="ident">raw</span>::<span class="ident">syscall0</span>(<span class="ident">SYSCALL_YIELD</span>);
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">early_log</span>(<span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
+    <span class="kw">match</span> <span class="kw">unsafe</span> {
+        <span class="ident">raw</span>::<span class="ident">syscall2</span>(<span class="ident">SYSCALL_EARLY_LOG</span>, <span class="ident">message</span>.<span class="ident">len</span>(), <span class="ident">message</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">str</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span> <span class="kw">as</span> <span class="ident">usize</span>)
+    } {
+        <span class="number">0</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(()),
+        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(()),
     }
 }
 </pre></div>
