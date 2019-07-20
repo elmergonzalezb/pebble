@@ -256,9 +256,6 @@
 <span id="256">256</span>
 <span id="257">257</span>
 <span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module defines the kernel entry-point on x86_64.</span>
 
@@ -275,7 +272,6 @@
 <span class="kw">use</span> <span class="self">self</span>::{
     <span class="ident">acpi_handler</span>::<span class="ident">PebbleAcpiHandler</span>,
     <span class="ident">address_space</span>::<span class="ident">AddressSpace</span>,
-    <span class="ident">cpu</span>::<span class="ident">Cpu</span>,
     <span class="ident">interrupts</span>::<span class="ident">InterruptController</span>,
     <span class="ident">logger</span>::<span class="ident">KernelLogger</span>,
     <span class="ident">memory</span>::<span class="ident">LockedPhysicalMemoryManager</span>,
@@ -287,19 +283,12 @@
     <span class="ident">object</span>::{<span class="ident">map</span>::<span class="ident">ObjectMap</span>, <span class="ident">KernelObject</span>, <span class="ident">WrappedKernelObject</span>},
     <span class="ident">scheduler</span>::<span class="ident">Scheduler</span>,
 };
-<span class="kw">use</span> <span class="ident">acpi</span>::<span class="ident">ProcessorState</span>;
-<span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">vec</span>::<span class="ident">Vec</span>;
 <span class="kw">use</span> <span class="ident">aml_parser</span>::<span class="ident">AmlContext</span>;
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">error</span>, <span class="ident">info</span>, <span class="ident">warn</span>};
 <span class="kw">use</span> <span class="ident">spin</span>::{<span class="ident">Mutex</span>, <span class="ident">RwLock</span>};
 <span class="kw">use</span> <span class="ident">x86_64</span>::{
-    <span class="ident">boot</span>::<span class="ident">BootInfo</span>,
-    <span class="ident">hw</span>::{
-        <span class="ident">cpu</span>::<span class="ident">CpuInfo</span>,
-        <span class="ident">gdt</span>::{<span class="ident">Gdt</span>, <span class="ident">TssSegment</span>},
-        <span class="ident">registers</span>::{<span class="ident">read_control_reg</span>, <span class="ident">read_msr</span>, <span class="ident">IA32_GS_BASE</span>},
-        <span class="ident">tss</span>::<span class="ident">Tss</span>,
-    },
+    <span class="ident">boot</span>::{<span class="ident">BootInfo</span>, <span class="ident">ImageInfo</span>},
+    <span class="ident">hw</span>::{<span class="ident">cpu</span>::<span class="ident">CpuInfo</span>, <span class="ident">gdt</span>::<span class="ident">Gdt</span>, <span class="ident">registers</span>::<span class="ident">read_control_reg</span>},
     <span class="ident">memory</span>::{<span class="ident">kernel_map</span>, <span class="ident">Frame</span>, <span class="ident">PageTable</span>, <span class="ident">PhysicalAddress</span>},
 };
 
@@ -494,32 +483,37 @@
      */</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scheduler</span> <span class="op">=</span> <span class="ident">Scheduler</span>::<span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span>::<span class="ident">new</span>();
     <span class="kw">for</span> <span class="ident">image</span> <span class="kw">in</span> <span class="ident">boot_info</span>.<span class="ident">images</span>() {
-        <span class="comment">// Make an AddressSpace for the image</span>
-        <span class="kw">let</span> <span class="ident">address_space</span>: <span class="ident">WrappedKernelObject</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span> <span class="op">=</span>
-            <span class="ident">KernelObject</span>::<span class="ident">AddressSpace</span>(<span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="kw">box</span> <span class="ident">AddressSpace</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">arch</span>)))
-                .<span class="ident">add_to_map</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arch</span>.<span class="ident">object_map</span>.<span class="ident">write</span>());
-
-        <span class="comment">// Make a MemoryObject for each segment and map it into the AddressSpace</span>
-        <span class="kw">for</span> <span class="ident">segment</span> <span class="kw">in</span> <span class="ident">image</span>.<span class="ident">segments</span>() {
-            <span class="kw">let</span> <span class="ident">memory_object</span> <span class="op">=</span> <span class="ident">KernelObject</span>::<span class="ident">MemoryObject</span>(<span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="kw">box</span> <span class="ident">MemoryObject</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">segment</span>)))
-                .<span class="ident">add_to_map</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arch</span>.<span class="ident">object_map</span>.<span class="ident">write</span>());
-            <span class="ident">address_space</span>
-                .<span class="ident">object</span>
-                .<span class="ident">address_space</span>()
-                .<span class="ident">unwrap</span>()
-                .<span class="ident">write</span>()
-                .<span class="ident">map_memory_object</span>(<span class="kw-2">&amp;</span><span class="ident">arch</span>, <span class="ident">memory_object</span>: <span class="ident">WrappedKernelObject</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span>);
-        }
-
-        <span class="comment">// Create a Task for the image and add it to the scheduler&#39;s ready queue</span>
-        <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span>
-            <span class="ident">KernelObject</span>::<span class="ident">Task</span>(<span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="kw">box</span> <span class="ident">Task</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">arch</span>, <span class="ident">address_space</span>.<span class="ident">clone</span>(), <span class="ident">image</span>.<span class="ident">entry_point</span>)))
-                .<span class="ident">add_to_map</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arch</span>.<span class="ident">object_map</span>.<span class="ident">write</span>());
-        <span class="ident">scheduler</span>.<span class="ident">add_task</span>(<span class="ident">task</span>).<span class="ident">unwrap</span>();
+        <span class="ident">load_task</span>(<span class="kw-2">&amp;</span><span class="ident">arch</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">scheduler</span>, <span class="ident">image</span>);
     }
 
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Dropping to usermode&quot;</span>);
     <span class="ident">scheduler</span>.<span class="ident">drop_to_userspace</span>(<span class="kw-2">&amp;</span><span class="ident">arch</span>)
+}
+
+<span class="kw">fn</span> <span class="ident">load_task</span>(<span class="ident">arch</span>: <span class="kw-2">&amp;</span><span class="ident">Arch</span>, <span class="ident">scheduler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Scheduler</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span>, <span class="ident">image</span>: <span class="kw-2">&amp;</span><span class="ident">ImageInfo</span>) {
+    <span class="comment">// Make an AddressSpace for the image</span>
+    <span class="kw">let</span> <span class="ident">address_space</span>: <span class="ident">WrappedKernelObject</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span> <span class="op">=</span>
+        <span class="ident">KernelObject</span>::<span class="ident">AddressSpace</span>(<span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="kw">box</span> <span class="ident">AddressSpace</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">arch</span>)))
+            .<span class="ident">add_to_map</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arch</span>.<span class="ident">object_map</span>.<span class="ident">write</span>());
+
+    <span class="comment">// Make a MemoryObject for each segment and map it into the AddressSpace</span>
+    <span class="kw">for</span> <span class="ident">segment</span> <span class="kw">in</span> <span class="ident">image</span>.<span class="ident">segments</span>() {
+        <span class="kw">let</span> <span class="ident">memory_object</span> <span class="op">=</span> <span class="ident">KernelObject</span>::<span class="ident">MemoryObject</span>(<span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="kw">box</span> <span class="ident">MemoryObject</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">segment</span>)))
+            .<span class="ident">add_to_map</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arch</span>.<span class="ident">object_map</span>.<span class="ident">write</span>());
+        <span class="ident">address_space</span>
+            .<span class="ident">object</span>
+            .<span class="ident">address_space</span>()
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">write</span>()
+            .<span class="ident">map_memory_object</span>(<span class="kw-2">&amp;</span><span class="ident">arch</span>, <span class="ident">memory_object</span>: <span class="ident">WrappedKernelObject</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span>);
+    }
+
+    <span class="comment">// Create a Task for the image and add it to the scheduler&#39;s ready queue</span>
+    <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="ident">KernelObject</span>::<span class="ident">Task</span>(<span class="ident">RwLock</span>::<span class="ident">new</span>(
+        <span class="kw">box</span> <span class="ident">Task</span>::<span class="ident">from_image_info</span>(<span class="kw-2">&amp;</span><span class="ident">arch</span>, <span class="ident">address_space</span>.<span class="ident">clone</span>(), <span class="ident">image</span>).<span class="ident">unwrap</span>(),
+    ))
+    .<span class="ident">add_to_map</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arch</span>.<span class="ident">object_map</span>.<span class="ident">write</span>());
+    <span class="ident">scheduler</span>.<span class="ident">add_task</span>(<span class="ident">task</span>).<span class="ident">unwrap</span>();
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g., <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g., <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g., <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../../";window.currentCrate = "kernel";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

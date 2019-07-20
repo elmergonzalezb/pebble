@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["object",""],["syscall",""]]});
+initSidebarItems({"mod":[["caps",""],["object",""],["syscall",""]]});
