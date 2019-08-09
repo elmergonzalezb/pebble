@@ -1,0 +1,1 @@
+{"rustc":18082106127516915584,"features":"[]","target":3607125976722254697,"profile":14891217944882224483,"path":8891677482680080539,"deps":[[15377153837359305676,"cfg_if",false,2945812079852037188]],"local":[{"CheckDepInfo":{"dep_info":"debug/.fingerprint/libpebble-c17bb0308d5cce62/dep-lib-libpebble-c17bb0308d5cce62"}}],"rustflags":[],"metadata":11526495120871945550}
