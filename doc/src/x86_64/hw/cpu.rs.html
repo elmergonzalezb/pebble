@@ -266,23 +266,6 @@
 <span id="266">266</span>
 <span id="267">267</span>
 <span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/// This module gets and decodes information about the CPU we&#39;re running on, using the `cpuid`</span>
 <span class="doccomment">/// instruction. If we&#39;re running under a hypervisor, we use the [Linux standard for</span>
@@ -310,30 +293,23 @@
         <span class="kw">let</span> <span class="ident">model_info</span> <span class="op">=</span> <span class="ident">decode_model_info</span>();
         <span class="kw">let</span> <span class="ident">hypervisor_info</span> <span class="op">=</span> <span class="ident">decode_hypervisor_info</span>();
 
-        <span class="ident">CpuInfo</span> {
-            <span class="ident">max_supported_standard_level</span>: <span class="ident">vendor_id_cpuid</span>.<span class="ident">a</span>,
-            <span class="ident">vendor</span>,
-            <span class="ident">model_info</span>,
-            <span class="ident">hypervisor_info</span>,
-        }
+        <span class="ident">CpuInfo</span> { <span class="ident">max_supported_standard_level</span>: <span class="ident">vendor_id_cpuid</span>.<span class="ident">a</span>, <span class="ident">vendor</span>, <span class="ident">model_info</span>, <span class="ident">hypervisor_info</span> }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">microarch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Microarch</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">vendor</span> {
-            <span class="ident">Vendor</span>::<span class="ident">Intel</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">model_info</span>.<span class="ident">family</span> <span class="op">==</span> <span class="number">0x6</span> <span class="op">=&gt;</span> {
-                <span class="kw">match</span> <span class="self">self</span>.<span class="ident">model_info</span>.<span class="ident">extended_model</span> {
-                    <span class="number">0x1a</span> <span class="op">|</span> <span class="number">0x1e</span> <span class="op">|</span> <span class="number">0x1f</span> <span class="op">|</span> <span class="number">0x2e</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Microarch</span>::<span class="ident">Nehalem</span>),
-                    <span class="number">0x25</span> <span class="op">|</span> <span class="number">0x2c</span> <span class="op">|</span> <span class="number">0x2f</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Microarch</span>::<span class="ident">Westmere</span>),
-                    <span class="number">0x2a</span> <span class="op">|</span> <span class="number">0x2d</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Microarch</span>::<span class="ident">SandyBridge</span>),
-                    <span class="number">0x3a</span> <span class="op">|</span> <span class="number">0x3e</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Microarch</span>::<span class="ident">IvyBridge</span>),
-                    <span class="number">0x3c</span> <span class="op">|</span> <span class="number">0x3f</span> <span class="op">|</span> <span class="number">0x45</span> <span class="op">|</span> <span class="number">0x46</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Microarch</span>::<span class="ident">Haswell</span>),
-                    <span class="number">0x3d</span> <span class="op">|</span> <span class="number">0x47</span> <span class="op">|</span> <span class="number">0x56</span> <span class="op">|</span> <span class="number">0x4f</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Microarch</span>::<span class="ident">Broadwell</span>),
-                    <span class="number">0x4e</span> <span class="op">|</span> <span class="number">0x5e</span> <span class="op">|</span> <span class="number">0x55</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Microarch</span>::<span class="ident">Skylake</span>),
-                    <span class="number">0x8e</span> <span class="op">|</span> <span class="number">0x9e</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Microarch</span>::<span class="ident">KabyLake</span>),
+            <span class="ident">Vendor</span>::<span class="ident">Intel</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">model_info</span>.<span class="ident">family</span> <span class="op">==</span> <span class="number">0x6</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">model_info</span>.<span class="ident">extended_model</span> {
+                <span class="number">0x1a</span> <span class="op">|</span> <span class="number">0x1e</span> <span class="op">|</span> <span class="number">0x1f</span> <span class="op">|</span> <span class="number">0x2e</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Microarch</span>::<span class="ident">Nehalem</span>),
+                <span class="number">0x25</span> <span class="op">|</span> <span class="number">0x2c</span> <span class="op">|</span> <span class="number">0x2f</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Microarch</span>::<span class="ident">Westmere</span>),
+                <span class="number">0x2a</span> <span class="op">|</span> <span class="number">0x2d</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Microarch</span>::<span class="ident">SandyBridge</span>),
+                <span class="number">0x3a</span> <span class="op">|</span> <span class="number">0x3e</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Microarch</span>::<span class="ident">IvyBridge</span>),
+                <span class="number">0x3c</span> <span class="op">|</span> <span class="number">0x3f</span> <span class="op">|</span> <span class="number">0x45</span> <span class="op">|</span> <span class="number">0x46</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Microarch</span>::<span class="ident">Haswell</span>),
+                <span class="number">0x3d</span> <span class="op">|</span> <span class="number">0x47</span> <span class="op">|</span> <span class="number">0x56</span> <span class="op">|</span> <span class="number">0x4f</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Microarch</span>::<span class="ident">Broadwell</span>),
+                <span class="number">0x4e</span> <span class="op">|</span> <span class="number">0x5e</span> <span class="op">|</span> <span class="number">0x55</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Microarch</span>::<span class="ident">Skylake</span>),
+                <span class="number">0x8e</span> <span class="op">|</span> <span class="number">0x9e</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Microarch</span>::<span class="ident">KabyLake</span>),
 
-                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
-                }
-            }
+                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
+            },
 
             <span class="ident">Vendor</span>::<span class="ident">Amd</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">model_info</span>.<span class="ident">family</span> <span class="op">==</span> <span class="number">0xf</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">model_info</span>.<span class="ident">extended_family</span> {
                 <span class="number">0x15</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Microarch</span>::<span class="ident">Bulldozer</span>),
@@ -405,6 +381,7 @@
     <span class="ident">CannonLake</span>,
     <span class="ident">WhiskeyLake</span>,
     <span class="ident">AmberLake</span>,
+
     <span class="comment">/*
      * AMD
      */</span>
@@ -499,14 +476,10 @@
     <span class="kw">let</span> <span class="ident">model</span> <span class="op">=</span> <span class="ident">cpuid</span>.<span class="ident">a</span>.<span class="ident">get_bits</span>(<span class="number">4</span>..<span class="number">8</span>) <span class="kw">as</span> <span class="ident">u8</span>;
     <span class="kw">let</span> <span class="ident">stepping</span> <span class="op">=</span> <span class="ident">cpuid</span>.<span class="ident">a</span>.<span class="ident">get_bits</span>(<span class="number">0</span>..<span class="number">4</span>) <span class="kw">as</span> <span class="ident">u8</span>;
 
-    <span class="kw">let</span> <span class="ident">extended_family</span> <span class="op">=</span>
-        <span class="kw">if</span> <span class="ident">family</span> <span class="op">==</span> <span class="number">0xf</span> { <span class="ident">family</span> <span class="op">+</span> <span class="ident">cpuid</span>.<span class="ident">a</span>.<span class="ident">get_bits</span>(<span class="number">20</span>..<span class="number">28</span>) <span class="kw">as</span> <span class="ident">u8</span> } <span class="kw">else</span> { <span class="ident">family</span> };
+    <span class="kw">let</span> <span class="ident">extended_family</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">family</span> <span class="op">==</span> <span class="number">0xf</span> { <span class="ident">family</span> <span class="op">+</span> <span class="ident">cpuid</span>.<span class="ident">a</span>.<span class="ident">get_bits</span>(<span class="number">20</span>..<span class="number">28</span>) <span class="kw">as</span> <span class="ident">u8</span> } <span class="kw">else</span> { <span class="ident">family</span> };
 
-    <span class="kw">let</span> <span class="ident">extended_model</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">family</span> <span class="op">==</span> <span class="number">0xf</span> <span class="op">||</span> <span class="ident">family</span> <span class="op">==</span> <span class="number">0x6</span> {
-        <span class="ident">model</span> <span class="op">+</span> ((<span class="ident">cpuid</span>.<span class="ident">a</span>.<span class="ident">get_bits</span>(<span class="number">16</span>..<span class="number">20</span>) <span class="kw">as</span> <span class="ident">u8</span>) <span class="op">&lt;&lt;</span> <span class="number">4</span>)
-    } <span class="kw">else</span> {
-        <span class="ident">model</span>
-    };
+    <span class="kw">let</span> <span class="ident">extended_model</span> <span class="op">=</span>
+        <span class="kw">if</span> <span class="ident">family</span> <span class="op">==</span> <span class="number">0xf</span> <span class="op">||</span> <span class="ident">family</span> <span class="op">==</span> <span class="number">0x6</span> { <span class="ident">model</span> <span class="op">+</span> ((<span class="ident">cpuid</span>.<span class="ident">a</span>.<span class="ident">get_bits</span>(<span class="number">16</span>..<span class="number">20</span>) <span class="kw">as</span> <span class="ident">u8</span>) <span class="op">&lt;&lt;</span> <span class="number">4</span>) } <span class="kw">else</span> { <span class="ident">model</span> };
 
     <span class="ident">ModelInfo</span> { <span class="ident">family</span>, <span class="ident">model</span>, <span class="ident">stepping</span>, <span class="ident">extended_family</span>, <span class="ident">extended_model</span> }
 }
@@ -528,11 +501,7 @@
     <span class="kw">let</span> <span class="ident">max_leaf</span> <span class="op">=</span> <span class="ident">hypervisor_vendor_cpuid</span>.<span class="ident">a</span>;
 
     <span class="kw">let</span> <span class="ident">vendor_repr</span> <span class="op">=</span> <span class="ident">VendorRepr</span> {
-        <span class="ident">vendor_id</span>: [
-            <span class="ident">hypervisor_vendor_cpuid</span>.<span class="ident">b</span>,
-            <span class="ident">hypervisor_vendor_cpuid</span>.<span class="ident">c</span>,
-            <span class="ident">hypervisor_vendor_cpuid</span>.<span class="ident">d</span>,
-        ],
+        <span class="ident">vendor_id</span>: [<span class="ident">hypervisor_vendor_cpuid</span>.<span class="ident">b</span>, <span class="ident">hypervisor_vendor_cpuid</span>.<span class="ident">c</span>, <span class="ident">hypervisor_vendor_cpuid</span>.<span class="ident">d</span>],
     };
 
     <span class="kw">let</span> <span class="ident">vendor</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="ident">vendor_repr</span>.<span class="ident">vendor_name</span> }) {
@@ -546,11 +515,8 @@
      * NOTE: for this to exist under KVM, the `vmware-cpuid-freq` and `invtsc` cpu flags must be
      * set.
      */</span>
-    <span class="kw">let</span> <span class="ident">apic_frequency</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">max_leaf</span> <span class="op">&gt;=</span> <span class="number">0x4000_0010</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">cpuid</span>(<span class="ident">CpuidEntry</span>::<span class="ident">HypervisorFrequencies</span>).<span class="ident">b</span> <span class="op">*</span> <span class="number">1000</span>)
-    } <span class="kw">else</span> {
-        <span class="prelude-val">None</span>
-    };
+    <span class="kw">let</span> <span class="ident">apic_frequency</span> <span class="op">=</span>
+        <span class="kw">if</span> <span class="ident">max_leaf</span> <span class="op">&gt;=</span> <span class="number">0x4000_0010</span> { <span class="prelude-val">Some</span>(<span class="ident">cpuid</span>(<span class="ident">CpuidEntry</span>::<span class="ident">HypervisorFrequencies</span>).<span class="ident">b</span> <span class="op">*</span> <span class="number">1000</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> };
 
     <span class="prelude-val">Some</span>(<span class="ident">HypervisorInfo</span> { <span class="ident">vendor</span>, <span class="ident">max_leaf</span>, <span class="ident">apic_frequency</span> })
 }
