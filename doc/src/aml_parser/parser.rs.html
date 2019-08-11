@@ -486,7 +486,6 @@
 <span id="486">486</span>
 <span id="487">487</span>
 <span id="488">488</span>
-<span id="489">489</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">pkg_length</span>::<span class="ident">PkgLength</span>, <span class="ident">AmlContext</span>, <span class="ident">AmlError</span>};
 <span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">vec</span>::<span class="ident">Vec</span>;
@@ -519,9 +518,10 @@
         <span class="ident">DiscardResult</span> { <span class="ident">parser</span>: <span class="self">self</span>, <span class="ident">_phantom</span>: <span class="ident">PhantomData</span> }
     }
 
-    <span class="doccomment">/// Try parsing with `self`. If it fails, try parsing with `other`, returning the result of the</span>
-    <span class="doccomment">/// first of the two parsers to succeed. To `or` multiple parsers ergonomically, see the</span>
-    <span class="doccomment">/// `choice!` macro.</span>
+    <span class="doccomment">/// Try parsing with `self`. If it succeeds, return its result. If it returns `AmlError::WrongParser`, try</span>
+    <span class="doccomment">/// parsing with `other`, returning the result of that parser in all cases. Other errors from the first</span>
+    <span class="doccomment">/// parser are propagated without attempting the second parser. To chain more than two parsers using</span>
+    <span class="doccomment">/// `or`, see the `choice!` macro.</span>
     <span class="kw">fn</span> <span class="ident">or</span><span class="op">&lt;</span><span class="ident">OtherParser</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">OtherParser</span>) <span class="op">-&gt;</span> <span class="ident">Or</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="self">Self</span>, <span class="ident">OtherParser</span>, <span class="ident">R</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">OtherParser</span>: <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="ident">R</span><span class="op">&gt;</span>,
@@ -558,6 +558,15 @@
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="kw-2">mut</span> <span class="ident">AmlContext</span>) <span class="op">-&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="ident">R</span><span class="op">&gt;</span> {
         <span class="self">self</span>(<span class="ident">input</span>, <span class="ident">context</span>)
     }
+}
+
+<span class="doccomment">/// The identity parser - returns the stream and context unchanged. Useful for producing parsers</span>
+<span class="doccomment">/// that produce a result without parsing anything by doing: `id().map(|()| Ok(foo))`.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, ()<span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="lifetime">&#39;c</span>: <span class="lifetime">&#39;a</span>,
+{
+    <span class="kw">move</span> <span class="op">|</span><span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="kw-2">mut</span> <span class="ident">AmlContext</span><span class="op">|</span> <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">context</span>, ()))
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="ident">u8</span><span class="op">&gt;</span>
@@ -695,13 +704,13 @@
 {
     <span class="kw">move</span> <span class="op">|</span><span class="ident">input</span>, <span class="ident">context</span><span class="op">|</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;debug_parser&quot;</span>)]</span>
-        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;--&gt; {}&quot;</span>, <span class="ident">scope_name</span>);
+        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;--&gt; {}&quot;</span>, <span class="ident">scope_name</span>);
 
         <span class="comment">// Return if the parse fails, so we don&#39;t print the tail. Makes it easier to debug.</span>
         <span class="kw">let</span> (<span class="ident">new_input</span>, <span class="ident">context</span>, <span class="ident">result</span>) <span class="op">=</span> <span class="ident">parser</span>.<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;debug_parser&quot;</span>)]</span>
-        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;&lt;-- {}&quot;</span>, <span class="ident">scope_name</span>);
+        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;&lt;-- {}&quot;</span>, <span class="ident">scope_name</span>);
 
         <span class="prelude-val">Ok</span>((<span class="ident">new_input</span>, <span class="ident">context</span>, <span class="ident">result</span>))
     }
@@ -715,13 +724,13 @@
 {
     <span class="kw">move</span> <span class="op">|</span><span class="ident">input</span>, <span class="ident">context</span><span class="op">|</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;debug_parser_verbose&quot;</span>)]</span>
-        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;--&gt; {}&quot;</span>, <span class="ident">scope_name</span>);
+        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;--&gt; {}&quot;</span>, <span class="ident">scope_name</span>);
 
         <span class="comment">// Return if the parse fails, so we don&#39;t print the tail. Makes it easier to debug.</span>
         <span class="kw">let</span> (<span class="ident">new_input</span>, <span class="ident">context</span>, <span class="ident">result</span>) <span class="op">=</span> <span class="ident">parser</span>.<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;debug_parser_verbose&quot;</span>)]</span>
-        <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;&lt;-- {}&quot;</span>, <span class="ident">scope_name</span>);
+        <span class="ident">log</span>::<span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;&lt;-- {}&quot;</span>, <span class="ident">scope_name</span>);
 
         <span class="prelude-val">Ok</span>((<span class="ident">new_input</span>, <span class="ident">context</span>, <span class="ident">result</span>))
     }
@@ -745,12 +754,11 @@
     <span class="ident">P2</span>: <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="ident">R</span><span class="op">&gt;</span>,
 {
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="kw-2">mut</span> <span class="ident">AmlContext</span>) <span class="op">-&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">p1</span>.<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">context</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">parse_result</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">parse_result</span>),
-            <span class="prelude-val">Err</span>((<span class="kw">_</span>, <span class="ident">context</span>, <span class="kw">_</span>)) <span class="op">=&gt;</span> <span class="ident">context</span>,
-        };
-
-        <span class="self">self</span>.<span class="ident">p2</span>.<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">context</span>)
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">p1</span>.<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">context</span>) {
+            <span class="prelude-val">Ok</span>(<span class="ident">parse_result</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">parse_result</span>),
+            <span class="prelude-val">Err</span>((<span class="kw">_</span>, <span class="ident">context</span>, <span class="ident">AmlError</span>::<span class="ident">WrongParser</span>)) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">p2</span>.<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">context</span>),
+            <span class="prelude-val">Err</span>((<span class="kw">_</span>, <span class="ident">context</span>, <span class="ident">err</span>)) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>((<span class="ident">input</span>, <span class="ident">context</span>, <span class="ident">err</span>)),
+        }
     }
 }
 
@@ -825,9 +833,7 @@
     <span class="ident">P</span>: <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="ident">R</span><span class="op">&gt;</span>,
 {
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="kw-2">mut</span> <span class="ident">AmlContext</span>) <span class="op">-&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, ()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">parser</span>
-            .<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">context</span>)
-            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">new_input</span>, <span class="ident">new_context</span>, <span class="kw">_</span>)<span class="op">|</span> (<span class="ident">new_input</span>, <span class="ident">new_context</span>, ()))
+        <span class="self">self</span>.<span class="ident">parser</span>.<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">context</span>).<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">new_input</span>, <span class="ident">new_context</span>, <span class="kw">_</span>)<span class="op">|</span> (<span class="ident">new_input</span>, <span class="ident">new_context</span>, ()))
     }
 }
 
@@ -850,9 +856,9 @@
 {
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="kw-2">mut</span> <span class="ident">AmlContext</span>) <span class="op">-&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, (<span class="ident">R1</span>, <span class="ident">R2</span>)<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">p1</span>.<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">context</span>).<span class="ident">and_then</span>(<span class="op">|</span>(<span class="ident">next_input</span>, <span class="ident">context</span>, <span class="ident">result_a</span>)<span class="op">|</span> {
-            <span class="self">self</span>.<span class="ident">p2</span>.<span class="ident">parse</span>(<span class="ident">next_input</span>, <span class="ident">context</span>).<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">final_input</span>, <span class="ident">context</span>, <span class="ident">result_b</span>)<span class="op">|</span> {
-                (<span class="ident">final_input</span>, <span class="ident">context</span>, (<span class="ident">result_a</span>, <span class="ident">result_b</span>))
-            })
+            <span class="self">self</span>.<span class="ident">p2</span>
+                .<span class="ident">parse</span>(<span class="ident">next_input</span>, <span class="ident">context</span>)
+                .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">final_input</span>, <span class="ident">context</span>, <span class="ident">result_b</span>)<span class="op">|</span> (<span class="ident">final_input</span>, <span class="ident">context</span>, (<span class="ident">result_a</span>, <span class="ident">result_b</span>)))
         })
     }
 }
@@ -885,19 +891,16 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">emit_no_parsers_could_parse</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="ident">R</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="ident">R</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="lifetime">&#39;c</span>: <span class="lifetime">&#39;a</span>,
-{
-    <span class="op">|</span><span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="ident">context</span><span class="op">|</span> <span class="prelude-val">Err</span>((<span class="ident">input</span>, <span class="ident">context</span>, <span class="ident">AmlError</span>::<span class="ident">NoParsersCouldParse</span>))
-}
-
 <span class="doccomment">/// Takes a number of parsers, and tries to apply each one to the input in order. Returns the</span>
 <span class="doccomment">/// result of the first one that succeeds, or fails if all of them fail.</span>
-<span class="kw">pub</span> <span class="kw">macro</span> <span class="ident">choice</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">macro</span> <span class="ident">choice</span> {
+    () <span class="op">=&gt;</span> {
+        <span class="ident">id</span>().<span class="ident">map</span>(<span class="op">|</span>()<span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">AmlError</span>::<span class="ident">WrongParser</span>))
+    },
+
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">first_parser</span>: <span class="ident">expr</span>) <span class="op">=&gt;</span> {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">first_parser</span>
-        .<span class="ident">or</span>(<span class="ident">emit_no_parsers_could_parse</span>())
+        .<span class="ident">or</span>(<span class="ident">id</span>().<span class="ident">map</span>(<span class="op">|</span>()<span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">AmlError</span>::<span class="ident">WrongParser</span>)))
     },
 
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">first_parser</span>: <span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">other_parser</span>: <span class="ident">expr</span>),<span class="kw-2">*</span>) <span class="op">=&gt;</span> {
@@ -905,7 +908,7 @@
         $(
             .<span class="ident">or</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">other_parser</span>)
          )<span class="op">*</span>
-        .<span class="ident">or</span>(<span class="ident">emit_no_parsers_could_parse</span>())
+        .<span class="ident">or</span>(<span class="ident">id</span>().<span class="ident">map</span>(<span class="op">|</span>()<span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">AmlError</span>::<span class="ident">WrongParser</span>)))
     }
 }
 
@@ -919,8 +922,20 @@
 <span class="doccomment">///     help: consider adding a a &#39;#![recursion_limit=&quot;128&quot;] attribute to your crate`</span>
 <span class="doccomment">/// Note: Increasing the recursion limit will not fix the issue, as the cycle will just continue</span>
 <span class="doccomment">/// until you either hit the new recursion limit or `rustc` overflows its stack.</span>
-<span class="kw">pub</span> <span class="kw">macro</span> <span class="ident">make_parser_concrete</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">parser</span>: <span class="ident">expr</span>) {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">macro</span> <span class="ident">make_parser_concrete</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">parser</span>: <span class="ident">expr</span>) {
     <span class="op">|</span><span class="ident">input</span>, <span class="ident">context</span><span class="op">|</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">parser</span>).<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">context</span>)
+}
+
+<span class="doccomment">/// Helper macro for use within `map_with_context` as an alternative to &quot;trying&quot; an expression.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ### Example</span>
+<span class="doccomment">/// Problem: `expr?` won&#39;t work because the expected return type is `(Result&lt;R, AmlError&gt;, &amp;mut AmlContext)`</span>
+<span class="doccomment">/// Solution: use `try_with_context!(context, expr)` instead.</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">macro</span> <span class="ident">try_with_context</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>: <span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>: <span class="ident">expr</span>) {
+    <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">result</span>) <span class="op">=&gt;</span> <span class="ident">result</span>,
+        <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="kw">return</span> (<span class="prelude-val">Err</span>(<span class="ident">err</span>), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>),
+    }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -932,11 +947,7 @@
     <span class="kw">fn</span> <span class="ident">test_take_n</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">AmlContext</span>::<span class="ident">new</span>();
         <span class="macro">check_err</span><span class="macro">!</span>(<span class="ident">take_n</span>(<span class="number">1</span>).<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="ident">AmlError</span>::<span class="ident">UnexpectedEndOfStream</span>, <span class="kw-2">&amp;</span>[]);
-        <span class="macro">check_err</span><span class="macro">!</span>(
-            <span class="ident">take_n</span>(<span class="number">2</span>).<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0xf5</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>),
-            <span class="ident">AmlError</span>::<span class="ident">UnexpectedEndOfStream</span>,
-            <span class="kw-2">&amp;</span>[<span class="number">0xf5</span>]
-        );
+        <span class="macro">check_err</span><span class="macro">!</span>(<span class="ident">take_n</span>(<span class="number">2</span>).<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0xf5</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="ident">AmlError</span>::<span class="ident">UnexpectedEndOfStream</span>, <span class="kw-2">&amp;</span>[<span class="number">0xf5</span>]);
 
         <span class="macro">check_ok</span><span class="macro">!</span>(<span class="ident">take_n</span>(<span class="number">1</span>).<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0xff</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="kw-2">&amp;</span>[<span class="number">0xff</span>], <span class="kw-2">&amp;</span>[]);
         <span class="macro">check_ok</span><span class="macro">!</span>(<span class="ident">take_n</span>(<span class="number">1</span>).<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0xff</span>, <span class="number">0xf8</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="kw-2">&amp;</span>[<span class="number">0xff</span>], <span class="kw-2">&amp;</span>[<span class="number">0xf8</span>]);
@@ -946,11 +957,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_take_ux</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">AmlContext</span>::<span class="ident">new</span>();
-        <span class="macro">check_err</span><span class="macro">!</span>(
-            <span class="ident">take_u16</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x34</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>),
-            <span class="ident">AmlError</span>::<span class="ident">UnexpectedEndOfStream</span>,
-            <span class="kw-2">&amp;</span>[<span class="number">0x34</span>]
-        );
+        <span class="macro">check_err</span><span class="macro">!</span>(<span class="ident">take_u16</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x34</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="ident">AmlError</span>::<span class="ident">UnexpectedEndOfStream</span>, <span class="kw-2">&amp;</span>[<span class="number">0x34</span>]);
         <span class="macro">check_ok</span><span class="macro">!</span>(<span class="ident">take_u16</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x34</span>, <span class="number">0x12</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="number">0x1234</span>, <span class="kw-2">&amp;</span>[]);
 
         <span class="macro">check_err</span><span class="macro">!</span>(
@@ -958,20 +965,11 @@
             <span class="ident">AmlError</span>::<span class="ident">UnexpectedEndOfStream</span>,
             <span class="kw-2">&amp;</span>[<span class="number">0x34</span>, <span class="number">0x12</span>]
         );
-        <span class="macro">check_ok</span><span class="macro">!</span>(
-            <span class="ident">take_u32</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x34</span>, <span class="number">0x12</span>, <span class="number">0xf4</span>, <span class="number">0xc3</span>, <span class="number">0x3e</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>),
-            <span class="number">0xc3f41234</span>,
-            <span class="kw-2">&amp;</span>[<span class="number">0x3e</span>]
-        );
+        <span class="macro">check_ok</span><span class="macro">!</span>(<span class="ident">take_u32</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x34</span>, <span class="number">0x12</span>, <span class="number">0xf4</span>, <span class="number">0xc3</span>, <span class="number">0x3e</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="number">0xc3f41234</span>, <span class="kw-2">&amp;</span>[<span class="number">0x3e</span>]);
 
-        <span class="macro">check_err</span><span class="macro">!</span>(
-            <span class="ident">take_u64</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x34</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>),
-            <span class="ident">AmlError</span>::<span class="ident">UnexpectedEndOfStream</span>,
-            <span class="kw-2">&amp;</span>[<span class="number">0x34</span>]
-        );
+        <span class="macro">check_err</span><span class="macro">!</span>(<span class="ident">take_u64</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x34</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="ident">AmlError</span>::<span class="ident">UnexpectedEndOfStream</span>, <span class="kw-2">&amp;</span>[<span class="number">0x34</span>]);
         <span class="macro">check_ok</span><span class="macro">!</span>(
-            <span class="ident">take_u64</span>()
-                .<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x34</span>, <span class="number">0x12</span>, <span class="number">0x35</span>, <span class="number">0x76</span>, <span class="number">0xd4</span>, <span class="number">0x43</span>, <span class="number">0xa3</span>, <span class="number">0xb6</span>, <span class="number">0xff</span>, <span class="number">0x00</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>),
+            <span class="ident">take_u64</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x34</span>, <span class="number">0x12</span>, <span class="number">0x35</span>, <span class="number">0x76</span>, <span class="number">0xd4</span>, <span class="number">0x43</span>, <span class="number">0xa3</span>, <span class="number">0xb6</span>, <span class="number">0xff</span>, <span class="number">0x00</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>),
             <span class="number">0xb6a343d476351234</span>,
             <span class="kw-2">&amp;</span>[<span class="number">0xff</span>, <span class="number">0x00</span>]
         );

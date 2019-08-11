@@ -244,59 +244,71 @@
 <span id="244">244</span>
 <span id="245">245</span>
 <span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">misc</span>::{<span class="ident">arg_obj</span>, <span class="ident">debug_obj</span>, <span class="ident">local_obj</span>, <span class="ident">ArgNum</span>, <span class="ident">LocalNum</span>},
+    <span class="ident">namespace</span>::{<span class="ident">AmlName</span>, <span class="ident">NameComponent</span>},
     <span class="ident">opcode</span>::{<span class="ident">opcode</span>, <span class="ident">DUAL_NAME_PREFIX</span>, <span class="ident">MULTI_NAME_PREFIX</span>, <span class="ident">NULL_NAME</span>, <span class="ident">PREFIX_CHAR</span>, <span class="ident">ROOT_CHAR</span>},
     <span class="ident">parser</span>::{<span class="ident">choice</span>, <span class="ident">comment_scope_verbose</span>, <span class="ident">consume</span>, <span class="ident">n_of</span>, <span class="ident">take</span>, <span class="ident">Parser</span>},
     <span class="ident">AmlContext</span>,
     <span class="ident">AmlError</span>,
 };
-<span class="kw">use</span> <span class="ident">alloc</span>::{
-    <span class="ident">string</span>::{<span class="ident">String</span>, <span class="ident">ToString</span>},
-    <span class="ident">vec</span>::<span class="ident">Vec</span>,
-};
+<span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">vec</span>::<span class="ident">Vec</span>;
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">fmt</span>, <span class="ident">str</span>};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AmlName</span>(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NameComponent</span><span class="op">&gt;</span>);
-
-<span class="kw">impl</span> <span class="ident">AmlName</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">root</span>() <span class="op">-&gt;</span> <span class="ident">AmlName</span> {
-        <span class="ident">AmlName</span>(<span class="ident">alloc</span>::<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">NameComponent</span>::<span class="ident">Root</span>])
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_name_seg</span>(<span class="ident">seg</span>: <span class="ident">NameSeg</span>) <span class="op">-&gt;</span> <span class="ident">AmlName</span> {
-        <span class="ident">AmlName</span>(<span class="ident">alloc</span>::<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">NameComponent</span>::<span class="ident">Segment</span>(<span class="ident">seg</span>)])
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
-        <span class="self">self</span>.<span class="number">0</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">fold</span>(<span class="ident">String</span>::<span class="ident">new</span>(), <span class="op">|</span><span class="ident">name</span>, <span class="ident">component</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">component</span> {
-                <span class="ident">NameComponent</span>::<span class="ident">Root</span> <span class="op">=&gt;</span> <span class="ident">name</span> <span class="op">+</span> <span class="string">&quot;\\&quot;</span>,
-                <span class="ident">NameComponent</span>::<span class="ident">Prefix</span> <span class="op">=&gt;</span> <span class="ident">name</span> <span class="op">+</span> <span class="string">&quot;^&quot;</span>,
-                <span class="ident">NameComponent</span>::<span class="ident">Segment</span>(<span class="ident">seg</span>) <span class="op">=&gt;</span> <span class="ident">name</span> <span class="op">+</span> <span class="ident">seg</span>.<span class="ident">as_str</span>() <span class="op">+</span> <span class="string">&quot;.&quot;</span>,
-            })
-            .<span class="ident">trim_end_matches</span>(<span class="string">&#39;.&#39;</span>)
-            .<span class="ident">to_string</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_absolute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">first</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">NameComponent</span>::<span class="ident">Root</span>)
-    }
+<span class="doccomment">/// Produced by the `Target`, `SimpleName`, and `SuperName` parsers</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Target</span> {
+    <span class="ident">Name</span>(<span class="ident">AmlName</span>),
+    <span class="ident">Debug</span>,
+    <span class="ident">Arg</span>(<span class="ident">ArgNum</span>),
+    <span class="ident">Local</span>(<span class="ident">LocalNum</span>),
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">AmlName</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">as_string</span>())
-    }
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">super_name</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="ident">Target</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="lifetime">&#39;c</span>: <span class="lifetime">&#39;a</span>,
+{
+    <span class="comment">/*
+     * SuperName := SimpleName | DebugObj | Type6Opcode
+     * TODO: this doesn&#39;t cover Type6Opcode yet
+     */</span>
+    <span class="ident">comment_scope_verbose</span>(<span class="string">&quot;SuperName&quot;</span>, <span class="macro">choice</span><span class="macro">!</span>(<span class="ident">debug_obj</span>().<span class="ident">map</span>(<span class="op">|</span>()<span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Target</span>::<span class="ident">Debug</span>)), <span class="ident">simple_name</span>()))
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">NameComponent</span> {
-    <span class="ident">Root</span>,
-    <span class="ident">Prefix</span>,
-    <span class="ident">Segment</span>(<span class="ident">NameSeg</span>),
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">simple_name</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="ident">Target</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="lifetime">&#39;c</span>: <span class="lifetime">&#39;a</span>,
+{
+    <span class="comment">/*
+     * SimpleName := NameString | ArgObj | LocalObj
+     */</span>
+    <span class="ident">comment_scope_verbose</span>(
+        <span class="string">&quot;SimpleName&quot;</span>,
+        <span class="macro">choice</span><span class="macro">!</span>(
+            <span class="ident">name_string</span>().<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">name</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Target</span>::<span class="ident">Name</span>(<span class="ident">name</span>))),
+            <span class="ident">arg_obj</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">arg_num</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Target</span>::<span class="ident">Arg</span>(<span class="ident">arg_num</span>))),
+            <span class="ident">local_obj</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">local_num</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Target</span>::<span class="ident">Local</span>(<span class="ident">local_num</span>)))
+        ),
+    )
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name_string</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="ident">AmlName</span><span class="op">&gt;</span>
@@ -379,11 +391,9 @@
         <span class="kw">let</span> (<span class="ident">new_input</span>, <span class="ident">context</span>, ((), <span class="ident">seg_count</span>)) <span class="op">=</span>
             <span class="ident">opcode</span>(<span class="ident">MULTI_NAME_PREFIX</span>).<span class="ident">then</span>(<span class="ident">take</span>()).<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">match</span> <span class="ident">n_of</span>(<span class="ident">name_seg</span>(), <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">seg_count</span>)).<span class="ident">parse</span>(<span class="ident">new_input</span>, <span class="ident">context</span>) {
-            <span class="prelude-val">Ok</span>((<span class="ident">new_input</span>, <span class="ident">context</span>, <span class="ident">name_segs</span>)) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>((
-                <span class="ident">new_input</span>,
-                <span class="ident">context</span>,
-                <span class="ident">name_segs</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">seg</span><span class="op">|</span> <span class="ident">NameComponent</span>::<span class="ident">Segment</span>(<span class="ident">seg</span>)).<span class="ident">collect</span>(),
-            )),
+            <span class="prelude-val">Ok</span>((<span class="ident">new_input</span>, <span class="ident">context</span>, <span class="ident">name_segs</span>)) <span class="op">=&gt;</span> {
+                <span class="prelude-val">Ok</span>((<span class="ident">new_input</span>, <span class="ident">context</span>, <span class="ident">name_segs</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">seg</span><span class="op">|</span> <span class="ident">NameComponent</span>::<span class="ident">Segment</span>(<span class="ident">seg</span>)).<span class="ident">collect</span>()))
+            }
             <span class="comment">// Correct returned input to the one we haven&#39;t touched</span>
             <span class="prelude-val">Err</span>((<span class="kw">_</span>, <span class="ident">context</span>, <span class="ident">err</span>)) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>((<span class="ident">input</span>, <span class="ident">context</span>, <span class="ident">err</span>)),
         }
@@ -391,9 +401,36 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NameSeg</span>([<span class="ident">u8</span>; <span class="number">4</span>]);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NameSeg</span>(<span class="kw">pub</span>(<span class="kw">crate</span>) [<span class="ident">u8</span>; <span class="number">4</span>]);
 
 <span class="kw">impl</span> <span class="ident">NameSeg</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NameSeg</span><span class="op">&gt;</span> {
+        <span class="comment">// Each NameSeg can only have four chars, and must have at least one</span>
+        <span class="kw">if</span> <span class="ident">string</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">1</span> <span class="op">||</span> <span class="ident">string</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">4</span> {
+            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        }
+
+        <span class="comment">// We pre-fill the array with &#39;_&#39;, so it will already be correct if the length is &lt; 4</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seg</span> <span class="op">=</span> [<span class="string">b&#39;_&#39;</span>; <span class="number">4</span>];
+        <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">as_bytes</span>();
+
+        <span class="comment">// Manually do the first one, because we have to check it&#39;s a LeadNameChar</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">is_lead_name_char</span>(<span class="ident">bytes</span>[<span class="number">0</span>]) {
+            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        }
+        <span class="ident">seg</span>[<span class="number">0</span>] <span class="op">=</span> <span class="ident">bytes</span>[<span class="number">0</span>];
+
+        <span class="comment">// Copy the rest of the chars, checking that they&#39;re NameChars</span>
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">1</span>..<span class="ident">bytes</span>.<span class="ident">len</span>() {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">is_name_char</span>(<span class="ident">bytes</span>[<span class="ident">i</span>]) {
+                <span class="kw">return</span> <span class="prelude-val">None</span>;
+            }
+            <span class="ident">seg</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">bytes</span>[<span class="ident">i</span>];
+        }
+
+        <span class="prelude-val">Some</span>(<span class="ident">NameSeg</span>(<span class="ident">seg</span>))
+    }
+
     <span class="doccomment">/// Turn a `NameSeg` into a `&amp;str`. Returns it in a `ParseResult` so it&#39;s easy to use from</span>
     <span class="doccomment">/// inside parsers.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
@@ -472,17 +509,16 @@
     <span class="kw">fn</span> <span class="ident">test_name_path</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">AmlContext</span>::<span class="ident">new</span>();
 
-        <span class="macro">check_err</span><span class="macro">!</span>(<span class="ident">name_path</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="ident">AmlError</span>::<span class="ident">NoParsersCouldParse</span>, <span class="kw-2">&amp;</span>[]);
+        <span class="macro">check_err</span><span class="macro">!</span>(<span class="ident">name_path</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="ident">AmlError</span>::<span class="ident">UnexpectedEndOfStream</span>, <span class="kw-2">&amp;</span>[]);
         <span class="macro">check_ok</span><span class="macro">!</span>(<span class="ident">name_path</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x00</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="ident">alloc</span>::<span class="macro">vec</span><span class="macro">!</span>[], <span class="kw-2">&amp;</span>[]);
         <span class="macro">check_ok</span><span class="macro">!</span>(<span class="ident">name_path</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x00</span>, <span class="number">0x00</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="ident">alloc</span>::<span class="macro">vec</span><span class="macro">!</span>[], <span class="kw-2">&amp;</span>[<span class="number">0x00</span>]);
         <span class="macro">check_err</span><span class="macro">!</span>(
             <span class="ident">name_path</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x2e</span>, <span class="string">b&#39;A&#39;</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>),
-            <span class="ident">AmlError</span>::<span class="ident">NoParsersCouldParse</span>,
+            <span class="ident">AmlError</span>::<span class="ident">UnexpectedEndOfStream</span>,
             <span class="kw-2">&amp;</span>[<span class="number">0x2e</span>, <span class="string">b&#39;A&#39;</span>]
         );
         <span class="macro">check_ok</span><span class="macro">!</span>(
-            <span class="ident">name_path</span>()
-                .<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x2e</span>, <span class="string">b&#39;A&#39;</span>, <span class="string">b&#39;B&#39;</span>, <span class="string">b&#39;C&#39;</span>, <span class="string">b&#39;D&#39;</span>, <span class="string">b&#39;E&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;F&#39;</span>, <span class="string">b&#39;G&#39;</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>),
+            <span class="ident">name_path</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x2e</span>, <span class="string">b&#39;A&#39;</span>, <span class="string">b&#39;B&#39;</span>, <span class="string">b&#39;C&#39;</span>, <span class="string">b&#39;D&#39;</span>, <span class="string">b&#39;E&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;F&#39;</span>, <span class="string">b&#39;G&#39;</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>),
             <span class="ident">alloc</span>::<span class="macro">vec</span><span class="macro">!</span>[
                 <span class="ident">NameComponent</span>::<span class="ident">Segment</span>(<span class="ident">NameSeg</span>([<span class="string">b&#39;A&#39;</span>, <span class="string">b&#39;B&#39;</span>, <span class="string">b&#39;C&#39;</span>, <span class="string">b&#39;D&#39;</span>])),
                 <span class="ident">NameComponent</span>::<span class="ident">Segment</span>(<span class="ident">NameSeg</span>([<span class="string">b&#39;E&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;F&#39;</span>, <span class="string">b&#39;G&#39;</span>]))

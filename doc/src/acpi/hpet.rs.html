@@ -56,9 +56,6 @@
 <span id="56">56</span>
 <span id="57">57</span>
 <span id="58">58</span>
-<span id="59">59</span>
-<span id="60">60</span>
-<span id="61">61</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">sdt</span>::<span class="ident">SdtHeader</span>, <span class="ident">Acpi</span>, <span class="ident">AcpiError</span>, <span class="ident">GenericAddress</span>, <span class="ident">PhysicalMapping</span>};
 <span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
@@ -95,10 +92,7 @@
     <span class="ident">page_protection_oem</span>: <span class="ident">u8</span>,
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_hpet</span>(
-    <span class="ident">acpi</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Acpi</span>,
-    <span class="ident">mapping</span>: <span class="kw-2">&amp;</span><span class="ident">PhysicalMapping</span><span class="op">&lt;</span><span class="ident">HpetTable</span><span class="op">&gt;</span>,
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AcpiError</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_hpet</span>(<span class="ident">acpi</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Acpi</span>, <span class="ident">mapping</span>: <span class="kw-2">&amp;</span><span class="ident">PhysicalMapping</span><span class="op">&lt;</span><span class="ident">HpetTable</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AcpiError</span><span class="op">&gt;</span> {
     (<span class="kw-2">*</span><span class="ident">mapping</span>).<span class="ident">header</span>.<span class="ident">validate</span>(<span class="string">b&quot;HPET&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">hpet</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">mapping</span>;
 

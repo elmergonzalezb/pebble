@@ -33,10 +33,6 @@
 <span id="33">33</span>
 <span id="34">34</span>
 <span id="35">35</span>
-<span id="36">36</span>
-<span id="37">37</span>
-<span id="38">38</span>
-<span id="39">39</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">ops</span>::<span class="ident">Deref</span>, <span class="ident">ptr</span>::<span class="ident">NonNull</span>};
 
@@ -67,11 +63,7 @@
     <span class="doccomment">/// page-aligned, so the implementation may have to add padding to either end. The given</span>
     <span class="doccomment">/// size must be greater or equal to the size of a `T`. The virtual address the memory is</span>
     <span class="doccomment">/// mapped to does not matter, as long as it is accessible from `acpi`.</span>
-    <span class="kw">fn</span> <span class="ident">map_physical_region</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">physical_address</span>: <span class="ident">usize</span>,
-        <span class="ident">size</span>: <span class="ident">usize</span>,
-    ) <span class="op">-&gt;</span> <span class="ident">PhysicalMapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">map_physical_region</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">physical_address</span>: <span class="ident">usize</span>, <span class="ident">size</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">PhysicalMapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Unmap the given physical mapping. Safe because we consume the mapping, and so it can&#39;t be</span>
     <span class="doccomment">/// used after being passed to this function.</span>

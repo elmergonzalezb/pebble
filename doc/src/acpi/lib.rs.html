@@ -243,18 +243,6 @@
 <span id="243">243</span>
 <span id="244">244</span>
 <span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A library for parsing ACPI tables. This crate can be used by bootloaders and kernels for</span>
 <span class="doccomment">//! architectures that support ACPI. The crate is far from feature-complete, but can still be used</span>
@@ -422,10 +410,7 @@
     <span class="ident">parse_validated_rsdp</span>(<span class="ident">handler</span>, <span class="ident">rsdp_mapping</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">parse_validated_rsdp</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(
-    <span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>,
-    <span class="ident">rsdp_mapping</span>: <span class="ident">PhysicalMapping</span><span class="op">&lt;</span><span class="ident">Rsdp</span><span class="op">&gt;</span>,
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Acpi</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
+<span class="kw">fn</span> <span class="ident">parse_validated_rsdp</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>, <span class="ident">rsdp_mapping</span>: <span class="ident">PhysicalMapping</span><span class="op">&lt;</span><span class="ident">Rsdp</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Acpi</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">H</span>: <span class="ident">AcpiHandler</span>,
 {
@@ -455,11 +440,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// If the given revision is 0, an address to the RSDT is expected. Otherwise, an address to</span>
 <span class="doccomment">/// the XSDT is expected.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_rsdt</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(
-    <span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>,
-    <span class="ident">revision</span>: <span class="ident">u8</span>,
-    <span class="ident">physical_address</span>: <span class="ident">usize</span>,
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Acpi</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_rsdt</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>, <span class="ident">revision</span>: <span class="ident">u8</span>, <span class="ident">physical_address</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Acpi</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">H</span>: <span class="ident">AcpiHandler</span>,
 {
@@ -475,8 +456,7 @@
     };
 
     <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">sdt</span>::<span class="ident">peek_at_sdt_header</span>(<span class="ident">handler</span>, <span class="ident">physical_address</span>);
-    <span class="kw">let</span> <span class="ident">mapping</span> <span class="op">=</span>
-        <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">SdtHeader</span><span class="op">&gt;</span>(<span class="ident">physical_address</span>, <span class="ident">header</span>.<span class="ident">length</span>() <span class="kw">as</span> <span class="ident">usize</span>);
+    <span class="kw">let</span> <span class="ident">mapping</span> <span class="op">=</span> <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">SdtHeader</span><span class="op">&gt;</span>(<span class="ident">physical_address</span>, <span class="ident">header</span>.<span class="ident">length</span>() <span class="kw">as</span> <span class="ident">usize</span>);
 
     <span class="kw">if</span> <span class="ident">revision</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="comment">/*
@@ -484,14 +464,12 @@
          */</span>
         (<span class="kw-2">*</span><span class="ident">mapping</span>).<span class="ident">validate</span>(<span class="string">b&quot;RSDT&quot;</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">num_tables</span> <span class="op">=</span>
-            ((<span class="kw-2">*</span><span class="ident">mapping</span>).<span class="ident">length</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">SdtHeader</span><span class="op">&gt;</span>()) <span class="op">/</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
+        <span class="kw">let</span> <span class="ident">num_tables</span> <span class="op">=</span> ((<span class="kw-2">*</span><span class="ident">mapping</span>).<span class="ident">length</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">SdtHeader</span><span class="op">&gt;</span>()) <span class="op">/</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
         <span class="kw">let</span> <span class="ident">tables_base</span> <span class="op">=</span>
             ((<span class="ident">mapping</span>.<span class="ident">virtual_start</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">+</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">SdtHeader</span><span class="op">&gt;</span>()) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u32</span>;
 
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">num_tables</span> {
-            <span class="ident">sdt</span>::<span class="ident">dispatch_sdt</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">acpi</span>, <span class="ident">handler</span>, <span class="kw">unsafe</span> { <span class="kw-2">*</span><span class="ident">tables_base</span>.<span class="ident">offset</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">isize</span>) }
-                <span class="kw">as</span> <span class="ident">usize</span>)<span class="question-mark">?</span>;
+            <span class="ident">sdt</span>::<span class="ident">dispatch_sdt</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">acpi</span>, <span class="ident">handler</span>, <span class="kw">unsafe</span> { <span class="kw-2">*</span><span class="ident">tables_base</span>.<span class="ident">offset</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">isize</span>) } <span class="kw">as</span> <span class="ident">usize</span>)<span class="question-mark">?</span>;
         }
     } <span class="kw">else</span> {
         <span class="comment">/*
@@ -499,14 +477,12 @@
          */</span>
         (<span class="kw-2">*</span><span class="ident">mapping</span>).<span class="ident">validate</span>(<span class="string">b&quot;XSDT&quot;</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">num_tables</span> <span class="op">=</span>
-            ((<span class="kw-2">*</span><span class="ident">mapping</span>).<span class="ident">length</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">SdtHeader</span><span class="op">&gt;</span>()) <span class="op">/</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>();
+        <span class="kw">let</span> <span class="ident">num_tables</span> <span class="op">=</span> ((<span class="kw-2">*</span><span class="ident">mapping</span>).<span class="ident">length</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">SdtHeader</span><span class="op">&gt;</span>()) <span class="op">/</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>();
         <span class="kw">let</span> <span class="ident">tables_base</span> <span class="op">=</span>
             ((<span class="ident">mapping</span>.<span class="ident">virtual_start</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">+</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">SdtHeader</span><span class="op">&gt;</span>()) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u64</span>;
 
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">num_tables</span> {
-            <span class="ident">sdt</span>::<span class="ident">dispatch_sdt</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">acpi</span>, <span class="ident">handler</span>, <span class="kw">unsafe</span> { <span class="kw-2">*</span><span class="ident">tables_base</span>.<span class="ident">offset</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">isize</span>) }
-                <span class="kw">as</span> <span class="ident">usize</span>)<span class="question-mark">?</span>;
+            <span class="ident">sdt</span>::<span class="ident">dispatch_sdt</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">acpi</span>, <span class="ident">handler</span>, <span class="kw">unsafe</span> { <span class="kw-2">*</span><span class="ident">tables_base</span>.<span class="ident">offset</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">isize</span>) } <span class="kw">as</span> <span class="ident">usize</span>)<span class="question-mark">?</span>;
         }
     }
 

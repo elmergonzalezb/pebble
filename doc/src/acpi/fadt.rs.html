@@ -100,24 +100,8 @@
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
-<span id="103">103</span>
-<span id="104">104</span>
-<span id="105">105</span>
-<span id="106">106</span>
-<span id="107">107</span>
-<span id="108">108</span>
-<span id="109">109</span>
-<span id="110">110</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">sdt</span>::<span class="ident">SdtHeader</span>,
-    <span class="ident">Acpi</span>,
-    <span class="ident">AcpiError</span>,
-    <span class="ident">AcpiHandler</span>,
-    <span class="ident">AmlTable</span>,
-    <span class="ident">GenericAddress</span>,
-    <span class="ident">PhysicalMapping</span>,
-};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">sdt</span>::<span class="ident">SdtHeader</span>, <span class="ident">Acpi</span>, <span class="ident">AcpiError</span>, <span class="ident">AcpiHandler</span>, <span class="ident">AmlTable</span>, <span class="ident">GenericAddress</span>, <span class="ident">PhysicalMapping</span>};
 
 <span class="kw">type</span> <span class="ident">ExtendedField</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">sdt</span>::<span class="ident">ExtendedField</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">typenum</span>::<span class="ident">U2</span><span class="op">&gt;</span>;
 

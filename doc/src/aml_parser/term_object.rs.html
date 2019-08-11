@@ -631,9 +631,62 @@
 <span id="631">631</span>
 <span id="632">632</span>
 <span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">name_object</span>::{<span class="ident">name_seg</span>, <span class="ident">name_string</span>, <span class="ident">AmlName</span>},
+    <span class="ident">misc</span>::{<span class="ident">arg_obj</span>, <span class="ident">local_obj</span>},
+    <span class="ident">name_object</span>::{<span class="ident">name_seg</span>, <span class="ident">name_string</span>},
+    <span class="ident">namespace</span>::<span class="ident">AmlName</span>,
     <span class="ident">opcode</span>::{<span class="self">self</span>, <span class="ident">ext_opcode</span>, <span class="ident">opcode</span>},
     <span class="ident">parser</span>::{
         <span class="ident">choice</span>,
@@ -645,10 +698,13 @@
         <span class="ident">take_u16</span>,
         <span class="ident">take_u32</span>,
         <span class="ident">take_u64</span>,
+        <span class="ident">try_with_context</span>,
         <span class="ident">ParseResult</span>,
         <span class="ident">Parser</span>,
     },
     <span class="ident">pkg_length</span>::{<span class="ident">pkg_length</span>, <span class="ident">PkgLength</span>},
+    <span class="ident">type1</span>::<span class="ident">type1_opcode</span>,
+    <span class="ident">type2</span>::<span class="ident">type2_opcode</span>,
     <span class="ident">value</span>::{<span class="ident">AmlValue</span>, <span class="ident">FieldFlags</span>, <span class="ident">MethodFlags</span>, <span class="ident">RegionSpace</span>},
     <span class="ident">AmlContext</span>,
     <span class="ident">AmlError</span>,
@@ -667,7 +723,9 @@
      */</span>
     <span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="kw-2">mut</span> <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="kw-2">mut</span> <span class="ident">AmlContext</span><span class="op">|</span> {
         <span class="kw">while</span> <span class="ident">list_length</span>.<span class="ident">still_parsing</span>(<span class="ident">input</span>) {
-            <span class="kw">let</span> (<span class="ident">new_input</span>, <span class="ident">new_context</span>, ()) <span class="op">=</span> <span class="ident">term_object</span>().<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="comment">// TODO: currently, we ignore the value of the expression. We may need to propagate</span>
+            <span class="comment">// this.</span>
+            <span class="kw">let</span> (<span class="ident">new_input</span>, <span class="ident">new_context</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">term_object</span>().<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="ident">input</span> <span class="op">=</span> <span class="ident">new_input</span>;
             <span class="ident">context</span> <span class="op">=</span> <span class="ident">new_context</span>;
         }
@@ -676,14 +734,22 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">term_object</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, ()<span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">term_object</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AmlValue</span><span class="op">&gt;&gt;</span>
 <span class="kw">where</span>
     <span class="lifetime">&#39;c</span>: <span class="lifetime">&#39;a</span>,
 {
     <span class="comment">/*
      * TermObj := NamespaceModifierObj | NamedObj | Type1Opcode | Type2Opcode
      */</span>
-    <span class="ident">comment_scope_verbose</span>(<span class="string">&quot;TermObj&quot;</span>, <span class="macro">choice</span><span class="macro">!</span>(<span class="ident">namespace_modifier</span>(), <span class="ident">named_obj</span>()))
+    <span class="ident">comment_scope_verbose</span>(
+        <span class="string">&quot;TermObj&quot;</span>,
+        <span class="macro">choice</span><span class="macro">!</span>(
+            <span class="ident">namespace_modifier</span>().<span class="ident">map</span>(<span class="op">|</span>()<span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)),
+            <span class="ident">named_obj</span>().<span class="ident">map</span>(<span class="op">|</span>()<span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)),
+            <span class="ident">type1_opcode</span>().<span class="ident">map</span>(<span class="op">|</span>()<span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)),
+            <span class="ident">type2_opcode</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">value</span>)))
+        ),
+    )
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">namespace_modifier</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, ()<span class="op">&gt;</span>
@@ -711,14 +777,7 @@
      */</span>
     <span class="ident">comment_scope_verbose</span>(
         <span class="string">&quot;NamedObj&quot;</span>,
-        <span class="macro">choice</span><span class="macro">!</span>(
-            <span class="ident">def_op_region</span>(),
-            <span class="ident">def_field</span>(),
-            <span class="ident">def_method</span>(),
-            <span class="ident">def_device</span>(),
-            <span class="ident">def_processor</span>(),
-            <span class="ident">def_mutex</span>()
-        ),
+        <span class="macro">choice</span><span class="macro">!</span>(<span class="ident">def_op_region</span>(), <span class="ident">def_field</span>(), <span class="ident">def_method</span>(), <span class="ident">def_device</span>(), <span class="ident">def_processor</span>(), <span class="ident">def_mutex</span>()),
     )
 }
 
@@ -732,12 +791,17 @@
     <span class="ident">opcode</span>(<span class="ident">opcode</span>::<span class="ident">DEF_NAME_OP</span>)
         .<span class="ident">then</span>(<span class="ident">comment_scope</span>(
             <span class="string">&quot;DefName&quot;</span>,
-            <span class="ident">name_string</span>().<span class="ident">then</span>(<span class="ident">data_ref_object</span>()).<span class="ident">map_with_context</span>(
-                <span class="op">|</span>(<span class="ident">name</span>, <span class="ident">data_ref_object</span>), <span class="ident">context</span><span class="op">|</span> {
-                    <span class="ident">context</span>.<span class="ident">add_to_namespace</span>(<span class="ident">name</span>, <span class="ident">AmlValue</span>::<span class="ident">Name</span>(<span class="kw">box</span> <span class="ident">data_ref_object</span>));
-                    (<span class="prelude-val">Ok</span>(()), <span class="ident">context</span>)
-                },
-            ),
+            <span class="ident">name_string</span>().<span class="ident">then</span>(<span class="ident">data_ref_object</span>()).<span class="ident">map_with_context</span>(<span class="op">|</span>(<span class="ident">name</span>, <span class="ident">data_ref_object</span>), <span class="ident">context</span><span class="op">|</span> {
+                <span class="macro">try_with_context</span><span class="macro">!</span>(
+                    <span class="ident">context</span>,
+                    <span class="ident">context</span>.<span class="ident">namespace</span>.<span class="ident">add_at_resolved_path</span>(
+                        <span class="ident">name</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">context</span>.<span class="ident">current_scope</span>,
+                        <span class="ident">AmlValue</span>::<span class="ident">Name</span>(<span class="kw">box</span> <span class="ident">data_ref_object</span>)
+                    )
+                );
+                (<span class="prelude-val">Ok</span>(()), <span class="ident">context</span>)
+            }),
         ))
         .<span class="ident">discard_result</span>()
 }
@@ -756,13 +820,13 @@
                 .<span class="ident">then</span>(<span class="ident">name_string</span>())
                 .<span class="ident">map_with_context</span>(<span class="op">|</span>(<span class="ident">length</span>, <span class="ident">name</span>), <span class="ident">context</span><span class="op">|</span> {
                     <span class="kw">let</span> <span class="ident">previous_scope</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">current_scope</span>.<span class="ident">clone</span>();
-                    <span class="ident">context</span>.<span class="ident">current_scope</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">resolve_path</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>);
-                    (<span class="prelude-val">Ok</span>((<span class="ident">length</span>, <span class="ident">name</span>, <span class="ident">previous_scope</span>)), <span class="ident">context</span>)
+                    <span class="ident">context</span>.<span class="ident">current_scope</span> <span class="op">=</span> <span class="macro">try_with_context</span><span class="macro">!</span>(<span class="ident">context</span>, <span class="ident">name</span>.<span class="ident">resolve</span>(<span class="kw-2">&amp;</span><span class="ident">context</span>.<span class="ident">current_scope</span>));
+                    (<span class="prelude-val">Ok</span>((<span class="ident">length</span>, <span class="ident">previous_scope</span>)), <span class="ident">context</span>)
                 })
-                .<span class="ident">feed</span>(<span class="op">|</span>(<span class="ident">pkg_length</span>, <span class="ident">name</span>, <span class="ident">previous_scope</span>)<span class="op">|</span> {
-                    <span class="ident">term_list</span>(<span class="ident">pkg_length</span>).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>((<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">previous_scope</span>.<span class="ident">clone</span>())))
+                .<span class="ident">feed</span>(<span class="op">|</span>(<span class="ident">pkg_length</span>, <span class="ident">previous_scope</span>)<span class="op">|</span> {
+                    <span class="ident">term_list</span>(<span class="ident">pkg_length</span>).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">previous_scope</span>.<span class="ident">clone</span>()))
                 })
-                .<span class="ident">map_with_context</span>(<span class="op">|</span>(<span class="ident">name</span>, <span class="ident">previous_scope</span>), <span class="ident">context</span><span class="op">|</span> {
+                .<span class="ident">map_with_context</span>(<span class="op">|</span><span class="ident">previous_scope</span>, <span class="ident">context</span><span class="op">|</span> {
                     <span class="ident">context</span>.<span class="ident">current_scope</span> <span class="op">=</span> <span class="ident">previous_scope</span>;
                     (<span class="prelude-val">Ok</span>(()), <span class="ident">context</span>)
                 }),
@@ -819,7 +883,14 @@
                         <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="kw">return</span> (<span class="prelude-val">Err</span>(<span class="ident">err</span>), <span class="ident">context</span>),
                     };
 
-                    <span class="ident">context</span>.<span class="ident">add_to_namespace</span>(<span class="ident">name</span>, <span class="ident">AmlValue</span>::<span class="ident">OpRegion</span> { <span class="ident">region</span>, <span class="ident">offset</span>, <span class="ident">length</span> });
+                    <span class="macro">try_with_context</span><span class="macro">!</span>(
+                        <span class="ident">context</span>,
+                        <span class="ident">context</span>.<span class="ident">namespace</span>.<span class="ident">add_at_resolved_path</span>(
+                            <span class="ident">name</span>,
+                            <span class="kw-2">&amp;</span><span class="ident">context</span>.<span class="ident">current_scope</span>,
+                            <span class="ident">AmlValue</span>::<span class="ident">OpRegion</span> { <span class="ident">region</span>, <span class="ident">offset</span>, <span class="ident">length</span> }
+                        )
+                    );
                     (<span class="prelude-val">Ok</span>(()), <span class="ident">context</span>)
                 },
             ),
@@ -838,32 +909,25 @@
     <span class="ident">ext_opcode</span>(<span class="ident">opcode</span>::<span class="ident">EXT_DEF_FIELD_OP</span>)
         .<span class="ident">then</span>(<span class="ident">comment_scope</span>(
             <span class="string">&quot;DefField&quot;</span>,
-            <span class="ident">pkg_length</span>().<span class="ident">then</span>(<span class="ident">name_string</span>()).<span class="ident">then</span>(<span class="ident">take</span>()).<span class="ident">feed</span>(
-                <span class="op">|</span>((<span class="ident">list_length</span>, <span class="ident">region_name</span>), <span class="ident">flags</span>)<span class="op">|</span> {
-                    <span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>],
-                          <span class="kw-2">mut</span> <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="kw-2">mut</span> <span class="ident">AmlContext</span><span class="op">|</span>
-                          <span class="op">-&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, ()<span class="op">&gt;</span> {
-                        <span class="comment">/*
-                         * FieldList := Nothing | &lt;FieldElement FieldList&gt;
-                         */</span>
-                        <span class="comment">// TODO: can this pattern be expressed as a combinator</span>
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_offset</span> <span class="op">=</span> <span class="number">0</span>;
-                        <span class="kw">while</span> <span class="ident">list_length</span>.<span class="ident">still_parsing</span>(<span class="ident">input</span>) {
-                            <span class="kw">let</span> (<span class="ident">new_input</span>, <span class="ident">new_context</span>, <span class="ident">field_length</span>) <span class="op">=</span> <span class="ident">field_element</span>(
-                                <span class="ident">region_name</span>.<span class="ident">clone</span>(),
-                                <span class="ident">FieldFlags</span>::<span class="ident">new</span>(<span class="ident">flags</span>),
-                                <span class="ident">current_offset</span>,
-                            )
-                            .<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-                            <span class="ident">input</span> <span class="op">=</span> <span class="ident">new_input</span>;
-                            <span class="ident">context</span> <span class="op">=</span> <span class="ident">new_context</span>;
-                            <span class="ident">current_offset</span> <span class="op">+=</span> <span class="ident">field_length</span>;
-                        }
-
-                        <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">context</span>, ()))
+            <span class="ident">pkg_length</span>().<span class="ident">then</span>(<span class="ident">name_string</span>()).<span class="ident">then</span>(<span class="ident">take</span>()).<span class="ident">feed</span>(<span class="op">|</span>((<span class="ident">list_length</span>, <span class="ident">region_name</span>), <span class="ident">flags</span>)<span class="op">|</span> {
+                <span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>], <span class="kw-2">mut</span> <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="kw-2">mut</span> <span class="ident">AmlContext</span><span class="op">|</span> <span class="op">-&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, ()<span class="op">&gt;</span> {
+                    <span class="comment">/*
+                     * FieldList := Nothing | &lt;FieldElement FieldList&gt;
+                     */</span>
+                    <span class="comment">// TODO: can this pattern be expressed as a combinator</span>
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_offset</span> <span class="op">=</span> <span class="number">0</span>;
+                    <span class="kw">while</span> <span class="ident">list_length</span>.<span class="ident">still_parsing</span>(<span class="ident">input</span>) {
+                        <span class="kw">let</span> (<span class="ident">new_input</span>, <span class="ident">new_context</span>, <span class="ident">field_length</span>) <span class="op">=</span>
+                            <span class="ident">field_element</span>(<span class="ident">region_name</span>.<span class="ident">clone</span>(), <span class="ident">FieldFlags</span>::<span class="ident">new</span>(<span class="ident">flags</span>), <span class="ident">current_offset</span>)
+                                .<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                        <span class="ident">input</span> <span class="op">=</span> <span class="ident">new_input</span>;
+                        <span class="ident">context</span> <span class="op">=</span> <span class="ident">new_context</span>;
+                        <span class="ident">current_offset</span> <span class="op">+=</span> <span class="ident">field_length</span>;
                     }
-                },
-            ),
+
+                    <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">context</span>, ()))
+                }
+            }),
         ))
         .<span class="ident">discard_result</span>()
 }
@@ -900,9 +964,8 @@
      * Reserved fields shouldn&#39;t actually be added to the namespace; they seem to show gaps in
      * the operation region that aren&#39;t used for anything.
      */</span>
-    <span class="kw">let</span> <span class="ident">reserved_field</span> <span class="op">=</span> <span class="ident">opcode</span>(<span class="ident">opcode</span>::<span class="ident">RESERVED_FIELD</span>)
-        .<span class="ident">then</span>(<span class="ident">pkg_length</span>())
-        .<span class="ident">map</span>(<span class="op">|</span>((), <span class="ident">length</span>)<span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">length</span>.<span class="ident">raw_length</span> <span class="kw">as</span> <span class="ident">u64</span>));
+    <span class="kw">let</span> <span class="ident">reserved_field</span> <span class="op">=</span>
+        <span class="ident">opcode</span>(<span class="ident">opcode</span>::<span class="ident">RESERVED_FIELD</span>).<span class="ident">then</span>(<span class="ident">pkg_length</span>()).<span class="ident">map</span>(<span class="op">|</span>((), <span class="ident">length</span>)<span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">length</span>.<span class="ident">raw_length</span> <span class="kw">as</span> <span class="ident">u64</span>));
 
     <span class="comment">// TODO: work out what to do with an access field</span>
     <span class="comment">// let access_field = opcode(opcode::ACCESS_FIELD)</span>
@@ -910,20 +973,23 @@
     <span class="comment">//     .then(take())</span>
     <span class="comment">//     .map_with_context(|(((), access_type), access_attrib), context| (Ok(    , context));</span>
 
-    <span class="kw">let</span> <span class="ident">named_field</span> <span class="op">=</span>
-        <span class="ident">name_seg</span>().<span class="ident">then</span>(<span class="ident">pkg_length</span>()).<span class="ident">map_with_context</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">name_seg</span>, <span class="ident">length</span>), <span class="ident">context</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">add_to_namespace</span>(
+    <span class="kw">let</span> <span class="ident">named_field</span> <span class="op">=</span> <span class="ident">name_seg</span>().<span class="ident">then</span>(<span class="ident">pkg_length</span>()).<span class="ident">map_with_context</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">name_seg</span>, <span class="ident">length</span>), <span class="ident">context</span><span class="op">|</span> {
+        <span class="macro">try_with_context</span><span class="macro">!</span>(
+            <span class="ident">context</span>,
+            <span class="ident">context</span>.<span class="ident">namespace</span>.<span class="ident">add_at_resolved_path</span>(
                 <span class="ident">AmlName</span>::<span class="ident">from_name_seg</span>(<span class="ident">name_seg</span>),
+                <span class="kw-2">&amp;</span><span class="ident">context</span>.<span class="ident">current_scope</span>,
                 <span class="ident">AmlValue</span>::<span class="ident">Field</span> {
                     <span class="ident">region</span>: <span class="ident">region_name</span>.<span class="ident">clone</span>(),
                     <span class="ident">flags</span>,
                     <span class="ident">offset</span>: <span class="ident">current_offset</span>,
                     <span class="ident">length</span>: <span class="ident">length</span>.<span class="ident">raw_length</span> <span class="kw">as</span> <span class="ident">u64</span>,
                 },
-            );
+            )
+        );
 
-            (<span class="prelude-val">Ok</span>(<span class="ident">length</span>.<span class="ident">raw_length</span> <span class="kw">as</span> <span class="ident">u64</span>), <span class="ident">context</span>)
-        });
+        (<span class="prelude-val">Ok</span>(<span class="ident">length</span>.<span class="ident">raw_length</span> <span class="kw">as</span> <span class="ident">u64</span>), <span class="ident">context</span>)
+    });
 
     <span class="macro">choice</span><span class="macro">!</span>(<span class="ident">reserved_field</span>, <span class="ident">named_field</span>)
 }
@@ -945,13 +1011,16 @@
                 .<span class="ident">then</span>(<span class="ident">name_string</span>())
                 .<span class="ident">then</span>(<span class="ident">take</span>())
                 .<span class="ident">feed</span>(<span class="op">|</span>((<span class="ident">length</span>, <span class="ident">name</span>), <span class="ident">flags</span>)<span class="op">|</span> {
-                    <span class="ident">take_to_end_of_pkglength</span>(<span class="ident">length</span>)
-                        .<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">code</span><span class="op">|</span> <span class="prelude-val">Ok</span>((<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">flags</span>, <span class="ident">code</span>)))
+                    <span class="ident">take_to_end_of_pkglength</span>(<span class="ident">length</span>).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">code</span><span class="op">|</span> <span class="prelude-val">Ok</span>((<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">flags</span>, <span class="ident">code</span>)))
                 })
                 .<span class="ident">map_with_context</span>(<span class="op">|</span>(<span class="ident">name</span>, <span class="ident">flags</span>, <span class="ident">code</span>), <span class="ident">context</span><span class="op">|</span> {
-                    <span class="ident">context</span>.<span class="ident">add_to_namespace</span>(
-                        <span class="ident">name</span>,
-                        <span class="ident">AmlValue</span>::<span class="ident">Method</span> { <span class="ident">flags</span>: <span class="ident">MethodFlags</span>::<span class="ident">new</span>(<span class="ident">flags</span>), <span class="ident">code</span>: <span class="ident">code</span>.<span class="ident">to_vec</span>() },
+                    <span class="macro">try_with_context</span><span class="macro">!</span>(
+                        <span class="ident">context</span>,
+                        <span class="ident">context</span>.<span class="ident">namespace</span>.<span class="ident">add_at_resolved_path</span>(
+                            <span class="ident">name</span>,
+                            <span class="kw-2">&amp;</span><span class="ident">context</span>.<span class="ident">current_scope</span>,
+                            <span class="ident">AmlValue</span>::<span class="ident">Method</span> { <span class="ident">flags</span>: <span class="ident">MethodFlags</span>::<span class="ident">new</span>(<span class="ident">flags</span>), <span class="ident">code</span>: <span class="ident">code</span>.<span class="ident">to_vec</span>() },
+                        )
                     );
                     (<span class="prelude-val">Ok</span>(()), <span class="ident">context</span>)
                 }),
@@ -972,16 +1041,21 @@
             <span class="ident">pkg_length</span>()
                 .<span class="ident">then</span>(<span class="ident">name_string</span>())
                 .<span class="ident">map_with_context</span>(<span class="op">|</span>(<span class="ident">length</span>, <span class="ident">name</span>), <span class="ident">context</span><span class="op">|</span> {
-                    <span class="ident">context</span>.<span class="ident">add_to_namespace</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">AmlValue</span>::<span class="ident">Device</span>);
+                    <span class="macro">try_with_context</span><span class="macro">!</span>(
+                        <span class="ident">context</span>,
+                        <span class="ident">context</span>.<span class="ident">namespace</span>.<span class="ident">add_at_resolved_path</span>(
+                            <span class="ident">name</span>.<span class="ident">clone</span>(),
+                            <span class="kw-2">&amp;</span><span class="ident">context</span>.<span class="ident">current_scope</span>,
+                            <span class="ident">AmlValue</span>::<span class="ident">Device</span>
+                        )
+                    );
 
                     <span class="kw">let</span> <span class="ident">previous_scope</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">current_scope</span>.<span class="ident">clone</span>();
-                    <span class="ident">context</span>.<span class="ident">current_scope</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">resolve_path</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>);
+                    <span class="ident">context</span>.<span class="ident">current_scope</span> <span class="op">=</span> <span class="macro">try_with_context</span><span class="macro">!</span>(<span class="ident">context</span>, <span class="ident">name</span>.<span class="ident">resolve</span>(<span class="kw-2">&amp;</span><span class="ident">context</span>.<span class="ident">current_scope</span>));
 
                     (<span class="prelude-val">Ok</span>((<span class="ident">length</span>, <span class="ident">previous_scope</span>)), <span class="ident">context</span>)
                 })
-                .<span class="ident">feed</span>(<span class="op">|</span>(<span class="ident">length</span>, <span class="ident">previous_scope</span>)<span class="op">|</span> {
-                    <span class="ident">term_list</span>(<span class="ident">length</span>).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">previous_scope</span>.<span class="ident">clone</span>()))
-                })
+                .<span class="ident">feed</span>(<span class="op">|</span>(<span class="ident">length</span>, <span class="ident">previous_scope</span>)<span class="op">|</span> <span class="ident">term_list</span>(<span class="ident">length</span>).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">previous_scope</span>.<span class="ident">clone</span>())))
                 .<span class="ident">map_with_context</span>(<span class="op">|</span><span class="ident">previous_scope</span>, <span class="ident">context</span><span class="op">|</span> {
                     <span class="ident">context</span>.<span class="ident">current_scope</span> <span class="op">=</span> <span class="ident">previous_scope</span>;
                     (<span class="prelude-val">Ok</span>(()), <span class="ident">context</span>)
@@ -1008,13 +1082,25 @@
                 .<span class="ident">then</span>(<span class="ident">take</span>())
                 .<span class="ident">then</span>(<span class="ident">take_u32</span>())
                 .<span class="ident">then</span>(<span class="ident">take</span>())
-                .<span class="ident">feed</span>(<span class="op">|</span>((((<span class="ident">pkg_length</span>, <span class="ident">name</span>), <span class="ident">proc_id</span>), <span class="ident">pblk_address</span>), <span class="ident">pblk_len</span>)<span class="op">|</span> {
-                    <span class="ident">term_list</span>(<span class="ident">pkg_length</span>)
-                        .<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>((<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">proc_id</span>, <span class="ident">pblk_address</span>, <span class="ident">pblk_len</span>)))
+                .<span class="ident">map_with_context</span>(<span class="op">|</span>((((<span class="ident">pkg_length</span>, <span class="ident">name</span>), <span class="ident">proc_id</span>), <span class="ident">pblk_address</span>), <span class="ident">pblk_len</span>), <span class="ident">context</span><span class="op">|</span> {
+                    <span class="macro">try_with_context</span><span class="macro">!</span>(
+                        <span class="ident">context</span>,
+                        <span class="ident">context</span>.<span class="ident">namespace</span>.<span class="ident">add_at_resolved_path</span>(
+                            <span class="ident">name</span>.<span class="ident">clone</span>(),
+                            <span class="kw-2">&amp;</span><span class="ident">context</span>.<span class="ident">current_scope</span>,
+                            <span class="ident">AmlValue</span>::<span class="ident">Processor</span> { <span class="ident">id</span>: <span class="ident">proc_id</span>, <span class="ident">pblk_address</span>, <span class="ident">pblk_len</span> }
+                        )
+                    );
+                    <span class="kw">let</span> <span class="ident">previous_scope</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">current_scope</span>.<span class="ident">clone</span>();
+                    <span class="ident">context</span>.<span class="ident">current_scope</span> <span class="op">=</span> <span class="macro">try_with_context</span><span class="macro">!</span>(<span class="ident">context</span>, <span class="ident">name</span>.<span class="ident">resolve</span>(<span class="kw-2">&amp;</span><span class="ident">context</span>.<span class="ident">current_scope</span>));
+
+                    (<span class="prelude-val">Ok</span>((<span class="ident">previous_scope</span>, <span class="ident">pkg_length</span>)), <span class="ident">context</span>)
                 })
-                .<span class="ident">map_with_context</span>(<span class="op">|</span>(<span class="ident">name</span>, <span class="ident">id</span>, <span class="ident">pblk_address</span>, <span class="ident">pblk_len</span>), <span class="ident">context</span><span class="op">|</span> {
-                    <span class="ident">context</span>
-                        .<span class="ident">add_to_namespace</span>(<span class="ident">name</span>, <span class="ident">AmlValue</span>::<span class="ident">Processor</span> { <span class="ident">id</span>, <span class="ident">pblk_address</span>, <span class="ident">pblk_len</span> });
+                .<span class="ident">feed</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">previous_scope</span>, <span class="ident">pkg_length</span>)<span class="op">|</span> {
+                    <span class="ident">term_list</span>(<span class="ident">pkg_length</span>).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">previous_scope</span>.<span class="ident">clone</span>()))
+                })
+                .<span class="ident">map_with_context</span>(<span class="op">|</span><span class="ident">previous_scope</span>, <span class="ident">context</span><span class="op">|</span> {
+                    <span class="ident">context</span>.<span class="ident">current_scope</span> <span class="op">=</span> <span class="ident">previous_scope</span>;
                     (<span class="prelude-val">Ok</span>(()), <span class="ident">context</span>)
                 }),
         ))
@@ -1034,7 +1120,14 @@
         .<span class="ident">then</span>(<span class="ident">comment_scope</span>(
             <span class="string">&quot;DefMutex&quot;</span>,
             <span class="ident">name_string</span>().<span class="ident">then</span>(<span class="ident">take</span>()).<span class="ident">map_with_context</span>(<span class="op">|</span>(<span class="ident">name</span>, <span class="ident">sync_level</span>), <span class="ident">context</span><span class="op">|</span> {
-                <span class="ident">context</span>.<span class="ident">add_to_namespace</span>(<span class="ident">name</span>, <span class="ident">AmlValue</span>::<span class="ident">Mutex</span> { <span class="ident">sync_level</span> });
+                <span class="macro">try_with_context</span><span class="macro">!</span>(
+                    <span class="ident">context</span>,
+                    <span class="ident">context</span>.<span class="ident">namespace</span>.<span class="ident">add_at_resolved_path</span>(
+                        <span class="ident">name</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">context</span>.<span class="ident">current_scope</span>,
+                        <span class="ident">AmlValue</span>::<span class="ident">Mutex</span> { <span class="ident">sync_level</span> }
+                    )
+                );
                 (<span class="prelude-val">Ok</span>(()), <span class="ident">context</span>)
             }),
         ))
@@ -1082,8 +1175,7 @@
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">package_contents</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
 
                     <span class="kw">while</span> <span class="ident">pkg_length</span>.<span class="ident">still_parsing</span>(<span class="ident">input</span>) {
-                        <span class="kw">let</span> (<span class="ident">new_input</span>, <span class="ident">new_context</span>, <span class="ident">value</span>) <span class="op">=</span>
-                            <span class="ident">package_element</span>().<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                        <span class="kw">let</span> (<span class="ident">new_input</span>, <span class="ident">new_context</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="ident">package_element</span>().<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                         <span class="ident">input</span> <span class="op">=</span> <span class="ident">new_input</span>;
                         <span class="ident">context</span> <span class="op">=</span> <span class="ident">new_context</span>;
 
@@ -1112,8 +1204,19 @@
     <span class="comment">/*
      * TermArg := Type2Opcode | DataObject | ArgObj | LocalObj
      */</span>
-    <span class="comment">// TODO: this doesn&#39;t yet parse Term2Opcode, ArgObj, or LocalObj</span>
-    <span class="ident">comment_scope_verbose</span>(<span class="string">&quot;TermArg&quot;</span>, <span class="macro">choice</span><span class="macro">!</span>(<span class="ident">data_object</span>()))
+    <span class="ident">comment_scope_verbose</span>(
+        <span class="string">&quot;TermArg&quot;</span>,
+        <span class="macro">choice</span><span class="macro">!</span>(
+            <span class="ident">data_object</span>(),
+            <span class="ident">arg_obj</span>().<span class="ident">map_with_context</span>(<span class="op">|</span><span class="ident">arg_num</span>, <span class="ident">context</span><span class="op">|</span> {
+                (<span class="prelude-val">Ok</span>(<span class="macro">try_with_context</span><span class="macro">!</span>(<span class="ident">context</span>, <span class="ident">context</span>.<span class="ident">current_arg</span>(<span class="ident">arg_num</span>)).<span class="ident">clone</span>()), <span class="ident">context</span>)
+            }),
+            <span class="ident">local_obj</span>().<span class="ident">map_with_context</span>(<span class="op">|</span><span class="ident">local_num</span>, <span class="ident">context</span><span class="op">|</span> {
+                (<span class="prelude-val">Ok</span>(<span class="macro">try_with_context</span><span class="macro">!</span>(<span class="ident">context</span>, <span class="ident">context</span>.<span class="ident">local</span>(<span class="ident">local_num</span>)).<span class="ident">clone</span>()), <span class="ident">context</span>)
+            }),
+            <span class="macro">make_parser_concrete</span><span class="macro">!</span>(<span class="ident">type2_opcode</span>())
+        ),
+    )
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">data_ref_object</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="ident">AmlValue</span><span class="op">&gt;</span>
@@ -1179,12 +1282,12 @@
             <span class="ident">opcode</span>::<span class="ident">BYTE_CONST</span> <span class="op">=&gt;</span> {
                 <span class="ident">take</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="ident">value</span> <span class="kw">as</span> <span class="ident">u64</span>))).<span class="ident">parse</span>(<span class="ident">new_input</span>, <span class="ident">context</span>)
             }
-            <span class="ident">opcode</span>::<span class="ident">WORD_CONST</span> <span class="op">=&gt;</span> <span class="ident">take_u16</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="ident">value</span> <span class="kw">as</span> <span class="ident">u64</span>)))
-                .<span class="ident">parse</span>(<span class="ident">new_input</span>, <span class="ident">context</span>),
-            <span class="ident">opcode</span>::<span class="ident">DWORD_CONST</span> <span class="op">=&gt;</span> <span class="ident">take_u32</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="ident">value</span> <span class="kw">as</span> <span class="ident">u64</span>)))
-                .<span class="ident">parse</span>(<span class="ident">new_input</span>, <span class="ident">context</span>),
+            <span class="ident">opcode</span>::<span class="ident">WORD_CONST</span> <span class="op">=&gt;</span> {
+                <span class="ident">take_u16</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="ident">value</span> <span class="kw">as</span> <span class="ident">u64</span>))).<span class="ident">parse</span>(<span class="ident">new_input</span>, <span class="ident">context</span>)
+            }
+            <span class="ident">opcode</span>::<span class="ident">DWORD_CONST</span> <span class="op">=&gt;</span> {
+                <span class="ident">take_u32</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="ident">value</span> <span class="kw">as</span> <span class="ident">u64</span>))).<span class="ident">parse</span>(<span class="ident">new_input</span>, <span class="ident">context</span>)
+            }
             <span class="ident">opcode</span>::<span class="ident">QWORD_CONST</span> <span class="op">=&gt;</span> {
                 <span class="ident">take_u64</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="ident">value</span>))).<span class="ident">parse</span>(<span class="ident">new_input</span>, <span class="ident">context</span>)
             }
@@ -1193,7 +1296,7 @@
             <span class="ident">opcode</span>::<span class="ident">ONE_OP</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>((<span class="ident">new_input</span>, <span class="ident">context</span>, <span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="number">1</span>))),
             <span class="ident">opcode</span>::<span class="ident">ONES_OP</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>((<span class="ident">new_input</span>, <span class="ident">context</span>, <span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="ident">u64</span>::<span class="ident">max_value</span>()))),
 
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>((<span class="ident">input</span>, <span class="ident">context</span>, <span class="ident">AmlError</span>::<span class="ident">UnexpectedByte</span>(<span class="ident">op</span>))),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>((<span class="ident">input</span>, <span class="ident">context</span>, <span class="ident">AmlError</span>::<span class="ident">WrongParser</span>)),
         }
     };
 
@@ -1258,8 +1361,7 @@
             <span class="kw-2">&amp;</span>[<span class="number">0x28</span>]
         );
         <span class="macro">check_ok</span><span class="macro">!</span>(
-            <span class="ident">computational_data</span>()
-                .<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x0d</span>, <span class="string">b&#39;A&#39;</span>, <span class="string">b&#39;B&#39;</span>, <span class="string">b&#39;C&#39;</span>, <span class="string">b&#39;D&#39;</span>, <span class="string">b&#39;\0&#39;</span>, <span class="number">0xff</span>, <span class="number">0xf5</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>),
+            <span class="ident">computational_data</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x0d</span>, <span class="string">b&#39;A&#39;</span>, <span class="string">b&#39;B&#39;</span>, <span class="string">b&#39;C&#39;</span>, <span class="string">b&#39;D&#39;</span>, <span class="string">b&#39;\0&#39;</span>, <span class="number">0xff</span>, <span class="number">0xf5</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>),
             <span class="ident">AmlValue</span>::<span class="ident">String</span>(<span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;ABCD&quot;</span>)),
             <span class="kw-2">&amp;</span>[<span class="number">0xff</span>, <span class="number">0xf5</span>]
         );

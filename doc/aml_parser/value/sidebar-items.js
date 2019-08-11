@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["AmlValue",""],["FieldAccessType",""],["FieldUpdateRule",""],["RegionSpace",""]],"struct":[["FieldFlags",""],["MethodFlags",""]]});
+initSidebarItems({"enum":[["AmlType",""],["AmlValue",""],["FieldAccessType",""],["FieldUpdateRule",""],["RegionSpace",""]],"struct":[["Args","A control method can take up to 7 arguments, each of which can be an `AmlValue`."],["FieldFlags",""],["MethodFlags",""]]});
