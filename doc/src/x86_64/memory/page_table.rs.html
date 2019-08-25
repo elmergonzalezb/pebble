@@ -426,11 +426,25 @@
 <span id="426">426</span>
 <span id="427">427</span>
 <span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Frame</span>, <span class="ident">FrameAllocator</span>, <span class="ident">Page</span>, <span class="ident">PhysicalAddress</span>, <span class="ident">Size2MiB</span>, <span class="ident">Size4KiB</span>, <span class="ident">VirtualAddress</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">hw</span>::{<span class="ident">registers</span>::<span class="ident">write_control_reg</span>, <span class="ident">tlb</span>};
 <span class="kw">use</span> <span class="ident">bitflags</span>::<span class="ident">bitflags</span>;
 <span class="kw">use</span> <span class="ident">core</span>::{
+    <span class="ident">fmt</span>,
     <span class="ident">marker</span>::<span class="ident">PhantomData</span>,
     <span class="ident">ops</span>::{<span class="ident">Index</span>, <span class="ident">IndexMut</span>},
 };
@@ -459,8 +473,6 @@
     }
 }
 
-<span class="comment">// TODO: custom debug impl - points to something or not, if so address and flags in an easy to see</span>
-<span class="comment">// way (this should be extended to whole tables with nice easy printing)</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Entry</span>(<span class="ident">u64</span>);
@@ -495,6 +507,20 @@
     <span class="doccomment">/// not-present (use `set_unused` instead), because we automatically add the `PRESENT` flag.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">address</span>: <span class="ident">PhysicalAddress</span>, <span class="ident">flags</span>: <span class="ident">EntryFlags</span>) {
         <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> (<span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">address</span>) <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">|</span> (<span class="ident">flags</span> <span class="op">|</span> <span class="ident">EntryFlags</span>::<span class="ident">PRESENT</span>).<span class="ident">bits</span>();
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Entry</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">contains</span>(<span class="ident">EntryFlags</span>::<span class="ident">PRESENT</span>) {
+            <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Not Present&quot;</span>)
+        } <span class="kw">else</span> {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">contains</span>(<span class="ident">EntryFlags</span>::<span class="ident">HUGE_PAGE</span>) {
+                <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;[HUGE] Address: {:#x}, flags: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">address</span>().<span class="ident">unwrap</span>(), <span class="self">self</span>.<span class="ident">flags</span>())
+            } <span class="kw">else</span> {
+                <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Address: {:#x}, flags: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">address</span>().<span class="ident">unwrap</span>(), <span class="self">self</span>.<span class="ident">flags</span>())
+            }
+        }
     }
 }
 

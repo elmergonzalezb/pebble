@@ -268,9 +268,9 @@
 <span class="doccomment">//! served allocating a larger block of frames at a time, and using a slab allocator to make the</span>
 <span class="doccomment">//! individual allocations.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">math</span>::{<span class="ident">ceiling_log2</span>, <span class="ident">flooring_log2</span>};
 <span class="kw">use</span> <span class="ident">alloc</span>::{<span class="ident">collections</span>::<span class="ident">BTreeSet</span>, <span class="ident">vec</span>::<span class="ident">Vec</span>};
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">cmp</span>::<span class="ident">min</span>, <span class="ident">ops</span>::<span class="ident">Range</span>};
+<span class="kw">use</span> <span class="ident">pebble_util</span>::<span class="ident">math</span>::{<span class="ident">ceiling_log2</span>, <span class="ident">flooring_log2</span>};
 <span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::{<span class="ident">Frame</span>, <span class="ident">FrameSize</span>, <span class="ident">PhysicalAddress</span>, <span class="ident">Size4KiB</span>};
 
 <span class="comment">// TODO: make this generic over the frame size - it should monomorphise and generate good code I</span>

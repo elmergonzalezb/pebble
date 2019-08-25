@@ -320,45 +320,6 @@
 <span id="320">320</span>
 <span id="321">321</span>
 <span id="322">322</span>
-<span id="323">323</span>
-<span id="324">324</span>
-<span id="325">325</span>
-<span id="326">326</span>
-<span id="327">327</span>
-<span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
-<span id="335">335</span>
-<span id="336">336</span>
-<span id="337">337</span>
-<span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
-<span id="342">342</span>
-<span id="343">343</span>
-<span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
-<span id="347">347</span>
-<span id="348">348</span>
-<span id="349">349</span>
-<span id="350">350</span>
-<span id="351">351</span>
-<span id="352">352</span>
-<span id="353">353</span>
-<span id="354">354</span>
-<span id="355">355</span>
-<span id="356">356</span>
-<span id="357">357</span>
-<span id="358">358</span>
-<span id="359">359</span>
-<span id="360">360</span>
-<span id="361">361</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">core</span>::{
     <span class="ident">alloc</span>::{<span class="ident">AllocErr</span>, <span class="ident">GlobalAlloc</span>, <span class="ident">Layout</span>},
@@ -366,6 +327,7 @@
     <span class="ident">mem</span>::{<span class="self">self</span>, <span class="ident">size_of</span>},
     <span class="ident">ops</span>::<span class="ident">Deref</span>,
 };
+<span class="kw">use</span> <span class="ident">pebble_util</span>::<span class="ident">math</span>::<span class="ident">align_up</span>;
 <span class="kw">use</span> <span class="ident">spin</span>::<span class="ident">Mutex</span>;
 <span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::<span class="ident">VirtualAddress</span>;
 
@@ -379,11 +341,7 @@
     <span class="doccomment">/// Create a new, uninitialized `HoleAllocator`. Before heap allocations can be made, `init`</span>
     <span class="doccomment">/// must be called.</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new_uninitialized</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">HoleAllocator</span> {
-        <span class="ident">HoleAllocator</span> {
-            <span class="ident">heap_bottom</span>: <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0</span>) },
-            <span class="ident">heap_size</span>: <span class="number">0</span>,
-            <span class="ident">holes</span>: <span class="prelude-val">None</span>,
-        }
+        <span class="ident">HoleAllocator</span> { <span class="ident">heap_bottom</span>: <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0</span>) }, <span class="ident">heap_size</span>: <span class="number">0</span>, <span class="ident">holes</span>: <span class="prelude-val">None</span> }
     }
 
     <span class="doccomment">/// Initialise the `HoleAllocator`. This should only be called once, and constructs the</span>
@@ -414,10 +372,8 @@
 
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">GlobalAlloc</span> <span class="kw">for</span> <span class="ident">LockedHoleAllocator</span> {
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">alloc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span> {
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">align_up</span>(
-            <span class="ident">max</span>(<span class="ident">layout</span>.<span class="ident">size</span>() <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">HoleList</span>::<span class="ident">get_min_size</span>()),
-            <span class="ident">mem</span>::<span class="ident">align_of</span>::<span class="op">&lt;</span><span class="ident">Hole</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">usize</span>,
-        );
+        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span>
+            <span class="ident">align_up</span>(<span class="ident">max</span>(<span class="ident">layout</span>.<span class="ident">size</span>() <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">HoleList</span>::<span class="ident">get_min_size</span>()), <span class="ident">mem</span>::<span class="ident">align_of</span>::<span class="op">&lt;</span><span class="ident">Hole</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">usize</span>);
         <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">from_size_align</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">layout</span>.<span class="ident">align</span>()).<span class="ident">unwrap</span>();
 
         <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">lock</span>().<span class="ident">holes</span> {
@@ -427,10 +383,8 @@
     }
 
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">dealloc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) {
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">align_up</span>(
-            <span class="ident">max</span>(<span class="ident">layout</span>.<span class="ident">size</span>() <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">HoleList</span>::<span class="ident">get_min_size</span>()),
-            <span class="ident">mem</span>::<span class="ident">align_of</span>::<span class="op">&lt;</span><span class="ident">Hole</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">usize</span>,
-        );
+        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span>
+            <span class="ident">align_up</span>(<span class="ident">max</span>(<span class="ident">layout</span>.<span class="ident">size</span>() <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">HoleList</span>::<span class="ident">get_min_size</span>()), <span class="ident">mem</span>::<span class="ident">align_of</span>::<span class="op">&lt;</span><span class="ident">Hole</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">usize</span>);
         <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">from_size_align</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">layout</span>.<span class="ident">align</span>()).<span class="ident">unwrap</span>();
 
         <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">lock</span>().<span class="ident">holes</span> {
@@ -535,10 +489,7 @@
 
         (
             <span class="ident">aligned_addr</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">HoleInfo</span> {
-                <span class="ident">addr</span>: <span class="ident">hole</span>.<span class="ident">addr</span>,
-                <span class="ident">size</span>: <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">aligned_addr</span>) <span class="op">-</span> <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">hole</span>.<span class="ident">addr</span>),
-            }),
+            <span class="prelude-val">Some</span>(<span class="ident">HoleInfo</span> { <span class="ident">addr</span>: <span class="ident">hole</span>.<span class="ident">addr</span>, <span class="ident">size</span>: <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">aligned_addr</span>) <span class="op">-</span> <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">hole</span>.<span class="ident">addr</span>) }),
         )
     };
 
@@ -560,10 +511,7 @@
          * The hole is too big for the allocation, so add some back padding to
          * use the extra space.
          */</span>
-        <span class="prelude-val">Some</span>(<span class="ident">HoleInfo</span> {
-            <span class="ident">addr</span>: <span class="ident">aligned_hole</span>.<span class="ident">addr</span> <span class="op">+</span> <span class="ident">required_size</span>,
-            <span class="ident">size</span>: <span class="ident">aligned_hole</span>.<span class="ident">size</span> <span class="op">-</span> <span class="ident">required_size</span>,
-        })
+        <span class="prelude-val">Some</span>(<span class="ident">HoleInfo</span> { <span class="ident">addr</span>: <span class="ident">aligned_hole</span>.<span class="ident">addr</span> <span class="op">+</span> <span class="ident">required_size</span>, <span class="ident">size</span>: <span class="ident">aligned_hole</span>.<span class="ident">size</span> <span class="op">-</span> <span class="ident">required_size</span> })
     };
 
     <span class="prelude-val">Some</span>(<span class="ident">Allocation</span> {
@@ -688,32 +636,6 @@
         }
         <span class="kw">break</span>;
     }
-}
-
-<span class="doccomment">/// Get the greatest x with the given alignment such that x &lt;= the given address. The alignment</span>
-<span class="doccomment">/// must be a power of two.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">align_down</span>(<span class="ident">addr</span>: <span class="ident">usize</span>, <span class="ident">align</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">align</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">align</span>.<span class="ident">is_power_of_two</span>(), <span class="string">&quot;Can only align to a power of two&quot;</span>);
-
-    <span class="kw">if</span> <span class="ident">align</span>.<span class="ident">is_power_of_two</span>() {
-        <span class="comment">/*
-         * E.g.
-         *      align       =   0b00001000
-         *      align-1     =   0b00000111
-         *      !(align-1)  =   0b11111000
-         *                             ^^^ Masks the address to the value below it with the
-         *                                 correct alignment
-         */</span>
-        <span class="ident">addr</span> <span class="op">&amp;</span> <span class="op">!</span>(<span class="ident">align</span> <span class="op">-</span> <span class="number">1</span>)
-    } <span class="kw">else</span> {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">align</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
-        <span class="ident">addr</span>
-    }
-}
-
-<span class="doccomment">/// Get the smallest x with the given alignment such that x &gt;= the given address.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">align_up</span>(<span class="ident">addr</span>: <span class="ident">usize</span>, <span class="ident">align</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-    <span class="ident">align_down</span>(<span class="ident">addr</span> <span class="op">+</span> <span class="ident">align</span> <span class="op">-</span> <span class="number">1</span>, <span class="ident">align</span>)
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">test</span>))]</span>

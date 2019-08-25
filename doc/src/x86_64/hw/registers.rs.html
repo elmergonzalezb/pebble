@@ -131,6 +131,13 @@
 <span id="131">131</span>
 <span id="132">132</span>
 <span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
@@ -167,17 +174,17 @@
         <span class="macro">write</span><span class="macro">!</span>(
             <span class="ident">f</span>,
             <span class="string">&quot;[{}{}{}{}{}{}{}{}{}{}{}] {:#x}&quot;</span>,
-            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0x0000_4000</span> <span class="op">&gt;</span> <span class="number">0</span> { <span class="string">&#39;N&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> }, <span class="comment">// Nested Task flag</span>
-            [<span class="string">&#39;0&#39;</span>, <span class="string">&#39;1&#39;</span>, <span class="string">&#39;2&#39;</span>, <span class="string">&#39;3&#39;</span>][(<span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0x0000_3001</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">12</span>) <span class="kw">as</span> <span class="ident">usize</span>], <span class="comment">// I/O privilege level</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0x0000_0800</span> <span class="op">&gt;</span> <span class="number">0</span> { <span class="string">&#39;O&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> }, <span class="comment">// Overflow flag</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0x0000_0400</span> <span class="op">&gt;</span> <span class="number">0</span> { <span class="string">&#39;D&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> }, <span class="comment">// Direction flag</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0x0000_0200</span> <span class="op">&gt;</span> <span class="number">0</span> { <span class="string">&#39;I&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> }, <span class="comment">// Interrupt flag</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0x0000_0100</span> <span class="op">&gt;</span> <span class="number">0</span> { <span class="string">&#39;T&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> }, <span class="comment">// Trap flag</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0x0000_0080</span> <span class="op">&gt;</span> <span class="number">0</span> { <span class="string">&#39;S&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> }, <span class="comment">// Sign flag</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0x0000_0040</span> <span class="op">&gt;</span> <span class="number">0</span> { <span class="string">&#39;Z&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> }, <span class="comment">// Zero flag</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0x0000_0010</span> <span class="op">&gt;</span> <span class="number">0</span> { <span class="string">&#39;A&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> }, <span class="comment">// Adjust flag</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0x0000_0004</span> <span class="op">&gt;</span> <span class="number">0</span> { <span class="string">&#39;P&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> }, <span class="comment">// Parity flag</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0x0000_0001</span> <span class="op">&gt;</span> <span class="number">0</span> { <span class="string">&#39;C&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> }, <span class="comment">// Carry flag</span>
+            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get_bit</span>(<span class="number">14</span>) { <span class="string">&#39;N&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> }, <span class="comment">// Nested Task flag</span>
+            [<span class="string">&#39;0&#39;</span>, <span class="string">&#39;1&#39;</span>, <span class="string">&#39;2&#39;</span>, <span class="string">&#39;3&#39;</span>][(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">get_bits</span>(<span class="number">12</span>..<span class="number">14</span>)) <span class="kw">as</span> <span class="ident">usize</span>], <span class="comment">// I/O privilege level</span>
+            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get_bit</span>(<span class="number">11</span>) { <span class="string">&#39;O&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> }, <span class="comment">// Overflow flag</span>
+            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get_bit</span>(<span class="number">10</span>) { <span class="string">&#39;D&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> }, <span class="comment">// Direction flag</span>
+            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get_bit</span>(<span class="number">9</span>) { <span class="string">&#39;I&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> },  <span class="comment">// Interrupt flag</span>
+            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get_bit</span>(<span class="number">8</span>) { <span class="string">&#39;T&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> },  <span class="comment">// Trap flag</span>
+            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get_bit</span>(<span class="number">7</span>) { <span class="string">&#39;S&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> },  <span class="comment">// Sign flag</span>
+            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get_bit</span>(<span class="number">6</span>) { <span class="string">&#39;Z&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> },  <span class="comment">// Zero flag</span>
+            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get_bit</span>(<span class="number">4</span>) { <span class="string">&#39;A&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> },  <span class="comment">// Adjust flag</span>
+            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get_bit</span>(<span class="number">2</span>) { <span class="string">&#39;P&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> },  <span class="comment">// Parity flag</span>
+            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get_bit</span>(<span class="number">0</span>) { <span class="string">&#39;C&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> },  <span class="comment">// Carry flag</span>
             <span class="self">self</span>.<span class="number">0</span>
         )
     }
@@ -185,8 +192,11 @@
 
 <span class="comment">/*
  * Constants for bits in CR4.
- * TODO: expand and use in bootloader
  */</span>
+<span class="doccomment">/// If this is set, `rdtsc` can only be used in Ring 0.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CR4_RESTRICT_RDTSC</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CR4_ENABLE_PAE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">5</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CR4_ENABLE_GLOBAL_PAGES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">7</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CR4_XSAVE_ENABLE_BIT</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">18</span>;
 
 <span class="doccomment">/// Read a control register. The name of the control register should be passed as any of: `CR0`,</span>
@@ -221,6 +231,10 @@
 }
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EFER</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0xc000_0080</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EFER_ENABLE_SYSCALL</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EFER_ENABLE_LONG_MODE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">8</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EFER_ENABLE_NX_BIT</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">11</span>;
 
 <span class="doccomment">/// Contains the Ring 0 and Ring 3 code-segment selectors loaded by `syscall` and `sysret`,</span>
 <span class="doccomment">/// respectively:</span>

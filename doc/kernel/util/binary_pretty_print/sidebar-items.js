@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["BinaryPrettyPrint","Values can be wrapped in this type when they're printed to display them as easy-to-read binary numbers. `Display` is implemented to print the value in the form `00000000-00000000`, while `Debug` will print it in the form `00000000(8)-00000000(0)` (with offsets of each byte)."]]});

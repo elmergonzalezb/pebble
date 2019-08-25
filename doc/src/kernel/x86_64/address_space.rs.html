@@ -134,15 +134,11 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
-<span id="137">137</span>
-<span id="138">138</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">memory</span>::<span class="ident">userspace_map</span>, <span class="ident">Arch</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">object</span>::<span class="ident">WrappedKernelObject</span>,
-    <span class="ident">util</span>::<span class="ident">bitmap</span>::{<span class="ident">Bitmap</span>, <span class="ident">BitmapArray</span>},
-};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">object</span>::<span class="ident">WrappedKernelObject</span>;
 <span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">vec</span>::<span class="ident">Vec</span>;
+<span class="kw">use</span> <span class="ident">pebble_util</span>::<span class="ident">bitmap</span>::{<span class="ident">Bitmap</span>, <span class="ident">BitmapArray</span>};
 <span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::{<span class="ident">kernel_map</span>, <span class="ident">EntryFlags</span>, <span class="ident">Frame</span>, <span class="ident">FrameAllocator</span>, <span class="ident">Page</span>, <span class="ident">PageTable</span>, <span class="ident">VirtualAddress</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>)]</span>

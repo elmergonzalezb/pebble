@@ -72,16 +72,14 @@
 <span id="72">72</span>
 <span id="73">73</span>
 <span id="74">74</span>
-<span id="75">75</span>
-<span id="76">76</span>
-<span id="77">77</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module contains all the interrupt handlers used to handle CPU exceptions. Some of these</span>
 <span class="doccomment">//! exceptions are handled and recovered from, while some are fatal errors and lead to kernel</span>
 <span class="doccomment">//! panics.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">BinaryPrettyPrint</span>;
+<span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">error</span>, <span class="ident">info</span>};
+<span class="kw">use</span> <span class="ident">pebble_util</span>::<span class="ident">BinaryPrettyPrint</span>;
 <span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">hw</span>::{<span class="ident">idt</span>::<span class="ident">InterruptStackFrame</span>, <span class="ident">registers</span>::<span class="ident">read_control_reg</span>};
 
 <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">nmi_handler</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">InterruptStackFrame</span>) {
@@ -106,34 +104,30 @@
 }
 
 <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">page_fault_handler</span>(<span class="ident">stack_frame</span>: <span class="kw-2">&amp;</span><span class="ident">InterruptStackFrame</span>, <span class="ident">error_code</span>: <span class="ident">u64</span>) {
-    <span class="comment">// TODO: use get_bit method on BitField instead and replace the patterns with exhaustive bool</span>
-    <span class="comment">// ones</span>
     <span class="macro">error</span><span class="macro">!</span>(
         <span class="string">&quot;PAGE_FAULT: {} ({:#x})&quot;</span>,
         <span class="kw">match</span> (
-            (<span class="ident">error_code</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">2</span>) <span class="op">&amp;</span> <span class="number">0b1</span>, <span class="comment">// User / Supervisor</span>
-            (<span class="ident">error_code</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">4</span>) <span class="op">&amp;</span> <span class="number">0b1</span>, <span class="comment">// Instruction / Data</span>
-            (<span class="ident">error_code</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>) <span class="op">&amp;</span> <span class="number">0b1</span>, <span class="comment">// Read / Write</span>
-            (<span class="ident">error_code</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">0</span>) <span class="op">&amp;</span> <span class="number">0b1</span>  <span class="comment">// Present</span>
+            <span class="ident">error_code</span>.<span class="ident">get_bit</span>(<span class="number">2</span>), <span class="comment">// User / Supervisor</span>
+            <span class="ident">error_code</span>.<span class="ident">get_bit</span>(<span class="number">4</span>), <span class="comment">// Instruction / Data</span>
+            <span class="ident">error_code</span>.<span class="ident">get_bit</span>(<span class="number">1</span>), <span class="comment">// Read / Write</span>
+            <span class="ident">error_code</span>.<span class="ident">get_bit</span>(<span class="number">0</span>)  <span class="comment">// Present</span>
         ) {
             <span class="comment">// Page faults caused by the kernel</span>
-            (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Kernel read non-present page&quot;</span>,
-            (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Kernel read present page&quot;</span>,
-            (<span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Kernel wrote to non-present page&quot;</span>,
-            (<span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Kernel wrote to present page&quot;</span>,
-            (<span class="number">0</span>, <span class="number">1</span>, <span class="kw">_</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Kernel fetched instruction from non-present page&quot;</span>,
-            (<span class="number">0</span>, <span class="number">1</span>, <span class="kw">_</span>, <span class="number">1</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Kernel fetched instruction from present page&quot;</span>,
+            (<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Kernel read non-present page&quot;</span>,
+            (<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Kernel read present page&quot;</span>,
+            (<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Kernel wrote to non-present page&quot;</span>,
+            (<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Kernel wrote to present page&quot;</span>,
+            (<span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="kw">_</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Kernel fetched instruction from non-present page&quot;</span>,
+            (<span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="kw">_</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Kernel fetched instruction from present page&quot;</span>,
 
             <span class="comment">// Page faults caused by user processes</span>
-            (<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;User process read non-present page&quot;</span>,
-            (<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;User process read present page (probable access violation)&quot;</span>,
-            (<span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;User process wrote to non-present page&quot;</span>,
-            (<span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;User process wrote to present page (probable access violation)&quot;</span>,
-            (<span class="number">1</span>, <span class="number">1</span>, <span class="kw">_</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;User process fetched instruction from non-present page&quot;</span>,
-            (<span class="number">1</span>, <span class="number">1</span>, <span class="kw">_</span>, <span class="number">1</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;User process fetched instruction from present page (probable access violation)&quot;</span>,
-
-            (<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;INVALID PAGE-FAULT ERROR CODE&quot;</span>);
+            (<span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;User process read non-present page&quot;</span>,
+            (<span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;User process read present page (probable access violation)&quot;</span>,
+            (<span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;User process wrote to non-present page&quot;</span>,
+            (<span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;User process wrote to present page (probable access violation)&quot;</span>,
+            (<span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="kw">_</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;User process fetched instruction from non-present page&quot;</span>,
+            (<span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="kw">_</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="string">&quot;User process fetched instruction from present page (probable access violation)&quot;</span>
             }
         },
         <span class="macro">read_control_reg</span><span class="macro">!</span>(<span class="ident">cr2</span>) <span class="comment">// CR2 holds the address of the page that caused the #PF</span>
