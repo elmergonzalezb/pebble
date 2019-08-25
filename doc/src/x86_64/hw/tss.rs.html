@@ -66,7 +66,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Tss</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">Tss</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Tss</span> {
         <span class="ident">Tss</span> {
             <span class="ident">_reserved_1</span>: <span class="number">0</span>,
             <span class="ident">privilege_stack_table</span>: [<span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0</span>) }; <span class="number">3</span>],

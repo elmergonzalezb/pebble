@@ -145,7 +145,19 @@
 
                 <div id="content" class="content">
                     <main>
-                        
+                        <h3><a class="header" href="#arch-modules" id="arch-modules">Arch modules</a></h3>
+<p>Each architecture has its own module that deals with platform-specific initialization and platform management.
+When building, a single architecture module is selected using an architecture feature. Through conditional
+compilation, only the selected architecture module is compiled and included in the final kernel executable.</p>
+<p>Every architecture module is expected to provide certain items for the benefit of the platform-independent
+parts of the kernel:</p>
+<ul>
+<li><code>Arch</code> - A type that implements the <code>Architecture</code> trait.</li>
+<li><code>common_per_cpu_data</code> - A function to access the common per-cpu data.</li>
+<li><code>common_per_cpu_data_mut</code> - A function to mutably access the common per-cpu data.</li>
+<li><code>context_switch</code> - A function to perform a context switch between the currently running task and another task.</li>
+</ul>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

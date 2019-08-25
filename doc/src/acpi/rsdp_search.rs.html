@@ -124,7 +124,7 @@
 
 <span class="doccomment">/// Find the begining of the EBDA (Extended Bios Data Area) and return `None` if the ptr at</span>
 <span class="doccomment">/// `0x40e` is invalid.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_search_areas</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) <span class="op">-&gt;</span> [<span class="ident">RangeInclusive</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>; <span class="number">2</span>]
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_search_areas</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">RangeInclusive</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>; <span class="number">2</span>]
 <span class="kw">where</span>
     <span class="ident">H</span>: <span class="ident">AcpiHandler</span>,
 {
@@ -132,7 +132,7 @@
     <span class="comment">// checked. We left shift 4 because it is a segment ptr.</span>
     <span class="kw">let</span> <span class="ident">ebda_start_mapping</span> <span class="op">=</span>
         <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>(<span class="ident">EBDA_START_SEGMENT_PTR</span>, <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>());
-    <span class="kw">let</span> <span class="ident">ebda_start</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">ebda_start_mapping</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;&lt;</span> <span class="number">4</span>;
+    <span class="kw">let</span> <span class="ident">ebda_start</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">ebda_start_mapping</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>;
     <span class="ident">handler</span>.<span class="ident">unmap_physical_region</span>(<span class="ident">ebda_start_mapping</span>);
 
     [
@@ -140,14 +140,14 @@
         <span class="comment">// In practice (from my [Restioson&#39;s] testing, at least), the RSDP is more often here than</span>
         <span class="comment">// the in EBDA. Also, if we cannot find the EBDA, then we don&#39;t want to search the largest</span>
         <span class="comment">// possible EBDA first.</span>
-        <span class="ident">RSDP_BIOS_AREA_START</span>..=<span class="ident">RSDP_BIOS_AREA_END</span>,
+        <span class="ident">RSDP_BIOS_AREA_START</span>..<span class="op">=</span><span class="ident">RSDP_BIOS_AREA_END</span>,
         <span class="comment">// Check if base segment ptr is in valid range for EBDA base</span>
         <span class="kw">if</span> (<span class="ident">EBDA_EARLIEST_START</span>..<span class="ident">EBDA_END</span>).<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">ebda_start</span>) {
             <span class="comment">// First kb of EBDA</span>
-            <span class="ident">ebda_start</span>..=<span class="ident">ebda_start</span> <span class="op">+</span> <span class="number">1024</span>
+            <span class="ident">ebda_start</span>..<span class="op">=</span><span class="ident">ebda_start</span> <span class="op">+</span> <span class="number">1024</span>
         } <span class="kw">else</span> {
             <span class="comment">// We don&#39;t know where the EBDA starts, so just search the largest possible EBDA</span>
-            <span class="ident">EBDA_EARLIEST_START</span>..=<span class="ident">EBDA_END</span>
+            <span class="ident">EBDA_EARLIEST_START</span>..<span class="op">=</span><span class="ident">EBDA_END</span>
         },
     ]
 }
@@ -160,7 +160,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// This function is unsafe because it may read from protected memory if the computer is using UEFI.</span>
 <span class="doccomment">/// Only use this function if you are sure the computer is using BIOS.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">search_for_rsdp_bios</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Acpi</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">search_for_rsdp_bios</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Acpi</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">H</span>: <span class="ident">AcpiHandler</span>,
 {
@@ -190,7 +190,7 @@
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> (<span class="ident">address</span> <span class="op">-</span> <span class="ident">mapping_start</span>) <span class="op">/</span> <span class="number">8</span>;
         <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">area_mapping</span>)[<span class="ident">index</span>];
 
-        <span class="kw">if</span> <span class="ident">signature</span> <span class="op">!=</span> <span class="kw-2">*</span><span class="ident">RSDP_SIGNATURE</span> {
+        <span class="kw">if</span> <span class="ident">signature</span> <span class="op">!</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">RSDP_SIGNATURE</span> {
             <span class="kw">continue</span>;
         }
 

@@ -2,7 +2,7 @@
 architectures that support ACPI. The crate is far from feature-complete, but can still be used
 for finding and parsing the static tables, which is enough to set up hardware such as the APIC
 and HPET on x86_64.</p>
-<p>The crate is designed for use in conjunction with the <code>aml_parser</code> crate, which is the (much
+<p>The crate is designed for use in conjunction with the <code>aml</code> crate, which is the (much
 less complete) AML parser used to parse the DSDT and SSDTs. These crates are separate because
 some kernels may want to detect the static tables, but delay AML parsing to a later stage.</p>
 <h3 id="usage" class="section-header"><a href="#usage">Usage</a></h3>

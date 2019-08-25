@@ -27,12 +27,6 @@
 <span id="27">27</span>
 <span id="28">28</span>
 <span id="29">29</span>
-<span id="30">30</span>
-<span id="31">31</span>
-<span id="32">32</span>
-<span id="33">33</span>
-<span id="34">34</span>
-<span id="35">35</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">arch</span>::<span class="ident">Architecture</span>, <span class="ident">object</span>::<span class="ident">WrappedKernelObject</span>, <span class="ident">scheduler</span>::<span class="ident">Scheduler</span>};
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
@@ -42,30 +36,24 @@
 <span class="doccomment">/// that is installed as the actual per-cpu data structure. It should then be exposed by two</span>
 <span class="doccomment">/// functions, `common_per_cpu` and `common_per_cpu_mut`, from each arch module for the rest of the</span>
 <span class="doccomment">/// kernel to use.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CommonPerCpu</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Architecture</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">scheduler</span>: <span class="ident">Scheduler</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>,
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CommonPerCpu</span> {
+    <span class="kw">pub</span> <span class="ident">scheduler</span>: <span class="ident">Scheduler</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="ident">CommonPerCpu</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">A</span>: <span class="ident">Architecture</span>,
-{
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">CommonPerCpu</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">CommonPerCpu</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CommonPerCpu</span> {
         <span class="ident">CommonPerCpu</span> { <span class="ident">scheduler</span>: <span class="ident">Scheduler</span>::<span class="ident">new</span>() }
     }
 
     <span class="doccomment">/// Helper method to get the currently running task. Panics if the kernel hasn&#39;t dropped into</span>
     <span class="doccomment">/// userspace yet.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">running_task</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">WrappedKernelObject</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">running_task</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">WrappedKernelObject</span><span class="op">&lt;</span><span class="kw">crate</span>::<span class="ident">arch_impl</span>::<span class="ident">Arch</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">scheduler</span>.<span class="ident">running_task</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">CommonPerCpu</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">A</span>: <span class="ident">Architecture</span>,
-{
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">CommonPerCpu</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;CommonPerCpu(scheduler: {:?})&quot;</span>, <span class="self">self</span>.<span class="ident">scheduler</span>)
     }
 }

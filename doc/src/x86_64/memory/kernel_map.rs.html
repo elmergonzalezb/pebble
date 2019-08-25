@@ -54,6 +54,20 @@
 <span id="54">54</span>
 <span id="55">55</span>
 <span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! These constants centralize the layout of the virtual address space on x86_64. The 511th P4</span>
 <span class="doccomment">//! entry (covering addresses `0xffff_ff80_0000_0000` through to `0xffff_ffff_ffff_ffff`) is always</span>
@@ -64,16 +78,32 @@
 <span class="doccomment">//! This gives us 512 GiB of kernel space. The kernel itself is build with the `kernel` mc-model</span>
 <span class="doccomment">//! and so must run in the -2 GiB of the address space (this is the top two entries of the P3).</span>
 <span class="doccomment">//! The remaining 510 GiB are used for mapping the entirity of physical memory into the virtual</span>
-<span class="doccomment">//! address space. This is much simpler than the previously-used recursively mapped tables, and</span>
-<span class="doccomment">//! still maintains memory safety because userspace programs are not able to arbitrarily access</span>
-<span class="doccomment">//! physical memory.</span>
+<span class="doccomment">//! address space, and for each task&#39;s kernel stack.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! 128 GiB are reserved for kernel stacks for tasks, with a maximum of a total of 65536 tasks</span>
+<span class="doccomment">//! 1024 address spaces. This lies directly below `KERNEL_BASE`.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This leaves 382 GiB for the physical memory map, which should be more than enough for any</span>
+<span class="doccomment">//! reasonable system we can imagine running on.</span>
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">PhysicalAddress</span>, <span class="ident">VirtualAddress</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">PhysicalAddress</span>, <span class="ident">VirtualAddress</span>, <span class="ident">MEBIBYTES_TO_BYTES</span>};
+
+<span class="doccomment">/// The size of a single kernel stack.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STACK_SLOT_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">MEBIBYTES_TO_BYTES</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAX_TASKS_PER_ADDRESS_SPACE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAX_ADDRESS_SPACES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1024</span>;
+
+<span class="doccomment">/// The size of a slot of stacks that is allocated for a single address space to use.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ADDRESS_SPACE_STACK_SLOT_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">STACK_SLOT_SIZE</span> <span class="op">*</span> <span class="ident">MAX_TASKS_PER_ADDRESS_SPACE</span>;
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kernel_stack_area_base</span>(<span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VirtualAddress</span> {
+    <span class="ident">KERNEL_STACKS_BASE</span> <span class="op">+</span> <span class="ident">index</span> <span class="op">*</span> <span class="ident">ADDRESS_SPACE_STACK_SLOT_SIZE</span>
+}
 
 <span class="doccomment">/// Access a given `PhysicalAddress` using the physical memory mapping in the kernel address space.</span>
 <span class="doccomment">/// Only works within the kernel - cannot be used by the bootloader, and the addresses can&#39;t be</span>
 <span class="doccomment">/// given to userspace.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">physical_to_virtual</span>(<span class="ident">address</span>: <span class="ident">PhysicalAddress</span>) <span class="op">-&gt;</span> <span class="ident">VirtualAddress</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">physical_to_virtual</span>(<span class="ident">address</span>: <span class="ident">PhysicalAddress</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VirtualAddress</span> {
     <span class="ident">PHYSICAL_MAPPING_BASE</span> <span class="op">+</span> <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">address</span>)
 }
 
@@ -88,28 +118,26 @@
 <span class="doccomment">/// entry.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PHYSICAL_MAPPING_BASE</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span> <span class="ident">KERNEL_ADDRESS_SPACE_START</span>;
 
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KERNEL_STACKS_BASE</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
+    <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffdf_8000_0000</span>) };
+
 <span class="doccomment">/// This is the base of the kernel address space. It starts at -2GB. We don&#39;t know how much memory</span>
 <span class="doccomment">/// the kernel image will take up when loaded into memory, so we leave quite a lot of space until</span>
 <span class="doccomment">/// the next statically mapped thing.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KERNEL_BASE</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
-    <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_8000_0000</span>) };
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KERNEL_BASE</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_8000_0000</span>) };
 
 <span class="doccomment">/// The start of the heap. The heap is 200 KiB.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HEAP_START</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
-    <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_c00_00000</span>) };
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HEAP_END</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
-    <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_c00_31fff</span>) };
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HEAP_START</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_c00_00000</span>) };
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HEAP_END</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_c00_31fff</span>) };
 
 <span class="comment">/*
  * From here, we place a bunch of hard-coded pages for various things.
  */</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BOOT_INFO</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
-    <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_d000_0000</span>) };
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BOOT_INFO</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_d000_0000</span>) };
 
 <span class="doccomment">/// While we could access the local APIC from the physical mapping, it&#39;s easier to just map it to a</span>
 <span class="doccomment">/// fixed virtual address, so we can always access its config space. This allows us to use</span>
 <span class="doccomment">/// `LocalApic` as a singleton, so we can easily access it from interrupt handlers.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOCAL_APIC_CONFIG</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
-    <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_d000_1000</span>) };
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOCAL_APIC_CONFIG</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_d000_1000</span>) };
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g., <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g., <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g., <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../../";window.currentCrate = "x86_64";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

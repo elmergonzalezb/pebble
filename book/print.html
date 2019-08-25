@@ -165,6 +165,18 @@ memory and thread safety <strong>in safe code</strong>. This qualification is im
 mean that Pebble is automatically bug-free.</p>
 <p>However, Rust makes you think a lot more about how to make your programs safe, which is exactly the sort of code we want to be writing for a kernel. This focus on safety, as well as good ergonomics features
 and performance, makes Rust perfect for OS-level code.</p>
+<h3><a class="header" href="#arch-modules" id="arch-modules">Arch modules</a></h3>
+<p>Each architecture has its own module that deals with platform-specific initialization and platform management.
+When building, a single architecture module is selected using an architecture feature. Through conditional
+compilation, only the selected architecture module is compiled and included in the final kernel executable.</p>
+<p>Every architecture module is expected to provide certain items for the benefit of the platform-independent
+parts of the kernel:</p>
+<ul>
+<li><code>Arch</code> - A type that implements the <code>Architecture</code> trait.</li>
+<li><code>common_per_cpu_data</code> - A function to access the common per-cpu data.</li>
+<li><code>common_per_cpu_data_mut</code> - A function to mutably access the common per-cpu data.</li>
+<li><code>context_switch</code> - A function to perform a context switch between the currently running task and another task.</li>
+</ul>
 <h1><a class="header" href="#bootcmd" id="bootcmd">Bootcmd</a></h1>
 <p>The <code>bootcmd</code> is a file loaded by the bootloader that contains instructions for booting into an instance of Pebble.
 It is located at the root of the boot medium (e.g. in the FAT partition if using the UEFI bootloader for x86_64),
@@ -173,16 +185,14 @@ and consists of a series of line-separated commands that load / configure parts 
 <ul>
 <li><code>kernel {path}</code> - load the kernel image at the specified path into memory. This command must be present for the
 bootloader to successfully boot, and must only appear once in the <code>bootcmd</code>.</li>
-<li><code>image {path}</code> - load an initial task image into memory and pass information about it to the kernel. This
-command is used to load initial tasks for the kernel to run before it has functioning filesystem
-drivers. It can also be used to load all tasks needed in minimal systems. It can be present zero
-or more times in the <code>bootcmd</code>. The same image should not be loaded more than once, however.</li>
+<li><code>image {path} {name}</code> - load an initial task image into memory and pass information about it to the kernel. This
+command is used to load initial tasks for the kernel to run before it has functioning filesystem drivers. It
+can also be used to load all tasks needed in minimal systems. It can be present zero or more times in the
+<code>bootcmd</code>. The same image should not be loaded more than once, however.</li>
 <li><code>video_mode {desired width} {desired height}</code> - attempts to set up a video mode for initial graphics support (if
-a better driver isn't available / loaded). The exact behaviour of
-this command will depend on the platform being booted upon, but it
-will in general try to switch to an appropriate mode, pass
-information about that mode to the kernel, which will pass it on
-to the task with the <code>CAP_MAP_FRAMEBUFFER</code> capability (refer to
+a better driver isn't available / loaded). The exact behaviour of this command will depend on the platform
+being booted upon, but it will in general try to switch to an appropriate mode, pass information about that
+mode to the kernel, which will pass it on to the task with the <code>CAP_MAP_FRAMEBUFFER</code> capability (refer to
 the 'Userspace/Capabilities' section for more information)</li>
 </ul>
 <h1><a class="header" href="#booting-pebble-on-x86_64" id="booting-pebble-on-x86_64">Booting Pebble on x86_64</a></h1>
@@ -273,10 +283,12 @@ the size of a register.</p>
 </tbody></table>
 <h3><a class="header" href="#making-a-system-call-on-x86_64" id="making-a-system-call-on-x86_64">Making a system call on x86_64</a></h3>
 <p>To make a system call on x86_64, populate these registers:</p>
-<table><thead><tr><th><code>rax</code></th><th><code>rdi</code></th><th><code>rsi</code></th><th><code>rdx</code></th><th><code>r8</code></th><th><code>r9</code></th></tr></thead><tbody>
+<table><thead><tr><th><code>rdi</code></th><th><code>rsi</code></th><th><code>rdx</code></th><th><code>r10</code></th><th><code>r8</code></th><th><code>r9</code></th></tr></thead><tbody>
 <tr><td>System call number</td><td><code>a</code></td><td><code>b</code></td><td><code>c</code></td><td><code>d</code></td><td><code>e</code></td></tr>
 </tbody></table>
-<p>You can then make the system call by executing <code>syscall</code>. Before the kernel returns to userspace, it will put the result of the system call (if there is one) in <code>rax</code>.
+<p>The only way in which these registers deviate from the x86_64 Sys-V ABI is that <code>c</code> is passed in <code>r10</code> instead
+of <code>rcx</code>. This is because <code>rcx</code> is used by the <code>syscall</code> instruction, and so is not free.
+You can then make the system call by executing <code>syscall</code>. Before the kernel returns to userspace, it will put the result of the system call (if there is one) in <code>rax</code>.
 If a system call takes less than five parameters, the unused parameter registers will be preserved across the system call.</p>
 <h3><a class="header" href="#yield" id="yield"><code>yield</code></a></h3>
 <p>Used by a task that can't do any work at the moment, allowing the kernel to schedule other tasks.</p>

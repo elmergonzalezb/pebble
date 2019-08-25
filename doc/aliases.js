@@ -1,6 +1,6 @@
 var ALIASES = {};
 ALIASES["acpi"] = {};
-ALIASES["aml_parser"] = {};
+ALIASES["aml"] = {};
 ALIASES["bit_field"] = {};
 ALIASES["bitflags"] = {};
 ALIASES["cfg_if"] = {};

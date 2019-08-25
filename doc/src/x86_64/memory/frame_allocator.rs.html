@@ -41,12 +41,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// By default, this calls `allocate_n(1)`, but can be overridden if an allocator can provide a</span>
     <span class="doccomment">/// more efficient method for allocating single frames.</span>
-    <span class="kw">fn</span> <span class="ident">allocate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Frame</span> {
+    <span class="kw">fn</span> <span class="ident">allocate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Frame</span> {
         <span class="self">self</span>.<span class="ident">allocate_n</span>(<span class="number">1</span>).<span class="ident">start</span>
     }
 
     <span class="doccomment">/// Allocate `n` contiguous `Frame`s.</span>
-    <span class="kw">fn</span> <span class="ident">allocate_n</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">allocate_n</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Free `n` frames that were previously allocated by this `FrameAllocator`.</span>
     <span class="kw">fn</span> <span class="ident">free_n</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">start</span>: <span class="ident">Frame</span>, <span class="ident">n</span>: <span class="ident">usize</span>);

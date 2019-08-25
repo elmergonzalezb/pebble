@@ -74,8 +74,28 @@
 <span id="74">74</span>
 <span id="75">75</span>
 <span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">arch_impl</span>::<span class="ident">common_per_cpu_data</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">arch_impl</span>::{<span class="ident">common_per_cpu_data</span>, <span class="ident">common_per_cpu_data_mut</span>};
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">slice</span>, <span class="ident">str</span>};
 <span class="kw">use</span> <span class="ident">libpebble</span>::{<span class="ident">caps</span>::<span class="ident">Capability</span>, <span class="ident">syscall</span>};
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">info</span>, <span class="ident">trace</span>, <span class="ident">warn</span>};
@@ -84,17 +104,23 @@
 <span class="doccomment">/// receives the syscall (each architecture is free to do this however it wishes). The only</span>
 <span class="doccomment">/// parameter that is guaranteed to be valid is `number`; the meaning of the rest may be undefined</span>
 <span class="doccomment">/// depending on how many parameters the specific system call takes.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">handle_syscall</span>(<span class="ident">number</span>: <span class="ident">usize</span>, <span class="ident">a</span>: <span class="ident">usize</span>, <span class="ident">b</span>: <span class="ident">usize</span>, <span class="ident">c</span>: <span class="ident">usize</span>, <span class="ident">d</span>: <span class="ident">usize</span>, <span class="ident">e</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+<span class="doccomment">///</span>
+<span class="doccomment">/// It is defined as using the C ABI, so an architecture can call it stably from assembly if it</span>
+<span class="doccomment">/// wants to.</span>
+<span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+<span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">rust_syscall_handler</span>(
+    <span class="ident">number</span>: <span class="ident">usize</span>,
+    <span class="ident">a</span>: <span class="ident">usize</span>,
+    <span class="ident">b</span>: <span class="ident">usize</span>,
+    <span class="ident">c</span>: <span class="ident">usize</span>,
+    <span class="ident">d</span>: <span class="ident">usize</span>,
+    <span class="ident">e</span>: <span class="ident">usize</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Syscall! number = {}, a = {}, b = {}, c = {}, d = {}, e = {}&quot;</span>, <span class="ident">number</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">c</span>, <span class="ident">d</span>, <span class="ident">e</span>);
 
     <span class="kw">match</span> <span class="ident">number</span> {
-        <span class="ident">syscall</span>::<span class="ident">SYSCALL_YIELD</span> <span class="op">=&gt;</span> {
-            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Process yielded!&quot;</span>);
-            <span class="comment">// TODO: schedule another task or something</span>
-            <span class="number">0</span>
-        }
-
-        <span class="ident">syscall</span>::<span class="ident">SYSCALL_EARLY_LOG</span> <span class="op">=&gt;</span> {
+        <span class="ident">syscall</span>::<span class="ident">SYSCALL_YIELD</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">yield_syscall</span>(),
+        <span class="ident">syscall</span>::<span class="ident">SYSCALL_EARLY_LOG</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">/*
              * a = length of string in bytes (must be &lt;= 1024)
              * b = pointer to string in userspace
@@ -102,7 +128,7 @@
             <span class="ident">early_log</span>(<span class="ident">a</span>, <span class="ident">b</span>)
         }
 
-        <span class="kw">_</span> <span class="op">=&gt;</span> {
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// TODO: unsupported system call number, kill process or something?</span>
             <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;Process made system call with invalid syscall number: {}&quot;</span>, <span class="ident">number</span>);
             <span class="number">1</span>
@@ -110,7 +136,21 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">early_log</span>(<span class="ident">str_length</span>: <span class="ident">usize</span>, <span class="ident">str_address</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+<span class="kw">fn</span> <span class="ident">yield_syscall</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="comment">/*
+     * This is a fairly unique system call in that it can return into a different context than the
+     * one that called it. We ask the scheduler to move us to the next task, then return to the new
+     * userspace context.
+     */</span>
+    <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Process yielded!&quot;</span>);
+    <span class="kw">unsafe</span> {
+        <span class="ident">common_per_cpu_data_mut</span>().<span class="ident">scheduler</span>.<span class="ident">switch_to_next</span>();
+    }
+
+    <span class="number">0</span>
+}
+
+<span class="kw">fn</span> <span class="ident">early_log</span>(<span class="ident">str_length</span>: <span class="ident">usize</span>, <span class="ident">str_address</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
     <span class="comment">/*
      * Returns:
      *      0 =&gt; message was successfully logged
@@ -144,8 +184,8 @@
     <span class="comment">// Check the message is valid UTF-8</span>
     <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw">unsafe</span> { <span class="ident">slice</span>::<span class="ident">from_raw_parts</span>(<span class="ident">str_address</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">str_length</span>) })
     {
-        <span class="prelude-val">Ok</span>(<span class="ident">message</span>) <span class="op">=&gt;</span> <span class="ident">message</span>,
-        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="number">2</span>,
+        <span class="prelude-val">Ok</span>(<span class="ident">message</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">message</span>,
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="number">2</span>,
     };
 
     <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Userspace task early log message: {}&quot;</span>, <span class="ident">message</span>);

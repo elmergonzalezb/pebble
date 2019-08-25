@@ -165,10 +165,12 @@ the size of a register.</p>
 </tbody></table>
 <h3><a class="header" href="#making-a-system-call-on-x86_64" id="making-a-system-call-on-x86_64">Making a system call on x86_64</a></h3>
 <p>To make a system call on x86_64, populate these registers:</p>
-<table><thead><tr><th><code>rax</code></th><th><code>rdi</code></th><th><code>rsi</code></th><th><code>rdx</code></th><th><code>r8</code></th><th><code>r9</code></th></tr></thead><tbody>
+<table><thead><tr><th><code>rdi</code></th><th><code>rsi</code></th><th><code>rdx</code></th><th><code>r10</code></th><th><code>r8</code></th><th><code>r9</code></th></tr></thead><tbody>
 <tr><td>System call number</td><td><code>a</code></td><td><code>b</code></td><td><code>c</code></td><td><code>d</code></td><td><code>e</code></td></tr>
 </tbody></table>
-<p>You can then make the system call by executing <code>syscall</code>. Before the kernel returns to userspace, it will put the result of the system call (if there is one) in <code>rax</code>.
+<p>The only way in which these registers deviate from the x86_64 Sys-V ABI is that <code>c</code> is passed in <code>r10</code> instead
+of <code>rcx</code>. This is because <code>rcx</code> is used by the <code>syscall</code> instruction, and so is not free.
+You can then make the system call by executing <code>syscall</code>. Before the kernel returns to userspace, it will put the result of the system call (if there is one) in <code>rax</code>.
 If a system call takes less than five parameters, the unused parameter registers will be preserved across the system call.</p>
 <h3><a class="header" href="#yield" id="yield"><code>yield</code></a></h3>
 <p>Used by a task that can't do any work at the moment, allowing the kernel to schedule other tasks.</p>

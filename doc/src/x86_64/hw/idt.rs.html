@@ -183,7 +183,7 @@
 <span class="doccomment">/// The type of a function that can be used as an interrupt handler. It&#39;s marked as diverging</span>
 <span class="doccomment">/// because we don&#39;t exactly &#39;return&#39; from an interrupt. This should not be used directly to create</span>
 <span class="doccomment">/// interrupt handlers; instead, use the `wrap_handler` macros.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">HandlerFunc</span> <span class="op">=</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>() <span class="op">-&gt;</span> <span class="op">!</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">HandlerFunc</span> <span class="op">=</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="op">!</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>, <span class="ident">packed</span>)]</span>
@@ -213,7 +213,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">IdtEntry</span> {
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">missing</span>() <span class="op">-&gt;</span> <span class="ident">IdtEntry</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">missing</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IdtEntry</span> {
         <span class="ident">IdtEntry</span> {
             <span class="ident">address_0_15</span>: <span class="number">0</span>,
             <span class="ident">segment_selector</span>: <span class="number">0</span>,
@@ -229,7 +229,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">handler</span>: <span class="ident">HandlerFunc</span>,
         <span class="ident">code_selector</span>: <span class="ident">SegmentSelector</span>,
-    ) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="comment">/*
          * Set the Present bit, and set the gate type to 0b1110
          */</span>
@@ -242,18 +242,18 @@
 
         <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">handler</span> <span class="kw">as</span> <span class="ident">u64</span>;
         <span class="self">self</span>.<span class="ident">address_0_15</span> <span class="op">=</span> <span class="ident">address</span> <span class="kw">as</span> <span class="ident">u16</span>;
-        <span class="self">self</span>.<span class="ident">address_16_31</span> <span class="op">=</span> (<span class="ident">address</span> <span class="op">&gt;&gt;</span> <span class="number">16</span>) <span class="kw">as</span> <span class="ident">u16</span>;
-        <span class="self">self</span>.<span class="ident">address_32_63</span> <span class="op">=</span> (<span class="ident">address</span> <span class="op">&gt;&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="self">self</span>.<span class="ident">address_16_31</span> <span class="op">=</span> (<span class="ident">address</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span>) <span class="kw">as</span> <span class="ident">u16</span>;
+        <span class="self">self</span>.<span class="ident">address_32_63</span> <span class="op">=</span> (<span class="ident">address</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <span class="ident">u32</span>;
 
         <span class="self">self</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_ist_handler</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stack_offset</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_ist_handler</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">stack_offset</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">ist_offset</span> <span class="op">=</span> <span class="ident">stack_offset</span>;
         <span class="self">self</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_privilege_level</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">privilege_level</span>: <span class="ident">PrivilegeLevel</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_privilege_level</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">privilege_level</span>: <span class="ident">PrivilegeLevel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">set_bits</span>(<span class="number">5</span>..<span class="number">7</span>, <span class="ident">privilege_level</span> <span class="kw">as</span> <span class="ident">u8</span>);
         <span class="self">self</span>
     }
@@ -266,13 +266,13 @@
 
 <span class="kw">macro</span> <span class="ident">getter</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">entry</span>: <span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>: <span class="ident">ident</span>) {
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">IdtEntry</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">IdtEntry</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">entry</span>]
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Idt</span> {
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-&gt;</span> <span class="ident">Idt</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Idt</span> {
         <span class="ident">Idt</span> { <span class="ident">entries</span>: [<span class="ident">IdtEntry</span>::<span class="ident">missing</span>(); <span class="number">256</span>] }
     }
 
@@ -319,13 +319,13 @@
 <span class="kw">impl</span> <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Idt</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">IdtEntry</span>;
 
-    <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Output</span> {
+    <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">entries</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>]
     }
 }
 
 <span class="kw">impl</span> <span class="ident">IndexMut</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Idt</span> {
-    <span class="kw">fn</span> <span class="ident">index_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">Output</span> {
+    <span class="kw">fn</span> <span class="ident">index_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">Output</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">entries</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>]
     }
 }

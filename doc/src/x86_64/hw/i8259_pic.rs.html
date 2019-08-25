@@ -69,7 +69,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Pic</span> {
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">Pic</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Pic</span> {
         <span class="ident">Pic</span> {
             <span class="ident">master_command</span>: <span class="ident">Port</span>::<span class="ident">new</span>(<span class="number">0x20</span>),
             <span class="ident">master_data</span>: <span class="ident">Port</span>::<span class="ident">new</span>(<span class="number">0x21</span>),
@@ -88,7 +88,7 @@
              * PICs to actually do what we ask them to.
              */</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wait_port</span>: <span class="ident">Port</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Port</span>::<span class="ident">new</span>(<span class="number">0x80</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wait</span> <span class="op">=</span> <span class="op">||</span> <span class="ident">wait_port</span>.<span class="ident">write</span>(<span class="number">0</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wait</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> <span class="ident">wait_port</span>.<span class="ident">write</span>(<span class="number">0</span>);
 
             <span class="comment">// Tell the PICs to start their initialization sequences in cascade mode</span>
             <span class="self">self</span>.<span class="ident">master_command</span>.<span class="ident">write</span>(<span class="number">0x11</span>);

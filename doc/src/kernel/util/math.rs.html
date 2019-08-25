@@ -117,7 +117,7 @@
         <span class="doccomment">/// assert_eq!(flooring_log2(61), 5);</span>
         <span class="doccomment">/// assert_eq!(flooring_log2(4095), 11);</span>
         <span class="doccomment">/// ```</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flooring_log2</span>(<span class="kw-2">mut</span> <span class="ident">x</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flooring_log2</span>(<span class="kw-2">mut</span> <span class="ident">x</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
             <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0</span>);
 
             <span class="comment">/*
@@ -138,7 +138,7 @@
         <span class="doccomment">/// assert_eq!(flooring_log2(61), 5);</span>
         <span class="doccomment">/// assert_eq!(flooring_log2(4095), 11);</span>
         <span class="doccomment">/// ```</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flooring_log2</span>(<span class="kw-2">mut</span> <span class="ident">x</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flooring_log2</span>(<span class="kw-2">mut</span> <span class="ident">x</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
             <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span> <span class="op">&gt;</span> <span class="number">0</span>);
 
             <span class="comment">/*
@@ -156,18 +156,18 @@
                 <span class="number">44</span>, <span class="number">24</span>, <span class="number">15</span>,  <span class="number">8</span>, <span class="number">23</span>,  <span class="number">7</span>,  <span class="number">6</span>,  <span class="number">5</span>,
             ];
 
-            <span class="ident">x</span> <span class="op">|=</span> <span class="ident">x</span> <span class="op">&gt;&gt;</span> <span class="number">1</span>;
-            <span class="ident">x</span> <span class="op">|=</span> <span class="ident">x</span> <span class="op">&gt;&gt;</span> <span class="number">2</span>;
-            <span class="ident">x</span> <span class="op">|=</span> <span class="ident">x</span> <span class="op">&gt;&gt;</span> <span class="number">4</span>;
-            <span class="ident">x</span> <span class="op">|=</span> <span class="ident">x</span> <span class="op">&gt;&gt;</span> <span class="number">8</span>;
-            <span class="ident">x</span> <span class="op">|=</span> <span class="ident">x</span> <span class="op">&gt;&gt;</span> <span class="number">16</span>;
-            <span class="ident">x</span> <span class="op">|=</span> <span class="ident">x</span> <span class="op">&gt;&gt;</span> <span class="number">32</span>;
+            <span class="ident">x</span> <span class="op">|</span><span class="op">=</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>;
+            <span class="ident">x</span> <span class="op">|</span><span class="op">=</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">2</span>;
+            <span class="ident">x</span> <span class="op">|</span><span class="op">=</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">4</span>;
+            <span class="ident">x</span> <span class="op">|</span><span class="op">=</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>;
+            <span class="ident">x</span> <span class="op">|</span><span class="op">=</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span>;
+            <span class="ident">x</span> <span class="op">|</span><span class="op">=</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>;
 
             <span class="comment">/*
              * Casting to `usize` here is fine even on 32-bit platforms because the slice is only
              * 64 elements long anyways.
              */</span>
-            <span class="ident">TABLE</span>[((((<span class="ident">x</span> <span class="op">-</span> (<span class="ident">x</span> <span class="op">&gt;&gt;</span> <span class="number">1</span>)).<span class="ident">wrapping_mul</span>(<span class="number">0x07edd5e59a4e28c2</span>))) <span class="op">&gt;&gt;</span> <span class="number">58</span>) <span class="kw">as</span> <span class="ident">usize</span>] <span class="kw">as</span> <span class="ident">u64</span>
+            <span class="ident">TABLE</span>[((((<span class="ident">x</span> <span class="op">-</span> (<span class="ident">x</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>)).<span class="ident">wrapping_mul</span>(<span class="number">0x07edd5e59a4e28c2</span>))) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">58</span>) <span class="kw">as</span> <span class="ident">usize</span>] <span class="kw">as</span> <span class="ident">u64</span>
         }
     }
 }
@@ -180,7 +180,7 @@
     <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">flooring_log2</span>(<span class="number">4095</span>), <span class="number">11</span>);
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ceiling_log2</span>(<span class="ident">x</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ceiling_log2</span>(<span class="ident">x</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
     <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_power_of_two</span>() { <span class="ident">x</span> } <span class="kw">else</span> { <span class="ident">x</span>.<span class="ident">next_power_of_two</span>() };
 
     <span class="comment">// `x` will always be a power of two now, so log(2) == the number of trailing zeros</span>
@@ -196,8 +196,8 @@
 }
 
 <span class="doccomment">/// Divide `x` by `divide_by`, taking the ceiling if it does not divide evenly.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ceiling_integer_divide</span>(<span class="ident">x</span>: <span class="ident">u64</span>, <span class="ident">divide_by</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
-    <span class="ident">x</span> <span class="op">/</span> <span class="ident">divide_by</span> <span class="op">+</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">%</span> <span class="ident">divide_by</span> <span class="op">!=</span> <span class="number">0</span> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> }
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ceiling_integer_divide</span>(<span class="ident">x</span>: <span class="ident">u64</span>, <span class="ident">divide_by</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+    <span class="ident">x</span> <span class="op">/</span> <span class="ident">divide_by</span> <span class="op">+</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">%</span> <span class="ident">divide_by</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> }
 }
 
 <span class="attribute">#[<span class="ident">test</span>]</span>

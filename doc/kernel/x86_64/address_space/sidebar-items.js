@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["State",""]],"struct":[["AddressSpace",""],["StackSet",""]]});
+initSidebarItems({"enum":[["State",""]],"struct":[["AddressSpace",""],["StackSet","A pair of stacks - one for the kernel and one for userspace. Both addresses will start aligned to 16 bytes."]]});

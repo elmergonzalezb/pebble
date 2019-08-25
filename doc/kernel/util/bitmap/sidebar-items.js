@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["Bitmap",""]]});
+initSidebarItems({"trait":[["Bitmap",""],["BitmapArray","Like `Bitmap`, but for arrays. This is unfortunately needed due to conflicting implementations."]]});

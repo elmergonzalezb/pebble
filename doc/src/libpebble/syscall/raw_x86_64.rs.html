@@ -63,70 +63,82 @@
 <span id="63">63</span>
 <span id="64">64</span>
 <span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">syscall0</span>(<span class="ident">number</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">syscall0</span>(<span class="ident">number</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
     <span class="kw">let</span> <span class="ident">result</span>: <span class="ident">usize</span>;
     <span class="macro">asm</span><span class="macro">!</span>(<span class="string">&quot;syscall&quot;</span>
-         : <span class="string">&quot;={rax}&quot;</span>(<span class="ident">result</span>)
-         : <span class="string">&quot;{rax}&quot;</span>(<span class="ident">number</span>)
-         :
-         : <span class="string">&quot;intel&quot;</span>
-         );
+    : <span class="string">&quot;={rax}&quot;</span>(<span class="ident">result</span>)
+    : <span class="string">&quot;{rdi}&quot;</span>(<span class="ident">number</span>)
+    :
+    : <span class="string">&quot;intel&quot;</span>
+    );
     <span class="ident">result</span>
 }
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">syscall1</span>(<span class="ident">number</span>: <span class="ident">usize</span>, <span class="ident">a</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">syscall1</span>(<span class="ident">number</span>: <span class="ident">usize</span>, <span class="ident">a</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
     <span class="kw">let</span> <span class="ident">result</span>: <span class="ident">usize</span>;
     <span class="macro">asm</span><span class="macro">!</span>(<span class="string">&quot;syscall&quot;</span>
-         : <span class="string">&quot;={rax}&quot;</span>(<span class="ident">result</span>)
-         : <span class="string">&quot;{rax}&quot;</span>(<span class="ident">number</span>), <span class="string">&quot;{rdi}&quot;</span>(<span class="ident">a</span>)
-         :
-         : <span class="string">&quot;intel&quot;</span>
-         );
+    : <span class="string">&quot;={rax}&quot;</span>(<span class="ident">result</span>)
+    : <span class="string">&quot;{rdi}&quot;</span>(<span class="ident">number</span>), <span class="string">&quot;{rsi}&quot;</span>(<span class="ident">a</span>)
+    :
+    : <span class="string">&quot;intel&quot;</span>
+    );
     <span class="ident">result</span>
 }
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">syscall2</span>(<span class="ident">number</span>: <span class="ident">usize</span>, <span class="ident">a</span>: <span class="ident">usize</span>, <span class="ident">b</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">syscall2</span>(<span class="ident">number</span>: <span class="ident">usize</span>, <span class="ident">a</span>: <span class="ident">usize</span>, <span class="ident">b</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
     <span class="kw">let</span> <span class="ident">result</span>: <span class="ident">usize</span>;
     <span class="macro">asm</span><span class="macro">!</span>(<span class="string">&quot;syscall&quot;</span>
-         : <span class="string">&quot;={rax}&quot;</span>(<span class="ident">result</span>)
-         : <span class="string">&quot;{rax}&quot;</span>(<span class="ident">number</span>), <span class="string">&quot;{rdi}&quot;</span>(<span class="ident">a</span>), <span class="string">&quot;{rsi}&quot;</span>(<span class="ident">b</span>)
-         :
-         : <span class="string">&quot;intel&quot;</span>
-         );
+    : <span class="string">&quot;={rax}&quot;</span>(<span class="ident">result</span>)
+    : <span class="string">&quot;{rdi}&quot;</span>(<span class="ident">number</span>), <span class="string">&quot;{rsi}&quot;</span>(<span class="ident">a</span>), <span class="string">&quot;{rdx}&quot;</span>(<span class="ident">b</span>)
+    :
+    : <span class="string">&quot;intel&quot;</span>
+    );
     <span class="ident">result</span>
 }
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">syscall3</span>(<span class="ident">number</span>: <span class="ident">usize</span>, <span class="ident">a</span>: <span class="ident">usize</span>, <span class="ident">b</span>: <span class="ident">usize</span>, <span class="ident">c</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">syscall3</span>(<span class="ident">number</span>: <span class="ident">usize</span>, <span class="ident">a</span>: <span class="ident">usize</span>, <span class="ident">b</span>: <span class="ident">usize</span>, <span class="ident">c</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
     <span class="kw">let</span> <span class="ident">result</span>: <span class="ident">usize</span>;
     <span class="macro">asm</span><span class="macro">!</span>(<span class="string">&quot;syscall&quot;</span>
-         : <span class="string">&quot;={rax}&quot;</span>(<span class="ident">result</span>)
-         : <span class="string">&quot;{rax}&quot;</span>(<span class="ident">number</span>), <span class="string">&quot;{rdi}&quot;</span>(<span class="ident">a</span>), <span class="string">&quot;{rsi}&quot;</span>(<span class="ident">b</span>), <span class="string">&quot;{rdx}&quot;</span>(<span class="ident">c</span>)
-         :
-         : <span class="string">&quot;intel&quot;</span>
-         );
+    : <span class="string">&quot;={rax}&quot;</span>(<span class="ident">result</span>)
+    : <span class="string">&quot;{rdi}&quot;</span>(<span class="ident">number</span>), <span class="string">&quot;{rsi}&quot;</span>(<span class="ident">a</span>), <span class="string">&quot;{rdx}&quot;</span>(<span class="ident">b</span>), <span class="string">&quot;{r10}&quot;</span>(<span class="ident">c</span>)
+    :
+    : <span class="string">&quot;intel&quot;</span>
+    );
     <span class="ident">result</span>
 }
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">syscall4</span>(<span class="ident">number</span>: <span class="ident">usize</span>, <span class="ident">a</span>: <span class="ident">usize</span>, <span class="ident">b</span>: <span class="ident">usize</span>, <span class="ident">c</span>: <span class="ident">usize</span>, <span class="ident">d</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">syscall4</span>(<span class="ident">number</span>: <span class="ident">usize</span>, <span class="ident">a</span>: <span class="ident">usize</span>, <span class="ident">b</span>: <span class="ident">usize</span>, <span class="ident">c</span>: <span class="ident">usize</span>, <span class="ident">d</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
     <span class="kw">let</span> <span class="ident">result</span>: <span class="ident">usize</span>;
     <span class="macro">asm</span><span class="macro">!</span>(<span class="string">&quot;syscall&quot;</span>
-         : <span class="string">&quot;={rax}&quot;</span>(<span class="ident">result</span>)
-         : <span class="string">&quot;{rax}&quot;</span>(<span class="ident">number</span>), <span class="string">&quot;{rdi}&quot;</span>(<span class="ident">a</span>), <span class="string">&quot;{rsi}&quot;</span>(<span class="ident">b</span>), <span class="string">&quot;{rdx}&quot;</span>(<span class="ident">c</span>), <span class="string">&quot;{r8}&quot;</span>(<span class="ident">d</span>)
-         :
-         : <span class="string">&quot;intel&quot;</span>
-         );
+    : <span class="string">&quot;={rax}&quot;</span>(<span class="ident">result</span>)
+    : <span class="string">&quot;{rdi}&quot;</span>(<span class="ident">number</span>), <span class="string">&quot;{rsi}&quot;</span>(<span class="ident">a</span>), <span class="string">&quot;{rdx}&quot;</span>(<span class="ident">b</span>), <span class="string">&quot;{r10}&quot;</span>(<span class="ident">c</span>), <span class="string">&quot;{r8}&quot;</span>(<span class="ident">d</span>)
+    :
+    : <span class="string">&quot;intel&quot;</span>
+    );
     <span class="ident">result</span>
 }
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">syscall5</span>(<span class="ident">number</span>: <span class="ident">usize</span>, <span class="ident">a</span>: <span class="ident">usize</span>, <span class="ident">b</span>: <span class="ident">usize</span>, <span class="ident">c</span>: <span class="ident">usize</span>, <span class="ident">d</span>: <span class="ident">usize</span>, <span class="ident">e</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">syscall5</span>(<span class="ident">number</span>: <span class="ident">usize</span>, <span class="ident">a</span>: <span class="ident">usize</span>, <span class="ident">b</span>: <span class="ident">usize</span>, <span class="ident">c</span>: <span class="ident">usize</span>, <span class="ident">d</span>: <span class="ident">usize</span>, <span class="ident">e</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
     <span class="kw">let</span> <span class="ident">result</span>: <span class="ident">usize</span>;
     <span class="macro">asm</span><span class="macro">!</span>(<span class="string">&quot;syscall&quot;</span>
-         : <span class="string">&quot;={rax}&quot;</span>(<span class="ident">result</span>)
-         : <span class="string">&quot;{rax}&quot;</span>(<span class="ident">number</span>), <span class="string">&quot;{rdi}&quot;</span>(<span class="ident">a</span>), <span class="string">&quot;{rsi}&quot;</span>(<span class="ident">b</span>), <span class="string">&quot;{rdx}&quot;</span>(<span class="ident">c</span>), <span class="string">&quot;{r8}&quot;</span>(<span class="ident">d</span>), <span class="string">&quot;{r9}&quot;</span>(<span class="ident">e</span>)
-         :
-         : <span class="string">&quot;intel&quot;</span>
-         );
+    : <span class="string">&quot;={rax}&quot;</span>(<span class="ident">result</span>)
+    : <span class="string">&quot;{rdi}&quot;</span>(<span class="ident">number</span>), <span class="string">&quot;{rsi}&quot;</span>(<span class="ident">a</span>), <span class="string">&quot;{rdx}&quot;</span>(<span class="ident">b</span>), <span class="string">&quot;{r10}&quot;</span>(<span class="ident">c</span>), <span class="string">&quot;{r8}&quot;</span>(<span class="ident">d</span>), <span class="string">&quot;{r9}&quot;</span>(<span class="ident">e</span>)
+    :
+    : <span class="string">&quot;intel&quot;</span>
+    );
     <span class="ident">result</span>
 }
 </pre></div>

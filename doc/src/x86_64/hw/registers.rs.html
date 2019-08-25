@@ -124,6 +124,13 @@
 <span id="124">124</span>
 <span id="125">125</span>
 <span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
@@ -131,11 +138,12 @@
 <span class="doccomment">/// A wrapper for the `RFLAGS` register, providing a nice `Debug` implementation that details which</span>
 <span class="doccomment">/// flags are set and unset.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CpuFlags</span>(<span class="kw">pub</span> <span class="ident">u64</span>);
 
 <span class="kw">impl</span> <span class="ident">CpuFlags</span> {
     <span class="doccomment">/// Read the contents of `RFLAGS`, creating a `CpuFlags`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span>() <span class="op">-&gt;</span> <span class="ident">CpuFlags</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">CpuFlags</span> {
         <span class="kw">let</span> <span class="ident">flags</span>: <span class="ident">u64</span>;
         <span class="kw">unsafe</span> {
             <span class="macro">asm</span><span class="macro">!</span>(<span class="string">&quot;pushfq
@@ -149,18 +157,18 @@
         <span class="ident">CpuFlags</span>(<span class="ident">flags</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">interrupts_enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">interrupts_enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get_bit</span>(<span class="number">9</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">CpuFlags</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="macro">write</span><span class="macro">!</span>(
             <span class="ident">f</span>,
             <span class="string">&quot;[{}{}{}{}{}{}{}{}{}{}{}] {:#x}&quot;</span>,
             <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0x0000_4000</span> <span class="op">&gt;</span> <span class="number">0</span> { <span class="string">&#39;N&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> }, <span class="comment">// Nested Task flag</span>
-            [<span class="string">&#39;0&#39;</span>, <span class="string">&#39;1&#39;</span>, <span class="string">&#39;2&#39;</span>, <span class="string">&#39;3&#39;</span>][(<span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0x0000_3001</span> <span class="op">&gt;&gt;</span> <span class="number">12</span>) <span class="kw">as</span> <span class="ident">usize</span>], <span class="comment">// I/O privilege level</span>
+            [<span class="string">&#39;0&#39;</span>, <span class="string">&#39;1&#39;</span>, <span class="string">&#39;2&#39;</span>, <span class="string">&#39;3&#39;</span>][(<span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0x0000_3001</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">12</span>) <span class="kw">as</span> <span class="ident">usize</span>], <span class="comment">// I/O privilege level</span>
             <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0x0000_0800</span> <span class="op">&gt;</span> <span class="number">0</span> { <span class="string">&#39;O&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> }, <span class="comment">// Overflow flag</span>
             <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0x0000_0400</span> <span class="op">&gt;</span> <span class="number">0</span> { <span class="string">&#39;D&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> }, <span class="comment">// Direction flag</span>
             <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="number">0x0000_0200</span> <span class="op">&gt;</span> <span class="number">0</span> { <span class="string">&#39;I&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> }, <span class="comment">// Interrupt flag</span>
@@ -174,6 +182,12 @@
         )
     }
 }
+
+<span class="comment">/*
+ * Constants for bits in CR4.
+ * TODO: expand and use in bootloader
+ */</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CR4_XSAVE_ENABLE_BIT</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">18</span>;
 
 <span class="doccomment">/// Read a control register. The name of the control register should be passed as any of: `CR0`,</span>
 <span class="doccomment">/// `CR1`, `CR2`, `CR3`, `CR4`, `CR8`.</span>
@@ -228,7 +242,7 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IA32_GS_BASE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0xc000_0101</span>;
 
 <span class="doccomment">/// Read from a model-specific register.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_msr</span>(<span class="ident">reg</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_msr</span>(<span class="ident">reg</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
     <span class="kw">let</span> (<span class="ident">high</span>, <span class="ident">low</span>): (<span class="ident">u32</span>, <span class="ident">u32</span>);
     <span class="kw">unsafe</span> {
         <span class="macro">asm</span><span class="macro">!</span>(<span class="string">&quot;rdmsr&quot;</span>
@@ -238,7 +252,7 @@
          : <span class="string">&quot;volatile&quot;</span>
         );
     }
-    ((<span class="ident">high</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;&lt;</span> <span class="number">32</span> <span class="op">|</span> (<span class="ident">low</span> <span class="kw">as</span> <span class="ident">u64</span>))
+    ((<span class="ident">high</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span> <span class="op">|</span> (<span class="ident">low</span> <span class="kw">as</span> <span class="ident">u64</span>))
 }
 
 <span class="doccomment">/// Write to a model-specific register. This is unsafe, because writing to certain MSRs can</span>

@@ -120,12 +120,12 @@
 }
 
 <span class="kw">impl</span> <span class="ident">LocalApicRegister</span> {
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">LocalApicRegister</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalApicRegister</span> {
         <span class="ident">LocalApicRegister</span> { <span class="ident">ptr</span> }
     }
 
     <span class="doccomment">/// Read from this register. Unsafe because not all registers can be read from.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="ident">ptr</span>::<span class="ident">read_volatile</span>(<span class="self">self</span>.<span class="ident">ptr</span>)
     }
 
@@ -148,7 +148,7 @@
          * - Enable the local APIC by setting bit 8
          * - Set the IRQ for spurious interrupts
          */</span>
-        <span class="self">Self</span>::<span class="ident">register</span>(<span class="number">0xf0</span>).<span class="ident">write</span>((<span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="number">8</span>) <span class="op">|</span> <span class="ident">u32</span>::<span class="ident">from</span>(<span class="ident">spurious_vector</span>));
+        <span class="self">Self</span>::<span class="ident">register</span>(<span class="number">0xf0</span>).<span class="ident">write</span>((<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">|</span> <span class="ident">u32</span>::<span class="ident">from</span>(<span class="ident">spurious_vector</span>));
     }
 
     <span class="doccomment">/// Set the local APIC timer to interrupt every `duration` ms, and then enable it. The timer</span>
@@ -208,7 +208,7 @@
         <span class="comment">// }</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">register</span>(<span class="ident">offset</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">LocalApicRegister</span> {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">register</span>(<span class="ident">offset</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalApicRegister</span> {
         <span class="ident">LocalApicRegister</span>::<span class="ident">new</span>(<span class="ident">kernel_map</span>::<span class="ident">LOCAL_APIC_CONFIG</span>.<span class="ident">offset</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">isize</span>).<span class="ident">mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u32</span>)
     }
 

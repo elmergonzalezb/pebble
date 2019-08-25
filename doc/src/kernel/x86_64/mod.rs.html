@@ -263,6 +263,39 @@
 <span id="263">263</span>
 <span id="264">264</span>
 <span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module defines the kernel entry-point on x86_64.</span>
 
@@ -276,8 +309,12 @@
 <span class="kw">mod</span> <span class="ident">per_cpu</span>;
 <span class="kw">mod</span> <span class="ident">task</span>;
 
-<span class="comment">// Export the common per-CPU data accessors, so they can be used from the rest of the kernel.</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">per_cpu</span>::{<span class="ident">common_per_cpu_data</span>, <span class="ident">common_per_cpu_data_mut</span>};
+<span class="comment">// Export the items that every architecture module is expected to provide to the rest of the</span>
+<span class="comment">// kernel.</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{
+    <span class="ident">per_cpu</span>::{<span class="ident">common_per_cpu_data</span>, <span class="ident">common_per_cpu_data_mut</span>},
+    <span class="ident">task</span>::<span class="ident">context_switch</span>,
+};
 
 <span class="kw">use</span> <span class="self">self</span>::{
     <span class="ident">acpi_handler</span>::<span class="ident">PebbleAcpiHandler</span>,
@@ -294,7 +331,8 @@
     <span class="ident">scheduler</span>::<span class="ident">Scheduler</span>,
     <span class="ident">x86_64</span>::<span class="ident">per_cpu</span>::<span class="ident">per_cpu_data_mut</span>,
 };
-<span class="kw">use</span> <span class="ident">aml_parser</span>::<span class="ident">AmlContext</span>;
+<span class="kw">use</span> <span class="ident">aml</span>::<span class="ident">AmlContext</span>;
+<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">error</span>, <span class="ident">info</span>, <span class="ident">warn</span>};
 <span class="kw">use</span> <span class="ident">spin</span>::{<span class="ident">Mutex</span>, <span class="ident">RwLock</span>};
 <span class="kw">use</span> <span class="ident">x86_64</span>::{
@@ -308,8 +346,11 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Arch</span> {
     <span class="kw">pub</span> <span class="ident">cpu_info</span>: <span class="ident">CpuInfo</span>,
     <span class="kw">pub</span> <span class="ident">physical_memory_manager</span>: <span class="ident">LockedPhysicalMemoryManager</span>,
+    <span class="doccomment">/// Each bit in this bitmap corresponds to a slot for an address space worth of kernel stacks</span>
+    <span class="doccomment">/// in the kernel address space. We can have up 1024 address spaces, so need 128 bytes.</span>
+    <span class="kw">pub</span> <span class="ident">kernel_stack_bitmap</span>: <span class="ident">Mutex</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">128</span>]<span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">kernel_page_table</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">PageTable</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">object_map</span>: <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">ObjectMap</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">object_map</span>: <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">ObjectMap</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="comment">/* pub boot_processor: Mutex&lt;Cpu&gt;,
      * pub application_processors: Mutex&lt;Vec&lt;Cpu&gt;&gt;, */</span>
 }
@@ -328,15 +369,19 @@
     <span class="kw">type</span> <span class="ident">Task</span> <span class="op">=</span> <span class="ident">Task</span>;
     <span class="kw">type</span> <span class="ident">MemoryObject</span> <span class="op">=</span> <span class="ident">MemoryObject</span>;
 
-    <span class="kw">fn</span> <span class="ident">drop_to_userspace</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">task</span>: <span class="ident">WrappedKernelObject</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="op">!</span> {
-        <span class="ident">task</span>::<span class="ident">drop_to_usermode</span>(<span class="self">self</span>, <span class="ident">task</span>);
+    <span class="kw">fn</span> <span class="ident">drop_to_userspace</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">task</span>: <span class="ident">WrappedKernelObject</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="op">!</span> {
+        <span class="ident">task</span>::<span class="ident">drop_to_usermode</span>(<span class="ident">task</span>);
+    }
+
+    <span class="kw">fn</span> <span class="ident">context_switch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">old</span>: <span class="ident">WrappedKernelObject</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span>, <span class="ident">new</span>: <span class="ident">WrappedKernelObject</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span>) {
+        <span class="ident">task</span>::<span class="ident">context_switch</span>(<span class="ident">old</span>, <span class="ident">new</span>)
     }
 }
 
 <span class="doccomment">/// This is the entry point for the kernel on x86_64. It is called from the UEFI bootloader and</span>
 <span class="doccomment">/// initialises the system, then passes control into the common part of the kernel.</span>
 <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kmain</span>() <span class="op">-&gt;</span> <span class="op">!</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kmain</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="op">!</span> {
     <span class="comment">/*
      * Initialise the logger.
      */</span>
@@ -351,6 +396,7 @@
         <span class="ident">cpu_info</span>.<span class="ident">model_info</span>,
         <span class="ident">cpu_info</span>.<span class="ident">microarch</span>()
     );
+    <span class="ident">check_support</span>(<span class="kw-2">&amp;</span><span class="ident">cpu_info</span>);
 
     <span class="comment">/*
      * Initialise the heap allocator. After this, the kernel is free to use collections etc. that
@@ -366,7 +412,7 @@
      * magic number.
      */</span>
     <span class="kw">let</span> <span class="ident">boot_info</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="ident">kernel_map</span>::<span class="ident">BOOT_INFO</span>.<span class="ident">mut_ptr</span>::<span class="op">&lt;</span><span class="ident">BootInfo</span><span class="op">&gt;</span>()) };
-    <span class="kw">if</span> <span class="ident">boot_info</span>.<span class="ident">magic</span> <span class="op">!=</span> <span class="ident">x86_64</span>::<span class="ident">boot</span>::<span class="ident">BOOT_INFO_MAGIC</span> {
+    <span class="kw">if</span> <span class="ident">boot_info</span>.<span class="ident">magic</span> <span class="op">!</span><span class="op">=</span> <span class="ident">x86_64</span>::<span class="ident">boot</span>::<span class="ident">BOOT_INFO_MAGIC</span> {
         <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Boot info magic number is not correct!&quot;</span>);
     }
 
@@ -374,12 +420,12 @@
      * Parse the static ACPI tables.
      */</span>
     <span class="kw">let</span> <span class="ident">acpi_info</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">boot_info</span>.<span class="ident">rsdp_address</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">rsdp_address</span>) <span class="op">=&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">rsdp_address</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handler</span> <span class="op">=</span> <span class="ident">PebbleAcpiHandler</span>;
             <span class="kw">match</span> <span class="ident">acpi</span>::<span class="ident">parse_rsdp</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">handler</span>, <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">rsdp_address</span>)) {
-                <span class="prelude-val">Ok</span>(<span class="ident">acpi_info</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">acpi_info</span>),
+                <span class="prelude-val">Ok</span>(<span class="ident">acpi_info</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">acpi_info</span>),
 
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Failed to parse static ACPI tables: {:?}&quot;</span>, <span class="ident">err</span>);
                     <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;Continuing. Some functionality may not work, or the kernel may panic!&quot;</span>);
                     <span class="prelude-val">None</span>
@@ -387,7 +433,7 @@
             }
         }
 
-        <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
+        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
     };
 
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;{:#?}&quot;</span>, <span class="ident">acpi_info</span>);
@@ -450,6 +496,7 @@
                 <span class="ident">kernel_map</span>::<span class="ident">PHYSICAL_MAPPING_BASE</span>,
             )
         }),
+        <span class="ident">kernel_stack_bitmap</span>: <span class="ident">Mutex</span>::<span class="ident">new</span>([<span class="number">0</span>; <span class="number">128</span>]),
         <span class="ident">object_map</span>: <span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="ident">ObjectMap</span>::<span class="ident">new</span>(<span class="kw">crate</span>::<span class="ident">object</span>::<span class="ident">map</span>::<span class="ident">INITIAL_OBJECT_CAPACITY</span>)),
         <span class="comment">/* boot_processor: Mutex::new(boot_processor),
          * application_processors: Mutex::new(application_processors), */</span>
@@ -468,13 +515,14 @@
     <span class="ident">guarded_per_cpu</span>.<span class="ident">install</span>();
 
     <span class="comment">// TODO: deal gracefully with a bad ACPI parse</span>
-    <span class="kw">let</span> <span class="ident">interrupt_controller</span> <span class="op">=</span> <span class="ident">InterruptController</span>::<span class="ident">init</span>(
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">interrupt_controller</span> <span class="op">=</span> <span class="ident">InterruptController</span>::<span class="ident">init</span>(
         <span class="kw-2">&amp;</span><span class="ident">arch</span>,
         <span class="kw">match</span> <span class="ident">acpi_info</span> {
-            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">info</span>) <span class="op">=&gt;</span> <span class="ident">info</span>.<span class="ident">interrupt_model</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(),
-            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(),
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">info</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">info</span>.<span class="ident">interrupt_model</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(),
         },
     );
+    <span class="ident">interrupt_controller</span>.<span class="ident">enable_local_timer</span>(<span class="kw-2">&amp;</span><span class="ident">arch</span>, <span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="number">3</span>));
 
     <span class="comment">/*
      * Parse the DSDT.
@@ -496,6 +544,7 @@
      */</span>
     <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">DerefMut</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scheduler</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">per_cpu_data_mut</span>() }.<span class="ident">scheduler</span>();
+    <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Adding {} initial tasks to the ready queue&quot;</span>, <span class="ident">boot_info</span>.<span class="ident">num_images</span>);
     <span class="kw">for</span> <span class="ident">image</span> <span class="kw">in</span> <span class="ident">boot_info</span>.<span class="ident">images</span>() {
         <span class="ident">load_task</span>(<span class="kw-2">&amp;</span><span class="ident">arch</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">scheduler</span>.<span class="ident">deref_mut</span>(), <span class="ident">image</span>);
     }
@@ -504,7 +553,7 @@
     <span class="ident">scheduler</span>.<span class="ident">drop_to_userspace</span>(<span class="kw-2">&amp;</span><span class="ident">arch</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">load_task</span>(<span class="ident">arch</span>: <span class="kw-2">&amp;</span><span class="ident">Arch</span>, <span class="ident">scheduler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Scheduler</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span>, <span class="ident">image</span>: <span class="kw-2">&amp;</span><span class="ident">ImageInfo</span>) {
+<span class="kw">fn</span> <span class="ident">load_task</span>(<span class="ident">arch</span>: <span class="kw-2">&amp;</span><span class="ident">Arch</span>, <span class="ident">scheduler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Scheduler</span>, <span class="ident">image</span>: <span class="kw-2">&amp;</span><span class="ident">ImageInfo</span>) {
     <span class="comment">// Make an AddressSpace for the image</span>
     <span class="kw">let</span> <span class="ident">address_space</span>: <span class="ident">WrappedKernelObject</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span> <span class="op">=</span>
         <span class="ident">KernelObject</span>::<span class="ident">AddressSpace</span>(<span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="kw">box</span> <span class="ident">AddressSpace</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">arch</span>)))
@@ -528,6 +577,23 @@
     ))
     .<span class="ident">add_to_map</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arch</span>.<span class="ident">object_map</span>.<span class="ident">write</span>());
     <span class="ident">scheduler</span>.<span class="ident">add_task</span>(<span class="ident">task</span>).<span class="ident">unwrap</span>();
+}
+
+<span class="doccomment">/// We rely on certain processor features to be present for simplicity and sanity-retention. This</span>
+<span class="doccomment">/// function checks that we support everything we need to, and enable features that need to be.</span>
+<span class="kw">fn</span> <span class="ident">check_support</span>(<span class="ident">cpu_info</span>: <span class="kw-2">&amp;</span><span class="ident">CpuInfo</span>) {
+    <span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
+    <span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">hw</span>::<span class="ident">registers</span>::{<span class="ident">read_control_reg</span>, <span class="ident">write_control_reg</span>, <span class="ident">CR4_XSAVE_ENABLE_BIT</span>};
+
+    <span class="kw">if</span> <span class="op">!</span><span class="ident">cpu_info</span>.<span class="ident">supported_features</span>.<span class="ident">xsave</span> {
+        <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Processor does not support xsave instruction!&quot;</span>);
+    }
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cr4</span> <span class="op">=</span> <span class="macro">read_control_reg</span><span class="macro">!</span>(<span class="ident">CR4</span>);
+    <span class="ident">cr4</span>.<span class="ident">set_bit</span>(<span class="ident">CR4_XSAVE_ENABLE_BIT</span>, <span class="bool-val">true</span>);
+    <span class="kw">unsafe</span> {
+        <span class="macro">write_control_reg</span><span class="macro">!</span>(<span class="ident">CR4</span>, <span class="ident">cr4</span>);
+    }
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g., <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g., <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g., <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../../";window.currentCrate = "kernel";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

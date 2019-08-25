@@ -111,28 +111,28 @@
     <span class="macro">error</span><span class="macro">!</span>(
         <span class="string">&quot;PAGE_FAULT: {} ({:#x})&quot;</span>,
         <span class="kw">match</span> (
-            (<span class="ident">error_code</span> <span class="op">&gt;&gt;</span> <span class="number">2</span>) <span class="op">&amp;</span> <span class="number">0b1</span>, <span class="comment">// User / Supervisor</span>
-            (<span class="ident">error_code</span> <span class="op">&gt;&gt;</span> <span class="number">4</span>) <span class="op">&amp;</span> <span class="number">0b1</span>, <span class="comment">// Instruction / Data</span>
-            (<span class="ident">error_code</span> <span class="op">&gt;&gt;</span> <span class="number">1</span>) <span class="op">&amp;</span> <span class="number">0b1</span>, <span class="comment">// Read / Write</span>
-            (<span class="ident">error_code</span> <span class="op">&gt;&gt;</span> <span class="number">0</span>) <span class="op">&amp;</span> <span class="number">0b1</span>  <span class="comment">// Present</span>
+            (<span class="ident">error_code</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">2</span>) <span class="op">&amp;</span> <span class="number">0b1</span>, <span class="comment">// User / Supervisor</span>
+            (<span class="ident">error_code</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">4</span>) <span class="op">&amp;</span> <span class="number">0b1</span>, <span class="comment">// Instruction / Data</span>
+            (<span class="ident">error_code</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>) <span class="op">&amp;</span> <span class="number">0b1</span>, <span class="comment">// Read / Write</span>
+            (<span class="ident">error_code</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">0</span>) <span class="op">&amp;</span> <span class="number">0b1</span>  <span class="comment">// Present</span>
         ) {
             <span class="comment">// Page faults caused by the kernel</span>
-            (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>) <span class="op">=&gt;</span> <span class="string">&quot;Kernel read non-present page&quot;</span>,
-            (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>) <span class="op">=&gt;</span> <span class="string">&quot;Kernel read present page&quot;</span>,
-            (<span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>) <span class="op">=&gt;</span> <span class="string">&quot;Kernel wrote to non-present page&quot;</span>,
-            (<span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>) <span class="op">=&gt;</span> <span class="string">&quot;Kernel wrote to present page&quot;</span>,
-            (<span class="number">0</span>, <span class="number">1</span>, <span class="kw">_</span>, <span class="number">0</span>) <span class="op">=&gt;</span> <span class="string">&quot;Kernel fetched instruction from non-present page&quot;</span>,
-            (<span class="number">0</span>, <span class="number">1</span>, <span class="kw">_</span>, <span class="number">1</span>) <span class="op">=&gt;</span> <span class="string">&quot;Kernel fetched instruction from present page&quot;</span>,
+            (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Kernel read non-present page&quot;</span>,
+            (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Kernel read present page&quot;</span>,
+            (<span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Kernel wrote to non-present page&quot;</span>,
+            (<span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Kernel wrote to present page&quot;</span>,
+            (<span class="number">0</span>, <span class="number">1</span>, <span class="kw">_</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Kernel fetched instruction from non-present page&quot;</span>,
+            (<span class="number">0</span>, <span class="number">1</span>, <span class="kw">_</span>, <span class="number">1</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Kernel fetched instruction from present page&quot;</span>,
 
             <span class="comment">// Page faults caused by user processes</span>
-            (<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>) <span class="op">=&gt;</span> <span class="string">&quot;User process read non-present page&quot;</span>,
-            (<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>) <span class="op">=&gt;</span> <span class="string">&quot;User process read present page (probable access violation)&quot;</span>,
-            (<span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>) <span class="op">=&gt;</span> <span class="string">&quot;User process wrote to non-present page&quot;</span>,
-            (<span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>) <span class="op">=&gt;</span> <span class="string">&quot;User process wrote to present page (probable access violation)&quot;</span>,
-            (<span class="number">1</span>, <span class="number">1</span>, <span class="kw">_</span>, <span class="number">0</span>) <span class="op">=&gt;</span> <span class="string">&quot;User process fetched instruction from non-present page&quot;</span>,
-            (<span class="number">1</span>, <span class="number">1</span>, <span class="kw">_</span>, <span class="number">1</span>) <span class="op">=&gt;</span> <span class="string">&quot;User process fetched instruction from present page (probable access violation)&quot;</span>,
+            (<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;User process read non-present page&quot;</span>,
+            (<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;User process read present page (probable access violation)&quot;</span>,
+            (<span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;User process wrote to non-present page&quot;</span>,
+            (<span class="number">1</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;User process wrote to present page (probable access violation)&quot;</span>,
+            (<span class="number">1</span>, <span class="number">1</span>, <span class="kw">_</span>, <span class="number">0</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;User process fetched instruction from non-present page&quot;</span>,
+            (<span class="number">1</span>, <span class="number">1</span>, <span class="kw">_</span>, <span class="number">1</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;User process fetched instruction from present page (probable access violation)&quot;</span>,
 
-            (<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> {
+            (<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;INVALID PAGE-FAULT ERROR CODE&quot;</span>);
             }
         },

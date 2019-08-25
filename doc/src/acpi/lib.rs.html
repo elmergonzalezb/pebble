@@ -249,7 +249,7 @@
 <span class="doccomment">//! for finding and parsing the static tables, which is enough to set up hardware such as the APIC</span>
 <span class="doccomment">//! and HPET on x86_64.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! The crate is designed for use in conjunction with the `aml_parser` crate, which is the (much</span>
+<span class="doccomment">//! The crate is designed for use in conjunction with the `aml` crate, which is the (much</span>
 <span class="doccomment">//! less complete) AML parser used to parse the DSDT and SSDTs. These crates are separate because</span>
 <span class="doccomment">//! some kernels may want to detect the static tables, but delay AML parsing to a later stage.</span>
 <span class="doccomment">//!</span>
@@ -362,7 +362,7 @@
 
 <span class="kw">impl</span> <span class="ident">AmlTable</span> {
     <span class="doccomment">/// Create an `AmlTable` from the address and length of the table **including the SDT header**.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">address</span>: <span class="ident">usize</span>, <span class="ident">length</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">AmlTable</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">address</span>: <span class="ident">usize</span>, <span class="ident">length</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AmlTable</span> {
         <span class="ident">AmlTable</span> {
             <span class="ident">address</span>: <span class="ident">address</span> <span class="op">+</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">SdtHeader</span><span class="op">&gt;</span>(),
             <span class="ident">length</span>: <span class="ident">length</span> <span class="op">-</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">SdtHeader</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u32</span>,
@@ -400,7 +400,7 @@
 <span class="doccomment">/// This is the entry point of `acpi` if you have the **physical** address of the RSDP. It maps</span>
 <span class="doccomment">/// the RSDP, works out what version of ACPI the hardware supports, and passes the physical</span>
 <span class="doccomment">/// address of the RSDT/XSDT to `parse_rsdt`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_rsdp</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>, <span class="ident">rsdp_address</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Acpi</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_rsdp</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>, <span class="ident">rsdp_address</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Acpi</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">H</span>: <span class="ident">AcpiHandler</span>,
 {
@@ -410,13 +410,13 @@
     <span class="ident">parse_validated_rsdp</span>(<span class="ident">handler</span>, <span class="ident">rsdp_mapping</span>)
 }
 
-<span class="kw">fn</span> <span class="ident">parse_validated_rsdp</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>, <span class="ident">rsdp_mapping</span>: <span class="ident">PhysicalMapping</span><span class="op">&lt;</span><span class="ident">Rsdp</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Acpi</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
+<span class="kw">fn</span> <span class="ident">parse_validated_rsdp</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>, <span class="ident">rsdp_mapping</span>: <span class="ident">PhysicalMapping</span><span class="op">&lt;</span><span class="ident">Rsdp</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Acpi</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">H</span>: <span class="ident">AcpiHandler</span>,
 {
     <span class="kw">let</span> <span class="ident">revision</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">rsdp_mapping</span>).<span class="ident">revision</span>();
 
-    <span class="kw">if</span> <span class="ident">revision</span> <span class="op">==</span> <span class="number">0</span> {
+    <span class="kw">if</span> <span class="ident">revision</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
         <span class="comment">/*
          * We&#39;re running on ACPI Version 1.0. We should use the 32-bit RSDT address.
          */</span>
@@ -440,7 +440,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// If the given revision is 0, an address to the RSDT is expected. Otherwise, an address to</span>
 <span class="doccomment">/// the XSDT is expected.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_rsdt</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>, <span class="ident">revision</span>: <span class="ident">u8</span>, <span class="ident">physical_address</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Acpi</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_rsdt</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>, <span class="ident">revision</span>: <span class="ident">u8</span>, <span class="ident">physical_address</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Acpi</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">H</span>: <span class="ident">AcpiHandler</span>,
 {
@@ -451,14 +451,14 @@
         <span class="ident">interrupt_model</span>: <span class="prelude-val">None</span>,
         <span class="ident">hpet</span>: <span class="prelude-val">None</span>,
         <span class="ident">dsdt</span>: <span class="prelude-val">None</span>,
-        <span class="ident">ssdts</span>: <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="number">0</span>),
+        <span class="ident">ssdts</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
         <span class="ident">pci_config_regions</span>: <span class="prelude-val">None</span>,
     };
 
     <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">sdt</span>::<span class="ident">peek_at_sdt_header</span>(<span class="ident">handler</span>, <span class="ident">physical_address</span>);
     <span class="kw">let</span> <span class="ident">mapping</span> <span class="op">=</span> <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">SdtHeader</span><span class="op">&gt;</span>(<span class="ident">physical_address</span>, <span class="ident">header</span>.<span class="ident">length</span>() <span class="kw">as</span> <span class="ident">usize</span>);
 
-    <span class="kw">if</span> <span class="ident">revision</span> <span class="op">==</span> <span class="number">0</span> {
+    <span class="kw">if</span> <span class="ident">revision</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
         <span class="comment">/*
          * ACPI Version 1.0. It&#39;s a RSDT!
          */</span>

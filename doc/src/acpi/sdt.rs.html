@@ -236,8 +236,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is unsafe as the given `revision` could be incorrect or fabricated. However, it should</span>
     <span class="doccomment">/// be safe if it represents the revision of the table this field is present in.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">revision</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">revision</span> <span class="op">&gt;=</span> <span class="ident">R</span>::<span class="ident">to_u8</span>() {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">revision</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">revision</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">R</span>::<span class="ident">to_u8</span>() {
             <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">field</span>)
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
@@ -298,9 +298,9 @@
     <span class="doccomment">///     b) The checksum of the SDT</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This assumes that the whole SDT is mapped.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">signature</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>; <span class="number">4</span>]) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AcpiError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">signature</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>; <span class="number">4</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AcpiError</span><span class="op">&gt;</span> {
         <span class="comment">// Check the signature</span>
-        <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">signature</span> <span class="op">!=</span> <span class="ident">signature</span> {
+        <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">signature</span> <span class="op">!</span><span class="op">=</span> <span class="ident">signature</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">AcpiError</span>::<span class="ident">SdtInvalidSignature</span>(<span class="kw-2">*</span><span class="ident">signature</span>));
         }
 
@@ -328,29 +328,29 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw_signature</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> [<span class="ident">u8</span>; <span class="number">4</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw_signature</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u8</span>; <span class="number">4</span>] {
         <span class="self">self</span>.<span class="ident">signature</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signature</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signature</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
         <span class="comment">// Safe to unwrap because we check signature is valid UTF8 in `validate`</span>
         <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">signature</span>).<span class="ident">unwrap</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="ident">length</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">revision</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u8</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">revision</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
         <span class="self">self</span>.<span class="ident">revision</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">oem_id</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">oem_id</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
         <span class="comment">// Safe to unwrap because checked in `validate`</span>
         <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">oem_id</span>).<span class="ident">unwrap</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">oem_table_id</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">oem_table_id</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
         <span class="comment">// Safe to unwrap because checked in `validate`</span>
         <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">oem_table_id</span>).<span class="ident">unwrap</span>()
     }
@@ -358,7 +358,7 @@
 
 <span class="doccomment">/// Takes the physical address of an SDT, and maps, clones and unmaps its header. Useful for</span>
 <span class="doccomment">/// finding out how big it is to map it correctly later.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">peek_at_sdt_header</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>, <span class="ident">physical_address</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">SdtHeader</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">peek_at_sdt_header</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>, <span class="ident">physical_address</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SdtHeader</span>
 <span class="kw">where</span>
     <span class="ident">H</span>: <span class="ident">AcpiHandler</span>,
 {
@@ -375,7 +375,7 @@
     <span class="ident">acpi</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Acpi</span>,
     <span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>,
     <span class="ident">physical_address</span>: <span class="ident">usize</span>,
-) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AcpiError</span><span class="op">&gt;</span>
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AcpiError</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">H</span>: <span class="ident">AcpiHandler</span>,
 {
@@ -387,36 +387,36 @@
      * and length, and then the dispatched to the correct function to actually parse the table.
      */</span>
     <span class="kw">match</span> <span class="ident">header</span>.<span class="ident">signature</span>() {
-        <span class="string">&quot;FACP&quot;</span> <span class="op">=&gt;</span> {
+        <span class="string">&quot;FACP&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">fadt_mapping</span> <span class="op">=</span> <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">Fadt</span><span class="op">&gt;</span>(<span class="ident">physical_address</span>, <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">Fadt</span><span class="op">&gt;</span>());
             <span class="kw">crate</span>::<span class="ident">fadt</span>::<span class="ident">parse_fadt</span>(<span class="ident">acpi</span>, <span class="ident">handler</span>, <span class="kw-2">&amp;</span><span class="ident">fadt_mapping</span>)<span class="question-mark">?</span>;
             <span class="ident">handler</span>.<span class="ident">unmap_physical_region</span>(<span class="ident">fadt_mapping</span>);
         }
 
-        <span class="string">&quot;HPET&quot;</span> <span class="op">=&gt;</span> {
+        <span class="string">&quot;HPET&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">hpet_mapping</span> <span class="op">=</span>
                 <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">HpetTable</span><span class="op">&gt;</span>(<span class="ident">physical_address</span>, <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">HpetTable</span><span class="op">&gt;</span>());
             <span class="kw">crate</span>::<span class="ident">hpet</span>::<span class="ident">parse_hpet</span>(<span class="ident">acpi</span>, <span class="kw-2">&amp;</span><span class="ident">hpet_mapping</span>)<span class="question-mark">?</span>;
             <span class="ident">handler</span>.<span class="ident">unmap_physical_region</span>(<span class="ident">hpet_mapping</span>);
         }
 
-        <span class="string">&quot;APIC&quot;</span> <span class="op">=&gt;</span> {
+        <span class="string">&quot;APIC&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">madt_mapping</span> <span class="op">=</span>
                 <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">Madt</span><span class="op">&gt;</span>(<span class="ident">physical_address</span>, <span class="ident">header</span>.<span class="ident">length</span>() <span class="kw">as</span> <span class="ident">usize</span>);
             <span class="kw">crate</span>::<span class="ident">madt</span>::<span class="ident">parse_madt</span>(<span class="ident">acpi</span>, <span class="ident">handler</span>, <span class="kw-2">&amp;</span><span class="ident">madt_mapping</span>)<span class="question-mark">?</span>;
             <span class="ident">handler</span>.<span class="ident">unmap_physical_region</span>(<span class="ident">madt_mapping</span>);
         }
 
-        <span class="string">&quot;MCFG&quot;</span> <span class="op">=&gt;</span> {
+        <span class="string">&quot;MCFG&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">mcfg_mapping</span> <span class="op">=</span>
                 <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">Mcfg</span><span class="op">&gt;</span>(<span class="ident">physical_address</span>, <span class="ident">header</span>.<span class="ident">length</span>() <span class="kw">as</span> <span class="ident">usize</span>);
             <span class="kw">crate</span>::<span class="ident">mcfg</span>::<span class="ident">parse_mcfg</span>(<span class="ident">acpi</span>, <span class="kw-2">&amp;</span><span class="ident">mcfg_mapping</span>)<span class="question-mark">?</span>;
             <span class="ident">handler</span>.<span class="ident">unmap_physical_region</span>(<span class="ident">mcfg_mapping</span>);
         }
 
-        <span class="string">&quot;SSDT&quot;</span> <span class="op">=&gt;</span> <span class="ident">acpi</span>.<span class="ident">ssdts</span>.<span class="ident">push</span>(<span class="ident">AmlTable</span>::<span class="ident">new</span>(<span class="ident">physical_address</span>, <span class="ident">header</span>.<span class="ident">length</span>())),
+        <span class="string">&quot;SSDT&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">acpi</span>.<span class="ident">ssdts</span>.<span class="ident">push</span>(<span class="ident">AmlTable</span>::<span class="ident">new</span>(<span class="ident">physical_address</span>, <span class="ident">header</span>.<span class="ident">length</span>())),
 
-        <span class="ident">signature</span> <span class="op">=&gt;</span> {
+        <span class="ident">signature</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">/*
              * We don&#39;t recognise this signature. Early on, this probably just means we don&#39;t
              * have support yet, but later on maybe this should become an actual error
