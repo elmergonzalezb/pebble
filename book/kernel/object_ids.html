@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Process IDs - Pebble OS</title>
+        <title>Kernel Object IDs - Pebble OS</title>
         
 
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
@@ -78,7 +78,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li><a href="../introduction/index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="../kernel/index.html"><strong aria-hidden="true">2.</strong> The Kernel</a></li><li><ol class="section"><li><a href="../kernel/bootcmd.html"><strong aria-hidden="true">2.1.</strong> Bootcmd</a></li><li><a href="../kernel/booting_x86_64.html"><strong aria-hidden="true">2.2.</strong> Booting (x86_64)</a></li><li><a href="../kernel/process_ids.html" class="active"><strong aria-hidden="true">2.3.</strong> Process IDs</a></li><li><a href="../kernel/syscalls.html"><strong aria-hidden="true">2.4.</strong> System calls</a></li></ol></li><li><a href="../userspace/index.html"><strong aria-hidden="true">3.</strong> Userspace</a></li><li><ol class="section"><li><a href="../userspace/capabilities.html"><strong aria-hidden="true">3.1.</strong> Capabilities</a></li><li><a href="../userspace/memory_map_x86_64.html"><strong aria-hidden="true">3.2.</strong> Memory map (x86_64)</a></li></ol></li><li><a href="../message_passing/index.html"><strong aria-hidden="true">4.</strong> Message Passing</a></li><li><ol class="section"><li><a href="../message_passing/fmt.html"><strong aria-hidden="true">4.1.</strong> Message Format</a></li></ol></li></ol>
+                <ol class="chapter"><li><a href="../introduction/index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="../kernel/index.html"><strong aria-hidden="true">2.</strong> The Kernel</a></li><li><ol class="section"><li><a href="../kernel/bootcmd.html"><strong aria-hidden="true">2.1.</strong> Bootcmd</a></li><li><a href="../kernel/booting_x86_64.html"><strong aria-hidden="true">2.2.</strong> Booting (x86_64)</a></li><li><a href="../kernel/object_ids.html" class="active"><strong aria-hidden="true">2.3.</strong> Kernel Object IDs</a></li><li><a href="../kernel/syscalls.html"><strong aria-hidden="true">2.4.</strong> System calls</a></li></ol></li><li><a href="../userspace/index.html"><strong aria-hidden="true">3.</strong> Userspace</a></li><li><ol class="section"><li><a href="../userspace/capabilities.html"><strong aria-hidden="true">3.1.</strong> Capabilities</a></li><li><a href="../userspace/memory_map_x86_64.html"><strong aria-hidden="true">3.2.</strong> Memory map (x86_64)</a></li></ol></li><li><a href="../message_passing/index.html"><strong aria-hidden="true">4.</strong> Message Passing</a></li><li><ol class="section"><li><a href="../message_passing/fmt.html"><strong aria-hidden="true">4.1.</strong> Message Format</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -145,46 +145,53 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#process-ids" id="process-ids">Process IDs</a></h1>
-<p>Pebble uses a slighly different scheme for allocating process IDs to many other kernels. Inspired by an idea from <a href="https://www.youtube.com/watch?v=aKLntZcp27M">Catherine West's Rustconf 2018 keynote</a>, Pebble
-uses <strong>generational IDs</strong> for its PIDs. This means PIDs are comprised of two different numbers:</p>
+                        <h1><a class="header" href="#kernel-object-ids" id="kernel-object-ids">Kernel Object IDs</a></h1>
+<p>Pebble uses a slighly unusual system for allocating IDs for kernel objects. Inspired by an idea from
+<a href="https://www.youtube.com/watch?v=aKLntZcp27M">Catherine West's Rustconf 2018 keynote</a>, we use <strong>generational
+IDs</strong>. This means that kernel object IDs are comprised of two different numbers:</p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
-pub struct ProcessId {
+pub struct KernelObjectId {
     index: u16,
     generation: u16,
 }
 #}</code></pre></pre>
-<p>Note that the meaning of these numbers is only related to how the kernel manages the allocation of IDs, and can be treated as a single ID by other parts of the system, and by programs.</p>
-<p>The key motivation behind this is called <a href="https://en.wikipedia.org/wiki/ABA_problem">the ABA problem</a>. Because Pebble makes heavy use of message passing, programs are expected to cache the PIDs of processes
-they want to message often, such as the VFS process or a logging service. However, because processes can be created and destroyed at any point, conventional PIDs could lead to processes messaging unrelated
-programs that have been allocated the PID of a previously-cached process. As shown by this example, this could even potentially lead to a malicious process being able to intercept messages meant for something
-else:</p>
+<p>Note that the meaning of these numbers is only related to how the kernel manages the allocation of IDs, and
+can be treated as a single ID by other parts of the system, and by tasks.</p>
+<p>The key motivation behind this is called <a href="https://en.wikipedia.org/wiki/ABA_problem">the ABA problem</a>. Because
+Pebble makes heavy use of message passing, tasks are expected to cache the IDs of various kernel objects that
+they want to interact with often. However, because tasks can be created and destroyed at any point,
+conventional IDs could lead to tasks messaging unrelated tasks that have been allocated the ID of a
+previously-cached task. As shown by this example, this could even potentially lead to a malicious task
+being able to intercept messages meant for something else:</p>
 <ul>
-<li>A logging process is created and allocated PID <code>17</code></li>
-<li>Process A is created and wants to log stuff, so it looks up and caches the logger's PID</li>
-<li>The logger is destroyed, leaving PID <code>17</code> free to allocate again</li>
-<li>A malicious process is created, and is allocated PID <code>17</code></li>
-<li>Process A sends a message to PID <code>17</code> - which is now not the logger, but this malicious process</li>
-<li>The malicious process receives this message and exfiltrates it!</li>
+<li>A logging task is created and allocated ID <code>17</code></li>
+<li>Task A is created and wants to log stuff, so it looks up and caches the logger's ID</li>
+<li>The logger is destroyed, leaving ID <code>17</code> free to allocate again</li>
+<li>A malicious task is created, and is allocated ID <code>17</code></li>
+<li>Task A sends a message to ID <code>17</code> - which is now not the logger, but this malicious task</li>
+<li>The malicious task receives this message and exfiltrates it!</li>
 </ul>
-<p>Of course, this example is slightly convoluted because programs should not be logging sensitive information in the first place, but hopefully it's easy to see how this allocation scheme could lead to problems.</p>
-<p>Generational IDs solve this problem by introducing a second component to the ID - the generation counter. When a process is created, it is inserted into the generational data structure and allocated a free
-index - this forms the first part of the PID. The generation of the PID is the current generation of that index in the data structure. When the process is destroyed, it is removed from the data structure and
-its index's generation is incremented. If you try to get the element at a given index, but the generations don't match, the data structure acts if there's nothing at that index, because the thing you think
-is there no longer will be!</p>
+<p>Of course, this example is slightly convoluted because tasks should not be logging sensitive information in
+the first place, but hopefully it's easy to see how this allocation scheme could lead to problems.</p>
+<p>Generational IDs solve this problem by introducing a second component to the ID - the generation counter. When
+a task is created, it is inserted into the generational data structure and allocated a free index - this
+forms the first part of the ID. The generation of the ID is the current generation of that index in the data
+structure. When the task is destroyed, it is removed from the data structure and its index's generation is
+incremented. If you try to get the element at a given index, but the generations don't match, the data
+structure acts if there's nothing at that index, because the thing you think is there no longer will be!</p>
 <p>With this new ID system, let's see what happens in the same situation with the logger:</p>
 <ul>
-<li>A logger process is created and allocated PID <code>(17, 0)</code></li>
-<li>Process A is created and wants to log stuff, so it looks up and caches the logger's PID</li>
-<li>The logger is destroyed, and the generation of PID <code>17</code> is increased from <code>0</code> to <code>1</code></li>
-<li>A malicious process is created, and is allocated PID <code>(17, 1)</code></li>
-<li>Process A sends a message to PID <code>(17, 0)</code> - which is now not the logger and no longer exists</li>
-<li>Process A receives a message saying the process at <code>(17, 0)</code> no longer exists</li>
-<li>The malicious process fails to intercept Process A's logging</li>
+<li>A logger task is created and allocated ID <code>(17, 0)</code></li>
+<li>Task A is created and wants to log stuff, so it looks up and caches the logger's ID</li>
+<li>The logger is destroyed, and the generation of ID <code>17</code> is increased from <code>0</code> to <code>1</code></li>
+<li>A malicious task is created, and is allocated ID <code>(17, 1)</code></li>
+<li>Task A sends a message to ID <code>(17, 0)</code> - which is now not the logger and no longer exists</li>
+<li>Task A receives a message saying the task at <code>(17, 0)</code> no longer exists</li>
+<li>The malicious task fails to intercept Process A's logging</li>
 </ul>
-<p>And with that, our very convoluted malicious process has been defeated!</p>
+<p>And with that, our very convoluted malicious task has been defeated!</p>
 
                     </main>
 
