@@ -172,14 +172,14 @@ sections:</p>
 <tr><td><code>0x04</code>-<code>0x1f</code></td><td></td><td></td><td></td><td>Reserved for future kernel objects</td><td></td></tr>
 <tr><td><code>0x20</code></td><td><code>0x00</code></td><td><code>u16</code> port number</td><td>Yes - x86_64</td><td><code>X86_64AccessIoPort</code></td><td>Planned</td></tr>
 <tr><td><code>0x21</code>-<code>0x2f</code></td><td></td><td></td><td></td><td>Reserved for future architectures</td><td></td></tr>
-<tr><td><code>0x30</code></td><td></td><td></td><td>No</td><td><code>MapFramebuffer</code></td><td>Planned</td></tr>
+<tr><td><code>0x30</code></td><td></td><td></td><td>No</td><td><code>AccessBackupFramebuffer</code></td><td>Planned</td></tr>
 <tr><td><code>0x31</code></td><td></td><td></td><td>No</td><td><code>EarlyLogging</code></td><td>Implemented</td></tr>
 </tbody></table>
-<h3><a class="header" href="#mapframebuffer" id="mapframebuffer"><code>MapFramebuffer</code></a></h3>
+<h3><a class="header" href="#accessbackupframebuffer" id="accessbackupframebuffer"><code>AccessBackupFramebuffer</code></a></h3>
 <p>If a video mode was chosen in the <code>bootcmd</code> and successfully switched to by the bootloader, the framebuffer of that
-graphics device will be mapped into the task with this capability. Only one task, the backup framebuffer driver,
-should have this capability.</p>
-<p>TODO: work out what should happen if a video mode is not picked, but a task with this capability is still loaded.</p>
+graphics device will be managed as a <code>MemoryObject</code> kernel object within the kernel. This capability allows a task,
+usually the backup framebuffer driver, to request access to that kernel object through the <code>request_system_object</code>
+syscall.</p>
 <p><strong>NOTE:</strong> while this capability seems quite innocuous, it is anything but. A rouge task that has this capability
 could in theory skim sensitive information, such as passwords or credit card details using the framebuffer, if
 this driver is in use.</p>

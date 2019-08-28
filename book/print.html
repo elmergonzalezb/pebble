@@ -286,7 +286,8 @@ the size of a register.</p>
 <h3><a class="header" href="#overview-of-system-calls" id="overview-of-system-calls">Overview of system calls</a></h3>
 <table><thead><tr><th>Number</th><th>System call</th><th>a</th><th>b</th><th>c</th><th>d</th><th>e</th><th>Return value</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>0</code></td><td><code>yield</code></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>Yield to the kernel.</td></tr>
-<tr><td><code>1</code></td><td><code>early_log</code></td><td>length</td><td>ptr to string</td><td>-</td><td>-</td><td>-</td><td>success/error</td><td>Log a message. Designed to be used from early processes.</td></tr>
+<tr><td><code>1</code></td><td><code>early_log</code></td><td>length of string</td><td>ptr to string</td><td>-</td><td>-</td><td>-</td><td>success / error</td><td>Log a message. Designed to be used from early processes.</td></tr>
+<tr><td><code>2</code></td><td><code>request_system_object</code></td><td>object id</td><td>{depends on id}</td><td>{depends on id}</td><td>{depends on id}</td><td>{depends on id}</td><td>id of object + status</td><td>Request the id of a system kernel object.</td></tr>
 </tbody></table>
 <h3><a class="header" href="#making-a-system-call-on-x86_64" id="making-a-system-call-on-x86_64">Making a system call on x86_64</a></h3>
 <p>To make a system call on x86_64, populate these registers:</p>
@@ -311,6 +312,34 @@ null-terminated. The maximum length of the string is 1024 chars.</p>
 <li><code>1</code> if the string was too long</li>
 <li><code>2</code> if the string was not valid UTF-8</li>
 <li><code>3</code> if the task making the syscall doesn't have the <code>EarlyLogging</code> capability</li>
+</ul>
+<h3><a class="header" href="#request_system_object" id="request_system_object"><code>request_system_object</code></a></h3>
+<p>Used by tasks to request access to a &quot;system&quot; kernel object - usually one created by the kernel to provide
+some resource, such as the framebuffer, to userspace. Each object has a hardcoded id used to request it, and
+requires the requesting task to have a particular capability - if the task is permitted access to the object,
+the kernel returns the kernel object id of the object, and takes any steps needed for the requesting task to
+be able to access the object. Normal user tasks probably don't have any need for this system call - it is more
+aimed at device drivers and system management tasks.</p>
+<p>The first parameter, <code>a</code>, is always the id (not to be confused with the actual kernel object id, which is not
+hardcoded and therefore can change between boots) of the system object. The allowed values are:</p>
+<table><thead><tr><th><code>a</code></th><th>Object being requested</th><th>Type</th><th><code>b</code></th><th><code>c</code></th><th><code>d</code></th><th><code>e</code></th><th>Required capability</th></tr></thead><tbody>
+<tr><td><code>0</code></td><td>The backup framebuffer</td><td><code>MemoryObject</code></td><td>-</td><td>-</td><td>-</td><td>-</td><td><code>AccessBackupFramebuffer</code></td></tr>
+</tbody></table>
+<p>TODO: id for accessing Pci config space where extra params are bus, device, function (+segment or whatever)
+numbers.</p>
+<p>Returns:</p>
+<ul>
+<li>Bits <code>0..16</code> contain the index of the requested object's ID, if the system call succeeded</li>
+<li>Bits <code>16..32</code> contain the generation of the requested object's ID, if the system call succeeded</li>
+<li>Bits <code>32..63</code> contain the status of the system call:
+<ul>
+<li><code>0</code> means the system call succeeded and bits <code>0..32</code> hold a valid kernel object id</li>
+<li><code>1</code> means that the requested object is a valid system object, but does not exist</li>
+<li><code>2</code> means that the id does not correspond to a valid system object</li>
+<li><code>3</code> means that the requested object id is valid, but the task does not have the correct capabilities to
+access it</li>
+</ul>
+</li>
 </ul>
 <h1><a class="header" href="#capabilities" id="capabilities">Capabilities</a></h1>
 <p>Capabilities describe what a task is allowed to do, and are encoded in its image. This allows users to audit the
@@ -339,14 +368,14 @@ sections:</p>
 <tr><td><code>0x04</code>-<code>0x1f</code></td><td></td><td></td><td></td><td>Reserved for future kernel objects</td><td></td></tr>
 <tr><td><code>0x20</code></td><td><code>0x00</code></td><td><code>u16</code> port number</td><td>Yes - x86_64</td><td><code>X86_64AccessIoPort</code></td><td>Planned</td></tr>
 <tr><td><code>0x21</code>-<code>0x2f</code></td><td></td><td></td><td></td><td>Reserved for future architectures</td><td></td></tr>
-<tr><td><code>0x30</code></td><td></td><td></td><td>No</td><td><code>MapFramebuffer</code></td><td>Planned</td></tr>
+<tr><td><code>0x30</code></td><td></td><td></td><td>No</td><td><code>AccessBackupFramebuffer</code></td><td>Planned</td></tr>
 <tr><td><code>0x31</code></td><td></td><td></td><td>No</td><td><code>EarlyLogging</code></td><td>Implemented</td></tr>
 </tbody></table>
-<h3><a class="header" href="#mapframebuffer" id="mapframebuffer"><code>MapFramebuffer</code></a></h3>
+<h3><a class="header" href="#accessbackupframebuffer" id="accessbackupframebuffer"><code>AccessBackupFramebuffer</code></a></h3>
 <p>If a video mode was chosen in the <code>bootcmd</code> and successfully switched to by the bootloader, the framebuffer of that
-graphics device will be mapped into the task with this capability. Only one task, the backup framebuffer driver,
-should have this capability.</p>
-<p>TODO: work out what should happen if a video mode is not picked, but a task with this capability is still loaded.</p>
+graphics device will be managed as a <code>MemoryObject</code> kernel object within the kernel. This capability allows a task,
+usually the backup framebuffer driver, to request access to that kernel object through the <code>request_system_object</code>
+syscall.</p>
 <p><strong>NOTE:</strong> while this capability seems quite innocuous, it is anything but. A rouge task that has this capability
 could in theory skim sensitive information, such as passwords or credit card details using the framebuffer, if
 this driver is in use.</p>

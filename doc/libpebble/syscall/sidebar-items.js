@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["SYSCALL_EARLY_LOG",""],["SYSCALL_YIELD",""]],"fn":[["early_log",""],["yield_to_kernel",""]],"mod":[["raw_x86_64",""]]});
+initSidebarItems({"constant":[["SYSCALL_EARLY_LOG",""],["SYSCALL_REQUEST_SYSTEM_OBJECT",""],["SYSCALL_YIELD",""]],"enum":[["RequestSystemObjectError",""],["SystemObjectId",""]],"fn":[["early_log",""],["request_system_object",""],["yield_to_kernel",""]],"mod":[["raw_x86_64",""]]});
