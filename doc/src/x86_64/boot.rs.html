@@ -188,9 +188,28 @@
 <span id="188">188</span>
 <span id="189">189</span>
 <span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">memory</span>::{<span class="ident">page_table</span>::<span class="ident">EntryFlags</span>, <span class="ident">Frame</span>, <span class="ident">PhysicalAddress</span>, <span class="ident">VirtualAddress</span>};
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">Range</span>;
+<span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">fmt</span>, <span class="ident">ops</span>::<span class="ident">Range</span>};
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BOOT_INFO_MAGIC</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0xcafebabe</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NUM_MEMORY_MAP_ENTRIES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span>;
@@ -261,7 +280,7 @@
 
 <span class="doccomment">/// Describes a memory region that should be represented by the `MemoryObject` kernel object in the</span>
 <span class="doccomment">/// kernel.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Default</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Default</span>, <span class="ident">Debug</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MemoryObjectInfo</span> {
     <span class="kw">pub</span> <span class="ident">physical_address</span>: <span class="ident">PhysicalAddress</span>,
@@ -272,7 +291,7 @@
 
 <span class="doccomment">/// An image loaded from the filesystem by the bootloader. The kernel should turn this information</span>
 <span class="doccomment">/// into the correct representation and treat this image like a normal task.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Default</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Default</span>, <span class="ident">Debug</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ImageInfo</span> {
     <span class="doccomment">/// The name of the name in bytes. Maximum of 32.</span>
@@ -324,6 +343,7 @@
     <span class="kw">pub</span> <span class="ident">pixel_format</span>: <span class="ident">PixelFormat</span>,
     <span class="kw">pub</span> <span class="ident">width</span>: <span class="ident">u32</span>,
     <span class="kw">pub</span> <span class="ident">height</span>: <span class="ident">u32</span>,
+    <span class="doccomment">/// How many pixels are in each scan-line. This can be greater than `width`.</span>
     <span class="kw">pub</span> <span class="ident">stride</span>: <span class="ident">u32</span>,
 }
 
@@ -348,6 +368,24 @@
     <span class="kw">pub</span> <span class="ident">num_images</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span> <span class="ident">images</span>: [<span class="ident">ImageInfo</span>; <span class="ident">NUM_IMAGES</span>],
     <span class="kw">pub</span> <span class="ident">video_info</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">VideoInfo</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">BootInfo</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">foo</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;BootInfo&quot;</span>);
+        <span class="ident">foo</span>.<span class="ident">field</span>(<span class="string">&quot;magic&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">magic</span>);
+        <span class="ident">foo</span>.<span class="ident">field</span>(<span class="string">&quot;num_memory_map_entries&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">num_memory_map_entries</span>);
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">num_memory_map_entries</span> {
+            <span class="ident">foo</span>.<span class="ident">field</span>(<span class="string">&quot;memory_map_entry&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">memory_map</span>[<span class="ident">i</span>]);
+        }
+        <span class="ident">foo</span>.<span class="ident">field</span>(<span class="string">&quot;rsdp_address&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">rsdp_address</span>);
+        <span class="ident">foo</span>.<span class="ident">field</span>(<span class="string">&quot;num_images&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">num_images</span>);
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">num_images</span> {
+            <span class="ident">foo</span>.<span class="ident">field</span>(<span class="string">&quot;image&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">images</span>[<span class="ident">i</span>]);
+        }
+        <span class="ident">foo</span>.<span class="ident">field</span>(<span class="string">&quot;video_info&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">video_info</span>);
+        <span class="ident">foo</span>.<span class="ident">finish</span>()
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">BootInfo</span> {

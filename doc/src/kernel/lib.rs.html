@@ -88,6 +88,10 @@
 <span id="88">88</span>
 <span id="89">89</span>
 <span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module probably looks rather sparse! Check the root of one of the architecture modules for</span>
 <span class="doccomment">//! an entry point.</span>
@@ -135,13 +139,12 @@
 <span class="kw">mod</span> <span class="ident">syscall</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">heap_allocator</span>::<span class="ident">LockedHoleAllocator</span>, <span class="ident">object</span>::<span class="ident">map</span>::<span class="ident">ObjectMap</span>};
-<span class="kw">use</span> <span class="ident">alloc</span>::{<span class="ident">collections</span>::<span class="ident">BTreeMap</span>, <span class="ident">string</span>::<span class="ident">String</span>};
 <span class="kw">use</span> <span class="ident">cfg_if</span>::<span class="ident">cfg_if</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">panic</span>::<span class="ident">PanicInfo</span>;
 <span class="kw">use</span> <span class="ident">libpebble</span>::<span class="ident">KernelObjectId</span>;
 <span class="kw">use</span> <span class="ident">log</span>::<span class="ident">error</span>;
 <span class="kw">use</span> <span class="ident">pebble_util</span>::<span class="ident">InitGuard</span>;
-<span class="kw">use</span> <span class="ident">spin</span>::<span class="ident">RwLock</span>;
+<span class="kw">use</span> <span class="ident">spin</span>::{<span class="ident">Mutex</span>, <span class="ident">RwLock</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">test</span>))]</span>
 <span class="attribute">#[<span class="ident">global_allocator</span>]</span>
@@ -160,12 +163,17 @@
 <span class="doccomment">/// CPUs. This has the potential to end up as a bit of a &quot;God struct&quot;, so we need to be careful.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Common</span> {
     <span class="kw">pub</span> <span class="ident">object_map</span>: <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">ObjectMap</span><span class="op">&lt;</span><span class="ident">arch_impl</span>::<span class="ident">Arch</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// If the bootloader switched to a graphics mode that enables the use of a linear framebuffer,</span>
+    <span class="doccomment">/// this kernel object will be a MemoryObject that maps the backing memory into a userspace</span>
+    <span class="doccomment">/// driver. This is provided to userspace through the `request_system_object` system call.</span>
+    <span class="kw">pub</span> <span class="ident">backup_framebuffer_object</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">KernelObjectId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Common</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Common</span> {
         <span class="ident">Common</span> {
             <span class="ident">object_map</span>: <span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="ident">ObjectMap</span>::<span class="ident">new</span>(<span class="kw">crate</span>::<span class="ident">object</span>::<span class="ident">map</span>::<span class="ident">INITIAL_OBJECT_CAPACITY</span>)),
+            <span class="ident">backup_framebuffer_object</span>: <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>),
         }
     }
 }
