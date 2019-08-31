@@ -288,6 +288,7 @@ the size of a register.</p>
 <tr><td><code>0</code></td><td><code>yield</code></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>Yield to the kernel.</td></tr>
 <tr><td><code>1</code></td><td><code>early_log</code></td><td>length of string</td><td>ptr to string</td><td>-</td><td>-</td><td>-</td><td>success / error</td><td>Log a message. Designed to be used from early processes.</td></tr>
 <tr><td><code>2</code></td><td><code>request_system_object</code></td><td>object id</td><td>{depends on id}</td><td>{depends on id}</td><td>{depends on id}</td><td>{depends on id}</td><td>id of object + status</td><td>Request the id of a system kernel object.</td></tr>
+<tr><td><code>3</code></td><td><code>my_address_space</code></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>AddressSpace id</td><td>Get the id of the calling task's AddressSpace.</td></tr>
 </tbody></table>
 <h3><a class="header" href="#making-a-system-call-on-x86_64" id="making-a-system-call-on-x86_64">Making a system call on x86_64</a></h3>
 <p>To make a system call on x86_64, populate these registers:</p>
@@ -341,6 +342,10 @@ access it</li>
 </ul>
 </li>
 </ul>
+<h3><a class="header" href="#my_address_space" id="my_address_space"><code>my_address_space</code></a></h3>
+<p>Get the ID of the AddressSpace kernel object that the calling task is running in. Tasks do not need a
+capability to use this system call, as they automatically have access to their own AddressSpaces, and more
+priviledged operations are protected by their own capabilities.</p>
 <h1><a class="header" href="#capabilities" id="capabilities">Capabilities</a></h1>
 <p>Capabilities describe what a task is allowed to do, and are encoded in its image. This allows users to audit the
 permissions of the tasks they run at a much higher granularity than user-based permissions, and also allow us to

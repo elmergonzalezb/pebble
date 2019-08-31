@@ -65,6 +65,12 @@
 <span id="65">65</span>
 <span id="66">66</span>
 <span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="ident">cfg_if</span>::<span class="macro">cfg_if</span><span class="macro">!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>)]</span> {
@@ -81,6 +87,7 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYSCALL_YIELD</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYSCALL_EARLY_LOG</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYSCALL_REQUEST_SYSTEM_OBJECT</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYSCALL_MY_ADDRESS_SPACE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">3</span>;
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">yield_to_kernel</span>() {
     <span class="kw">unsafe</span> {
@@ -95,6 +102,10 @@
         <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(()),
     }
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">my_address_space</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">KernelObjectId</span> {
+    <span class="ident">KernelObjectId</span>::<span class="ident">from_syscall_repr</span>(<span class="kw">unsafe</span> { <span class="ident">raw</span>::<span class="ident">syscall0</span>(<span class="ident">SYSCALL_MY_ADDRESS_SPACE</span>) })
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
@@ -119,17 +130,18 @@
         <span class="comment">/*
          * System objects that don&#39;t take any further parameters.
          */</span>
-        <span class="ident">BackupFramebuffer</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="ident">raw</span>::<span class="ident">syscall1</span>(<span class="ident">SYSCALL_REQUEST_SYSTEM_OBJECT</span>, <span class="ident">id</span> <span class="kw">as</span> <span class="ident">usize</span>) },
+        <span class="ident">SystemObjectId</span>::<span class="ident">BackupFramebuffer</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> {
+            <span class="ident">raw</span>::<span class="ident">syscall1</span>(<span class="ident">SYSCALL_REQUEST_SYSTEM_OBJECT</span>, <span class="ident">id</span> <span class="kw">as</span> <span class="ident">usize</span>)
+        },
     };
 
     <span class="kw">match</span> <span class="ident">result</span>.<span class="ident">get_bits</span>(<span class="number">32</span>..<span class="number">64</span>) {
-        <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">KernelObjectId</span> {
-            <span class="ident">index</span>: <span class="ident">result</span>.<span class="ident">get_bits</span>(<span class="number">0</span>..<span class="number">16</span>) <span class="kw">as</span> <span class="ident">u16</span>,
-            <span class="ident">generation</span>: <span class="ident">result</span>.<span class="ident">get_bits</span>(<span class="number">16</span>..<span class="number">32</span>) <span class="kw">as</span> <span class="ident">u16</span>,
-        }),
+        <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">KernelObjectId</span>::<span class="ident">from_syscall_repr</span>(<span class="ident">result</span>)),
+
         <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">RequestSystemObjectError</span>::<span class="ident">ObjectDoesNotExist</span>),
         <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">RequestSystemObjectError</span>::<span class="ident">NotAValidId</span>),
         <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">RequestSystemObjectError</span>::<span class="ident">PermissionDenied</span>),
+
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Syscall request_system_object returned unexpected status code&quot;</span>),
     }
 }
