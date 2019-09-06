@@ -32,9 +32,17 @@
 <span id="32">32</span>
 <span id="33">33</span>
 <span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">no_std</span>]</span>
-<span class="attribute">#![<span class="ident">feature</span>(<span class="ident">const_generics</span>, <span class="ident">decl_macro</span>, <span class="ident">maybe_uninit_ref</span>)]</span>
+<span class="attribute">#![<span class="ident">feature</span>(<span class="ident">const_generics</span>, <span class="ident">decl_macro</span>, <span class="ident">maybe_uninit_ref</span>, <span class="ident">type_ascription</span>)]</span>
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">std</span>;
 
 <span class="kw">mod</span> <span class="ident">binary_pretty_print</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bitmap</span>;

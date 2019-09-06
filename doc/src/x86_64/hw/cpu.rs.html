@@ -307,6 +307,8 @@
 <span id="307">307</span>
 <span id="308">308</span>
 <span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/// This module gets and decodes information about the CPU we&#39;re running on, using the `cpuid`</span>
 <span class="doccomment">/// instruction. If we&#39;re running under a hypervisor, we use the [Linux standard for</span>
@@ -472,10 +474,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// For example:</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// ``` ignore</span>
 <span class="doccomment">///       MSB         LSB</span>
 <span class="doccomment">/// EBX = &#39;u&#39; &#39;n&#39; &#39;e&#39; &#39;G&#39;</span>
 <span class="doccomment">/// EDX = &#39;I&#39; &#39;e&#39; &#39;n&#39; &#39;i&#39;</span>
 <span class="doccomment">/// ECX = &#39;l&#39; &#39;e&#39; &#39;t&#39; &#39;n&#39;</span>
+<span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// turns into &quot;GenuineIntel&quot;.</span>
 <span class="ident">union</span> <span class="ident">VendorRepr</span> {

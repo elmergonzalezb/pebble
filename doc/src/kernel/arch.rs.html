@@ -62,7 +62,7 @@
 <span id="62">62</span>
 <span id="63">63</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">object</span>::{<span class="ident">task</span>::<span class="ident">CommonTask</span>, <span class="ident">WrappedKernelObject</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">object</span>::{<span class="ident">common</span>::<span class="ident">CommonTask</span>, <span class="ident">WrappedKernelObject</span>};
 
 <span class="doccomment">/// Trait that is implemented by a type in each architecture module, and passed to `kernel_main`.</span>
 <span class="doccomment">/// Provides a common interface to platform-specific operations for the architecture-independent</span>
@@ -90,7 +90,7 @@
     <span class="kw">use</span> <span class="kw">crate</span>::{
         <span class="ident">arch</span>::<span class="ident">Architecture</span>,
         <span class="ident">object</span>::{
-            <span class="ident">task</span>::{<span class="ident">CommonTask</span>, <span class="ident">TaskState</span>},
+            <span class="ident">common</span>::{<span class="ident">CommonTask</span>, <span class="ident">TaskState</span>},
             <span class="ident">WrappedKernelObject</span>,
         },
     };

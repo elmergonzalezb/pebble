@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["KernelObject",""]],"mod":[["map",""],["task",""]],"struct":[["WrappedKernelObject",""]]});
+initSidebarItems({"enum":[["KernelObject",""]],"mod":[["common","This module contains types that can be re-used between common parts of the kernel and all the architecture modules."],["map",""]],"struct":[["WrappedKernelObject",""]]});

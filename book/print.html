@@ -289,6 +289,7 @@ the size of a register.</p>
 <tr><td><code>1</code></td><td><code>early_log</code></td><td>length of string</td><td>ptr to string</td><td>-</td><td>-</td><td>-</td><td>success / error</td><td>Log a message. Designed to be used from early processes.</td></tr>
 <tr><td><code>2</code></td><td><code>request_system_object</code></td><td>object id</td><td>{depends on id}</td><td>{depends on id}</td><td>{depends on id}</td><td>{depends on id}</td><td>id of object + status</td><td>Request the id of a system kernel object.</td></tr>
 <tr><td><code>3</code></td><td><code>my_address_space</code></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>AddressSpace id</td><td>Get the id of the calling task's AddressSpace.</td></tr>
+<tr><td><code>4</code></td><td><code>map_memory_object</code></td><td>MemoryObject id</td><td>AddressSpace id</td><td>-</td><td>-</td><td>-</td><td>success / error</td><td>Map a MemoryObject into an AddressSpace.</td></tr>
 </tbody></table>
 <h3><a class="header" href="#making-a-system-call-on-x86_64" id="making-a-system-call-on-x86_64">Making a system call on x86_64</a></h3>
 <p>To make a system call on x86_64, populate these registers:</p>
@@ -321,6 +322,8 @@ requires the requesting task to have a particular capability - if the task is pe
 the kernel returns the kernel object id of the object, and takes any steps needed for the requesting task to
 be able to access the object. Normal user tasks probably don't have any need for this system call - it is more
 aimed at device drivers and system management tasks.</p>
+<p>If this system call is successful, access is granted to the system object from the calling task. This means it
+can use the returned id in other system calls.</p>
 <p>The first parameter, <code>a</code>, is always the id (not to be confused with the actual kernel object id, which is not
 hardcoded and therefore can change between boots) of the system object. The allowed values are:</p>
 <table><thead><tr><th><code>a</code></th><th>Object being requested</th><th>Type</th><th><code>b</code></th><th><code>c</code></th><th><code>d</code></th><th><code>e</code></th><th>Required capability</th></tr></thead><tbody>
@@ -346,6 +349,22 @@ access it</li>
 <p>Get the ID of the AddressSpace kernel object that the calling task is running in. Tasks do not need a
 capability to use this system call, as they automatically have access to their own AddressSpaces, and more
 priviledged operations are protected by their own capabilities.</p>
+<h3><a class="header" href="#map_memory_object" id="map_memory_object"><code>map_memory_object</code></a></h3>
+<p>Map a MemoryObject into an AddressSpace. This requires the calling task to have access to the MemoryObject,
+and to the AddressSpace.</p>
+<p>The first parameter, <code>a</code>, is the kernel object ID of the MemoryObject. The second parameter, <code>b</code>, is the
+kernel object ID of the AddressSpace to map the MemoryObject into.</p>
+<p>Returns:</p>
+<ul>
+<li><code>0</code> if the system call succeeded</li>
+<li><code>1</code> if the portion of the AddressSpace that would be mapped is already occupied by another MemoryObject</li>
+<li><code>2</code> if the calling task doesn't have access to the MemoryObject</li>
+<li><code>3</code> if the calling task doesn't have access to the AddressSpace</li>
+<li><code>4</code> if the ID for the MemoryObject does not point to a valid MemoryObject, or if the ID does not point to
+any object</li>
+<li><code>5</code> if the ID for the AddressSpace does not point to a valid AddressSpace, or if the ID does not point to
+any object</li>
+</ul>
 <h1><a class="header" href="#capabilities" id="capabilities">Capabilities</a></h1>
 <p>Capabilities describe what a task is allowed to do, and are encoded in its image. This allows users to audit the
 permissions of the tasks they run at a much higher granularity than user-based permissions, and also allow us to

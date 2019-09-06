@@ -290,11 +290,24 @@
 <span id="290">290</span>
 <span id="291">291</span>
 <span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">mod</span> <span class="ident">exception</span>;
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">Arch</span>;
 <span class="kw">use</span> <span class="ident">acpi</span>::<span class="ident">interrupt</span>::<span class="ident">InterruptModel</span>;
+<span class="kw">use</span> <span class="ident">aml</span>::{<span class="ident">value</span>::<span class="ident">Args</span> <span class="kw">as</span> <span class="ident">AmlArgs</span>, <span class="ident">AmlName</span>, <span class="ident">AmlValue</span>};
 <span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 <span class="kw">use</span> <span class="ident">log</span>::<span class="ident">info</span>;
@@ -341,7 +354,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InterruptController</span> {}
 
 <span class="kw">impl</span> <span class="ident">InterruptController</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">arch</span>: <span class="kw-2">&amp;</span><span class="ident">Arch</span>, <span class="ident">interrupt_model</span>: <span class="kw-2">&amp;</span><span class="ident">InterruptModel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">InterruptController</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">arch</span>: <span class="kw-2">&amp;</span><span class="ident">Arch</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">InterruptController</span> {
         <span class="self">Self</span>::<span class="ident">install_syscall_handler</span>();
         <span class="self">Self</span>::<span class="ident">install_exception_handlers</span>();
 
@@ -349,7 +362,7 @@
             <span class="ident">IDT</span>.<span class="ident">load</span>();
         }
 
-        <span class="kw">match</span> <span class="ident">interrupt_model</span> {
+        <span class="kw">match</span> <span class="ident">arch</span>.<span class="ident">acpi_info</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">interrupt_model</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>() {
             <span class="ident">InterruptModel</span>::<span class="ident">Apic</span> {
                 <span class="ident">local_apic_address</span>,
                 <span class="ident">io_apics</span>: <span class="ident">acpi_io_apics</span>,
@@ -362,6 +375,17 @@
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pic</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Pic</span>::<span class="ident">new</span>() };
                     <span class="ident">pic</span>.<span class="ident">remap_and_disable</span>(<span class="ident">LEGACY_PIC_VECTOR</span>, <span class="ident">LEGACY_PIC_VECTOR</span> <span class="op">+</span> <span class="number">8</span>);
                 }
+
+                <span class="comment">/*
+                 * Tell ACPI that we intend to use the APICs instead of the legacy PIC.
+                 */</span>
+                <span class="ident">arch</span>.<span class="ident">aml_context</span>
+                    .<span class="ident">lock</span>()
+                    .<span class="ident">invoke_method</span>(
+                        <span class="kw-2">&amp;</span><span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\_PIC&quot;</span>).<span class="ident">unwrap</span>(),
+                        <span class="ident">AmlArgs</span> { <span class="ident">arg_0</span>: <span class="prelude-val">Some</span>(<span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="number">1</span>)), ..<span class="ident">Default</span>::<span class="ident">default</span>() },
+                    )
+                    .<span class="ident">expect</span>(<span class="string">&quot;Failed to invoke \\_PIC method&quot;</span>);
 
                 <span class="comment">/*
                  * Map the local APIC&#39;s configuration space into the kernel address space.
