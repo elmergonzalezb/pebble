@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Message Format - Pebble OS</title>
+        <title>early_log - Pebble OS</title>
         
 
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
@@ -78,7 +78,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li><a href="../introduction/index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="../kernel/index.html"><strong aria-hidden="true">2.</strong> The Kernel</a></li><li><ol class="section"><li><a href="../kernel/bootcmd.html"><strong aria-hidden="true">2.1.</strong> Bootcmd</a></li><li><a href="../kernel/booting_x86_64.html"><strong aria-hidden="true">2.2.</strong> Booting (x86_64)</a></li><li><a href="../kernel/object_ids.html"><strong aria-hidden="true">2.3.</strong> Kernel Object IDs</a></li><li><a href="../kernel/syscalls.html"><strong aria-hidden="true">2.4.</strong> System calls</a></li></ol></li><li><a href="../syscalls/index.html"><strong aria-hidden="true">3.</strong> Syscalls</a></li><li><ol class="section"><li><a href="../syscalls/yield.html"><strong aria-hidden="true">3.1.</strong> yield</a></li><li><a href="../syscalls/early_log.html"><strong aria-hidden="true">3.2.</strong> early_log</a></li><li><a href="../syscalls/request_system_object.html"><strong aria-hidden="true">3.3.</strong> request_system_object</a></li><li><a href="../syscalls/my_address_space.html"><strong aria-hidden="true">3.4.</strong> my_address_space</a></li><li><a href="../syscalls/map_memory_object.html"><strong aria-hidden="true">3.5.</strong> map_memory_object</a></li></ol></li><li><a href="../userspace/index.html"><strong aria-hidden="true">4.</strong> Userspace</a></li><li><ol class="section"><li><a href="../userspace/capabilities.html"><strong aria-hidden="true">4.1.</strong> Capabilities</a></li><li><a href="../userspace/memory_map_x86_64.html"><strong aria-hidden="true">4.2.</strong> Memory map (x86_64)</a></li></ol></li><li><a href="../message_passing/index.html"><strong aria-hidden="true">5.</strong> Message Passing</a></li><li><ol class="section"><li><a href="../message_passing/fmt.html" class="active"><strong aria-hidden="true">5.1.</strong> Message Format</a></li></ol></li></ol>
+                <ol class="chapter"><li><a href="../introduction/index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="../kernel/index.html"><strong aria-hidden="true">2.</strong> The Kernel</a></li><li><ol class="section"><li><a href="../kernel/bootcmd.html"><strong aria-hidden="true">2.1.</strong> Bootcmd</a></li><li><a href="../kernel/booting_x86_64.html"><strong aria-hidden="true">2.2.</strong> Booting (x86_64)</a></li><li><a href="../kernel/object_ids.html"><strong aria-hidden="true">2.3.</strong> Kernel Object IDs</a></li><li><a href="../kernel/syscalls.html"><strong aria-hidden="true">2.4.</strong> System calls</a></li></ol></li><li><a href="../syscalls/index.html"><strong aria-hidden="true">3.</strong> Syscalls</a></li><li><ol class="section"><li><a href="../syscalls/yield.html"><strong aria-hidden="true">3.1.</strong> yield</a></li><li><a href="../syscalls/early_log.html" class="active"><strong aria-hidden="true">3.2.</strong> early_log</a></li><li><a href="../syscalls/request_system_object.html"><strong aria-hidden="true">3.3.</strong> request_system_object</a></li><li><a href="../syscalls/my_address_space.html"><strong aria-hidden="true">3.4.</strong> my_address_space</a></li><li><a href="../syscalls/map_memory_object.html"><strong aria-hidden="true">3.5.</strong> map_memory_object</a></li></ol></li><li><a href="../userspace/index.html"><strong aria-hidden="true">4.</strong> Userspace</a></li><li><ol class="section"><li><a href="../userspace/capabilities.html"><strong aria-hidden="true">4.1.</strong> Capabilities</a></li><li><a href="../userspace/memory_map_x86_64.html"><strong aria-hidden="true">4.2.</strong> Memory map (x86_64)</a></li></ol></li><li><a href="../message_passing/index.html"><strong aria-hidden="true">5.</strong> Message Passing</a></li><li><ol class="section"><li><a href="../message_passing/fmt.html"><strong aria-hidden="true">5.1.</strong> Message Format</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -145,65 +145,38 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#message-format" id="message-format">Message Format</a></h1>
-<p>Rust's type system can't be used over process boundaries, and so we need another way to encode and decode messages reliably. The soundness of this is incredible important - message passing is Pebble's
-largest attack surface, and so the kernel must be able to correctly parse all malformed messaged without violating safety. We also want to make it as easy as possible for developers to build programs that
-can send and receive messages.</p>
-<p>Every message starts with a header, with the format (the meaning of the <code>ProcessId</code> depends on whether the message is in the Send or Receive buffer):</p>
-<pre><code>*----------------------------------* 0x00
-| Sender / Recepient (ProcessId)   |
-*----------------------------------* 0x02
-| Payload length (u16)             |
-*----------------------------------* 0x04
-</code></pre>
-<p>This header is followed by the message's payload, which can represent any type that can be serialized and deserialized by <code>serde</code>. This encoding needs to be compact, but also must be verifiable to be the
-correct type of message. Pebble uses a custom encoding format, heavily inspired by <a href="https://github.com/TyOverby/bincode">BinCode</a> and <a href="https://github.com/msgpack/msgpack/blob/master/spec.md">MessagePack</a>.
-By effectively having a tiny type system that closely resembles the Serde data model, we can sanity-check that the types we're deserializing into will make at least some sense.</p>
-<h3><a class="header" href="#encoding-types" id="encoding-types">Encoding types</a></h3>
-<p>To handle any type that can be serialized and deserialized using <code>serde</code>, we need to be able to handle the 29 types of the Serde Data Model. While lots of these types are specifically tagged, some are
-encoded transparently for simplicity and compactness (specifically <code>Newtype Struct</code> and <code>Newtype Variant</code>). All multi-byte structures are little-endian. <code>Struct</code>s and <code>Tuple</code>s are simply encoded by encoding
-each of their fields in order.</p>
-<p>TODO XXX: I don't think this is fully good yet. We should think about how long structures are actually going to be (e.g. how long should a string actually be able to be?), and decide if the extra compactness is worth it for e.g. missing out an extra 1 byte of length info...</p>
-<table><thead><tr><th>First byte</th><th>Number of following bytes</th><th>Format</th><th>Description</th></tr></thead><tbody>
-<tr><td>0x00</td><td>0</td><td></td><td><code>Unit</code>, <code>Unit Struct</code>, <code>Unit Variant</code></td></tr>
-<tr><td>0x01</td><td>0</td><td></td><td><code>bool</code> - False</td></tr>
-<tr><td>0x02</td><td>0</td><td></td><td><code>bool</code> - True</td></tr>
-<tr><td>0x03</td><td>0</td><td></td><td><code>None</code></td></tr>
-<tr><td>0x04</td><td><code>n</code></td><td>XX(<code>n</code>)</td><td><code>Some(T)</code> (this marks the <code>Some</code>. The <code>T</code> is then encoded after this byte)</td></tr>
-<tr><td>0x05</td><td>1</td><td>CC</td><td><code>char</code> - UTF-8 code point that requires 1 byte to encode</td></tr>
-<tr><td>0x06</td><td>2</td><td>CC-CC</td><td><code>char</code> - UTF-8 code point that requires 2 byte to encode</td></tr>
-<tr><td>0x07</td><td>3</td><td>CC-CC-CC</td><td><code>char</code> - UTF-8 code point that requires 3 byte to encode</td></tr>
-<tr><td>0x08</td><td>4</td><td>CC-CC-CC-CC</td><td><code>char</code> - UTF-8 code point that requires 4 byte to encode</td></tr>
-<tr><td>0x10</td><td>1</td><td>XX</td><td><code>u8</code></td></tr>
-<tr><td>0x11</td><td>2</td><td>XX-XX</td><td><code>u16</code></td></tr>
-<tr><td>0x12</td><td>4</td><td>XX-XX-XX-XX</td><td><code>u32</code></td></tr>
-<tr><td>0x13</td><td>8</td><td>XX-XX-XX-XX-XX-XX-XX-XX</td><td><code>u64</code></td></tr>
-<tr><td>0x14</td><td>16</td><td>XX(16)</td><td><code>u128</code></td></tr>
-<tr><td>0x20</td><td>1</td><td>ZZ</td><td><code>i8</code></td></tr>
-<tr><td>0x21</td><td>2</td><td>ZZ-ZZ</td><td><code>i16</code></td></tr>
-<tr><td>0x22</td><td>4</td><td>ZZ-ZZ-ZZ-ZZ</td><td><code>i32</code></td></tr>
-<tr><td>0x23</td><td>8</td><td>ZZ-ZZ-ZZ-ZZ-ZZ-ZZ-ZZ-ZZ</td><td><code>i64</code></td></tr>
-<tr><td>0x24</td><td>16</td><td>ZZ(16)</td><td><code>i128</code></td></tr>
-<tr><td>0x30</td><td>4</td><td>FF-FF-FF-FF</td><td><code>f32</code></td></tr>
-<tr><td>0x31</td><td>8</td><td>FF-FF-FF-FF-FF-FF-FF-FF</td><td><code>f64</code></td></tr>
-<tr><td>0x40-0x4F</td><td>(1-16){<code>n</code>} + <code>n</code> of data</td><td>NN(<code>first</code> - 0x3F)-CC(<code>n</code>)</td><td><code>String</code></td></tr>
-<tr><td>0x50-0x5F</td><td>(1-16){<code>n</code>} + <code>n</code> of data</td><td>NN(<code>first</code> - 0x4F)-XX(<code>n</code>)</td><td><code>Byte Array</code></td></tr>
-<tr><td>0x60</td><td>4{<code>n</code>} + <code>n</code> of data</td><td>NN-NN-NN-NN-XX(<code>n</code>)</td><td><code>Seq</code></td></tr>
-</tbody></table>
-<h4><a class="header" href="#strings" id="strings">Strings</a></h4>
-<p>Strings are encoded as UTF-8 byte arrays without null terminators. The first byte defines how many bytes are used to encode the length of the string, where <code>0x40</code> means 1 byte is used and <code>0x4F</code> means 16
-bytes are used (this is <code>x</code>). The following <code>x</code> bytes are used to encode the number of bytes used to encode the string (<code>n</code>). Following this are <code>n</code> bytes of UTF-8 string data.</p>
+                        <h3><a class="header" href="#early_log" id="early_log"><code>early_log</code></a></h3>
+<p>Used by tasks that are started early in the boot process, before reliable userspace logging support is running.
+Output is logged to the same place as kernel logging.</p>
+<h3><a class="header" href="#parameters" id="parameters">Parameters</a></h3>
+<ul>
+<li><code>a</code> - the length of the string to log in bytes. Maximum length is 1024 bytes.</li>
+<li><code>b</code> - a usermode pointer to the start of the UTF-8 encoded string.</li>
+</ul>
+<h3><a class="header" href="#returns" id="returns">Returns</a></h3>
+<ul>
+<li><code>0</code> if the system call succeeded</li>
+<li><code>1</code> if the string was too long</li>
+<li><code>2</code> if the string was not valid UTF-8</li>
+<li><code>3</code> if the task making the syscall doesn't have the <code>EarlyLogging</code> capability</li>
+</ul>
+<h3><a class="header" href="#capabilities-needed" id="capabilities-needed">Capabilities needed</a></h3>
+<p>The <code>EarlyLogging</code> capability is needed to make this system call.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                         
-                            <a rel="prev" href="../message_passing/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../syscalls/yield.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
                         
 
+                        
+                            <a rel="next" href="../syscalls/request_system_object.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
                         
 
                         <div style="clear: both"></div>
@@ -213,11 +186,15 @@ bytes are used (this is <code>x</code>). The following <code>x</code> bytes are 
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 
-                    <a href="../message_passing/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a href="../syscalls/yield.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                 
 
+                
+                    <a href="../syscalls/request_system_object.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
                 
             </nav>
 

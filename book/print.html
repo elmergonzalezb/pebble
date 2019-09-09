@@ -80,7 +80,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li><a href="introduction/index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="kernel/index.html"><strong aria-hidden="true">2.</strong> The Kernel</a></li><li><ol class="section"><li><a href="kernel/bootcmd.html"><strong aria-hidden="true">2.1.</strong> Bootcmd</a></li><li><a href="kernel/booting_x86_64.html"><strong aria-hidden="true">2.2.</strong> Booting (x86_64)</a></li><li><a href="kernel/object_ids.html"><strong aria-hidden="true">2.3.</strong> Kernel Object IDs</a></li><li><a href="kernel/syscalls.html"><strong aria-hidden="true">2.4.</strong> System calls</a></li></ol></li><li><a href="userspace/index.html"><strong aria-hidden="true">3.</strong> Userspace</a></li><li><ol class="section"><li><a href="userspace/capabilities.html"><strong aria-hidden="true">3.1.</strong> Capabilities</a></li><li><a href="userspace/memory_map_x86_64.html"><strong aria-hidden="true">3.2.</strong> Memory map (x86_64)</a></li></ol></li><li><a href="message_passing/index.html"><strong aria-hidden="true">4.</strong> Message Passing</a></li><li><ol class="section"><li><a href="message_passing/fmt.html"><strong aria-hidden="true">4.1.</strong> Message Format</a></li></ol></li></ol>
+                <ol class="chapter"><li><a href="introduction/index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><a href="kernel/index.html"><strong aria-hidden="true">2.</strong> The Kernel</a></li><li><ol class="section"><li><a href="kernel/bootcmd.html"><strong aria-hidden="true">2.1.</strong> Bootcmd</a></li><li><a href="kernel/booting_x86_64.html"><strong aria-hidden="true">2.2.</strong> Booting (x86_64)</a></li><li><a href="kernel/object_ids.html"><strong aria-hidden="true">2.3.</strong> Kernel Object IDs</a></li><li><a href="kernel/syscalls.html"><strong aria-hidden="true">2.4.</strong> System calls</a></li></ol></li><li><a href="syscalls/index.html"><strong aria-hidden="true">3.</strong> Syscalls</a></li><li><ol class="section"><li><a href="syscalls/yield.html"><strong aria-hidden="true">3.1.</strong> yield</a></li><li><a href="syscalls/early_log.html"><strong aria-hidden="true">3.2.</strong> early_log</a></li><li><a href="syscalls/request_system_object.html"><strong aria-hidden="true">3.3.</strong> request_system_object</a></li><li><a href="syscalls/my_address_space.html"><strong aria-hidden="true">3.4.</strong> my_address_space</a></li><li><a href="syscalls/map_memory_object.html"><strong aria-hidden="true">3.5.</strong> map_memory_object</a></li></ol></li><li><a href="userspace/index.html"><strong aria-hidden="true">4.</strong> Userspace</a></li><li><ol class="section"><li><a href="userspace/capabilities.html"><strong aria-hidden="true">4.1.</strong> Capabilities</a></li><li><a href="userspace/memory_map_x86_64.html"><strong aria-hidden="true">4.2.</strong> Memory map (x86_64)</a></li></ol></li><li><a href="message_passing/index.html"><strong aria-hidden="true">5.</strong> Message Passing</a></li><li><ol class="section"><li><a href="message_passing/fmt.html"><strong aria-hidden="true">5.1.</strong> Message Format</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -300,22 +300,32 @@ the size of a register.</p>
 of <code>rcx</code>. This is because <code>rcx</code> is used by the <code>syscall</code> instruction, and so is not free.
 You can then make the system call by executing <code>syscall</code>. Before the kernel returns to userspace, it will put the result of the system call (if there is one) in <code>rax</code>.
 If a system call takes less than five parameters, the unused parameter registers will be preserved across the system call.</p>
-<h3><a class="header" href="#yield" id="yield"><code>yield</code></a></h3>
+<h1><a class="header" href="#yield" id="yield"><code>yield</code></a></h1>
 <p>Used by a task that can't do any work at the moment, allowing the kernel to schedule other tasks.</p>
+<h3><a class="header" href="#parameters" id="parameters">Parameters</a></h3>
+<p>None.</p>
+<h3><a class="header" href="#returns" id="returns">Returns</a></h3>
+<p>Always <code>0</code>.</p>
+<h3><a class="header" href="#capabilities-needed" id="capabilities-needed">Capabilities needed</a></h3>
+<p>None.</p>
 <h3><a class="header" href="#early_log" id="early_log"><code>early_log</code></a></h3>
-<p>Used by tasks that are started early in the boot process, before reliable userspace logging support is running. Output is
-logged to the same place as kernel logging.</p>
-<p>This system call should not be used from standard usermode tasks, and so requires the <code>EarlyLogging</code> capability to use.
-The first parameter (<code>a</code>) is the length of the string in bytes, and the second (<code>b</code>) is a UTF-8 encoded string that is not
-null-terminated. The maximum length of the string is 1024 chars.</p>
-<p>Returns:</p>
+<p>Used by tasks that are started early in the boot process, before reliable userspace logging support is running.
+Output is logged to the same place as kernel logging.</p>
+<h3><a class="header" href="#parameters-1" id="parameters-1">Parameters</a></h3>
+<ul>
+<li><code>a</code> - the length of the string to log in bytes. Maximum length is 1024 bytes.</li>
+<li><code>b</code> - a usermode pointer to the start of the UTF-8 encoded string.</li>
+</ul>
+<h3><a class="header" href="#returns-1" id="returns-1">Returns</a></h3>
 <ul>
 <li><code>0</code> if the system call succeeded</li>
 <li><code>1</code> if the string was too long</li>
 <li><code>2</code> if the string was not valid UTF-8</li>
 <li><code>3</code> if the task making the syscall doesn't have the <code>EarlyLogging</code> capability</li>
 </ul>
-<h3><a class="header" href="#request_system_object" id="request_system_object"><code>request_system_object</code></a></h3>
+<h3><a class="header" href="#capabilities-needed-1" id="capabilities-needed-1">Capabilities needed</a></h3>
+<p>The <code>EarlyLogging</code> capability is needed to make this system call.</p>
+<h1><a class="header" href="#request_system_object" id="request_system_object"><code>request_system_object</code></a></h1>
 <p>Used by tasks to request access to a &quot;system&quot; kernel object - usually one created by the kernel to provide
 some resource, such as the framebuffer, to userspace. Each object has a hardcoded id used to request it, and
 requires the requesting task to have a particular capability - if the task is permitted access to the object,
@@ -324,14 +334,16 @@ be able to access the object. Normal user tasks probably don't have any need for
 aimed at device drivers and system management tasks.</p>
 <p>If this system call is successful, access is granted to the system object from the calling task. This means it
 can use the returned id in other system calls.</p>
+<h3><a class="header" href="#parameters-2" id="parameters-2">Parameters</a></h3>
 <p>The first parameter, <code>a</code>, is always the id (not to be confused with the actual kernel object id, which is not
-hardcoded and therefore can change between boots) of the system object. The allowed values are:</p>
-<table><thead><tr><th><code>a</code></th><th>Object being requested</th><th>Type</th><th><code>b</code></th><th><code>c</code></th><th><code>d</code></th><th><code>e</code></th><th>Required capability</th></tr></thead><tbody>
-<tr><td><code>0</code></td><td>The backup framebuffer</td><td><code>MemoryObject</code></td><td>-</td><td>-</td><td>-</td><td>-</td><td><code>AccessBackupFramebuffer</code></td></tr>
+hardcoded and therefore can change between boots) of the system object. The meaning of the other parameters
+depend on the object requested. The allowed values are:</p>
+<table><thead><tr><th><code>a</code></th><th>Object being requested</th><th>Type</th><th><code>b</code></th><th><code>c</code></th><th><code>d</code></th><th><code>e</code></th></tr></thead><tbody>
+<tr><td><code>0</code></td><td>The backup framebuffer</td><td><code>MemoryObject</code></td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
 </tbody></table>
 <p>TODO: id for accessing Pci config space where extra params are bus, device, function (+segment or whatever)
 numbers.</p>
-<p>Returns:</p>
+<h3><a class="header" href="#returns-2" id="returns-2">Returns</a></h3>
 <ul>
 <li>Bits <code>0..16</code> contain the index of the requested object's ID, if the system call succeeded</li>
 <li>Bits <code>16..32</code> contain the generation of the requested object's ID, if the system call succeeded</li>
@@ -345,16 +357,27 @@ access it</li>
 </ul>
 </li>
 </ul>
-<h3><a class="header" href="#my_address_space" id="my_address_space"><code>my_address_space</code></a></h3>
+<h3><a class="header" href="#capabilities-needed-2" id="capabilities-needed-2">Capabilities needed</a></h3>
+<table><thead><tr><th>id</th><th>Capability needed</th></tr></thead><tbody>
+<tr><td><code>0</code></td><td><code>AccessBackupFramebuffer</code></td></tr>
+</tbody></table>
+<h1><a class="header" href="#my_address_space" id="my_address_space"><code>my_address_space</code></a></h1>
 <p>Get the ID of the AddressSpace kernel object that the calling task is running in. Tasks do not need a
 capability to use this system call, as they automatically have access to their own AddressSpaces, and more
 priviledged operations are protected by their own capabilities.</p>
-<h3><a class="header" href="#map_memory_object" id="map_memory_object"><code>map_memory_object</code></a></h3>
+<h3><a class="header" href="#parameters-3" id="parameters-3">Parameters</a></h3>
+<p>None.</p>
+<h3><a class="header" href="#returns-3" id="returns-3">Returns</a></h3>
+<p>The kernel object ID of the AddressSpace of the calling task.</p>
+<h3><a class="header" href="#capabilities-needed-3" id="capabilities-needed-3">Capabilities needed</a></h3>
+<p>None.</p>
+<h1><a class="header" href="#map_memory_object" id="map_memory_object"><code>map_memory_object</code></a></h1>
 <p>Map a MemoryObject into an AddressSpace. This requires the calling task to have access to the MemoryObject,
 and to the AddressSpace.</p>
-<p>The first parameter, <code>a</code>, is the kernel object ID of the MemoryObject. The second parameter, <code>b</code>, is the
-kernel object ID of the AddressSpace to map the MemoryObject into.</p>
-<p>Returns:</p>
+<h3><a class="header" href="#parameters-4" id="parameters-4">Parameters</a></h3>
+<p><code>a</code> - the kernel object ID of the MemoryObject.
+<code>b</code> - the kernel object ID of the AddressSpace to map the MemoryObject into.</p>
+<h3><a class="header" href="#returns-4" id="returns-4">Returns</a></h3>
 <ul>
 <li><code>0</code> if the system call succeeded</li>
 <li><code>1</code> if the portion of the AddressSpace that would be mapped is already occupied by another MemoryObject</li>
@@ -365,6 +388,8 @@ any object</li>
 <li><code>5</code> if the ID for the AddressSpace does not point to a valid AddressSpace, or if the ID does not point to
 any object</li>
 </ul>
+<h3><a class="header" href="#capabilities-needed-4" id="capabilities-needed-4">Capabilities needed</a></h3>
+<p>None (this may change in the future).</p>
 <h1><a class="header" href="#capabilities" id="capabilities">Capabilities</a></h1>
 <p>Capabilities describe what a task is allowed to do, and are encoded in its image. This allows users to audit the
 permissions of the tasks they run at a much higher granularity than user-based permissions, and also allow us to
