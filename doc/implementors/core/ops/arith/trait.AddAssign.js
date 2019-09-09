@@ -8,5 +8,4 @@ implementors["x86_64"] = [{text:"impl&lt;S&gt; <a class=\"trait\" href=\"https:/
             } else {
                 window.pending_implementors = implementors;
             }
-        
-})()
+        })()

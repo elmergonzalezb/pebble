@@ -6,5 +6,4 @@ implementors["pebble_util"] = [];
             } else {
                 window.pending_implementors = implementors;
             }
-        
-})()
+        })()

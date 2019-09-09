@@ -19,5 +19,4 @@ implementors["x86_64"] = [{text:"impl <a class=\"trait\" href=\"https://doc.rust
             } else {
                 window.pending_implementors = implementors;
             }
-        
-})()
+        })()

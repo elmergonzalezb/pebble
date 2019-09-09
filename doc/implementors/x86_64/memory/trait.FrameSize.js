@@ -6,5 +6,4 @@ implementors["x86_64"] = [];
             } else {
                 window.pending_implementors = implementors;
             }
-        
-})()
+        })()

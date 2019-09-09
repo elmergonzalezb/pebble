@@ -6,5 +6,4 @@ implementors["kernel"] = [{text:"impl <a class=\"trait\" href=\"log/trait.Log.ht
             } else {
                 window.pending_implementors = implementors;
             }
-        
-})()
+        })()

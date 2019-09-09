@@ -6,5 +6,4 @@ implementors["kernel"] = [];
             } else {
                 window.pending_implementors = implementors;
             }
-        
-})()
+        })()

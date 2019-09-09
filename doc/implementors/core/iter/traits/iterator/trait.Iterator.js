@@ -7,5 +7,4 @@ implementors["num_iter"] = [{text:"impl&lt;A&gt; <a class=\"trait\" href=\"https
             } else {
                 window.pending_implementors = implementors;
             }
-        
-})()
+        })()

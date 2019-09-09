@@ -6,5 +6,4 @@ implementors["bit_field"] = [];
             } else {
                 window.pending_implementors = implementors;
             }
-        
-})()
+        })()

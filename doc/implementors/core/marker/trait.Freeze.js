@@ -19,5 +19,4 @@ implementors["x86_64"] = [{text:"impl Freeze for <a class=\"struct\" href=\"x86_
             } else {
                 window.pending_implementors = implementors;
             }
-        
-})()
+        })()

@@ -6,5 +6,4 @@ implementors["kernel"] = [{text:"impl <a class=\"trait\" href=\"x86_64/memory/fr
             } else {
                 window.pending_implementors = implementors;
             }
-        
-})()
+        })()
