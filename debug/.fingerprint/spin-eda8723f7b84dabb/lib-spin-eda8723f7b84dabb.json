@@ -1,1 +1,0 @@
-{"rustc":18428592158185880696,"features":"[\"const_fn\", \"default\", \"once\", \"unstable\"]","target":15586965302802957762,"profile":14672114853574311971,"path":4753972995708604946,"deps":[],"local":[{"CheckDepInfo":{"dep_info":"debug/.fingerprint/spin-eda8723f7b84dabb/dep-lib-spin-eda8723f7b84dabb"}}],"rustflags":[],"metadata":13530534873528620761}
