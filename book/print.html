@@ -232,13 +232,13 @@ complex.</p>
 IDs</strong>. This means that kernel object IDs are comprised of two different numbers:</p>
 <pre><pre class="playpen"><code class="language-rust">
 <span class="boring">#![allow(unused_variables)]
-fn main() {
+</span><span class="boring">fn main() {
 </span>pub struct KernelObjectId {
     index: u16,
     generation: u16,
 }
 <span class="boring">}
-</code></pre></pre>
+</span></code></pre></pre>
 <p>Note that the meaning of these numbers is only related to how the kernel manages the allocation of IDs, and
 can be treated as a single ID by other parts of the system, and by tasks.</p>
 <p>The key motivation behind this is called <a href="https://en.wikipedia.org/wiki/ABA_problem">the ABA problem</a>. Because
