@@ -70,8 +70,6 @@
 <span id="70">70</span>
 <span id="71">71</span>
 <span id="72">72</span>
-<span id="73">73</span>
-<span id="74">74</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! These constants centralize the layout of the virtual address space on x86_64. The 511th P4</span>
 <span class="doccomment">//! entry (covering addresses `0xffff_ff80_0000_0000` through to `0xffff_ffff_ffff_ffff`) is always</span>
@@ -114,25 +112,23 @@
 <span class="doccomment">/// The kernel is mapped into the 511th entry of the P4.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KERNEL_P4_ENTRY</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">511</span>;
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KERNEL_ADDRESS_SPACE_START</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
-    <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ff80_0000_0000</span>) };
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KERNEL_ADDRESS_SPACE_START</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span> <span class="ident">VirtualAddress</span>::<span class="ident">new_canonicalise</span>(<span class="number">0xffff_ff80_0000_0000</span>);
 
 <span class="doccomment">/// The base virtual address of the physical memory mapping. This is equal to</span>
 <span class="doccomment">/// `KERNEL_ADDRESS_SPACE_START` because we map the physical memory at the start of the kernel&#39;s P4</span>
 <span class="doccomment">/// entry.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PHYSICAL_MAPPING_BASE</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span> <span class="ident">KERNEL_ADDRESS_SPACE_START</span>;
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KERNEL_STACKS_BASE</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span>
-    <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffdf_8000_0000</span>) };
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KERNEL_STACKS_BASE</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span> <span class="ident">VirtualAddress</span>::<span class="ident">new_canonicalise</span>(<span class="number">0xffff_ffdf_8000_0000</span>);
 
 <span class="doccomment">/// This is the base of the kernel address space. It starts at -2GB. We don&#39;t know how much memory</span>
 <span class="doccomment">/// the kernel image will take up when loaded into memory, so we leave quite a lot of space until</span>
 <span class="doccomment">/// the next statically mapped thing.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KERNEL_BASE</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_8000_0000</span>) };
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">KERNEL_BASE</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span> <span class="ident">VirtualAddress</span>::<span class="ident">new_canonicalise</span>(<span class="number">0xffff_ffff_8000_0000</span>);
 
 <span class="doccomment">/// The start of the heap. The heap is 200 KiB.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HEAP_START</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_c00_00000</span>) };
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HEAP_END</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_c00_31fff</span>) };
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HEAP_START</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span> <span class="ident">VirtualAddress</span>::<span class="ident">new_canonicalise</span>(<span class="number">0xffff_ffff_c00_00000</span>);
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HEAP_END</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span> <span class="ident">VirtualAddress</span>::<span class="ident">new_canonicalise</span>(<span class="number">0xffff_ffff_c00_31fff</span>);
 
 <span class="comment">/*
  * From here, we place a bunch of hard-coded pages for various things.
@@ -140,7 +136,7 @@
 <span class="doccomment">/// While we could access the local APIC from the physical mapping, it&#39;s easier to just map it to a</span>
 <span class="doccomment">/// fixed virtual address, so we can always access its config space. This allows us to use</span>
 <span class="doccomment">/// `LocalApic` as a singleton, so we can easily access it from interrupt handlers.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOCAL_APIC_CONFIG</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0xffff_ffff_d000_0000</span>) };
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOCAL_APIC_CONFIG</span>: <span class="ident">VirtualAddress</span> <span class="op">=</span> <span class="ident">VirtualAddress</span>::<span class="ident">new_canonicalise</span>(<span class="number">0xffff_ffff_d000_0000</span>);
 
 <span class="doccomment">/// This is the number of 4KiB pages we need to allocate for the boot info. We also need to respect this</span>
 <span class="doccomment">/// in the virtual address space allocation.</span>
