@@ -220,8 +220,6 @@
 <span id="220">220</span>
 <span id="221">221</span>
 <span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements a buddy allocator, an efficient method for managing physical memory. In</span>
 <span class="doccomment">//! this allocator, memory is broken up into a number of blocks, each of which is a power-of-2 in</span>
@@ -305,8 +303,7 @@
              * Pick the largest order block that fits in the remaining area, but cap it at the
              * largest order the allocator can manage.
              */</span>
-            <span class="kw">let</span> <span class="ident">order</span> <span class="op">=</span>
-                <span class="ident">min</span>(<span class="self">self</span>.<span class="ident">max_order</span>(), <span class="ident">flooring_log2</span>((<span class="ident">block_start</span>..<span class="ident">range</span>.<span class="ident">end</span>).<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>) <span class="kw">as</span> <span class="ident">usize</span>);
+            <span class="kw">let</span> <span class="ident">order</span> <span class="op">=</span> <span class="ident">min</span>(<span class="self">self</span>.<span class="ident">max_order</span>(), <span class="ident">flooring_log2</span>((<span class="ident">block_start</span>..<span class="ident">range</span>.<span class="ident">end</span>).<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>) <span class="kw">as</span> <span class="ident">usize</span>);
 
             <span class="self">self</span>.<span class="ident">free_n</span>(<span class="ident">block_start</span>, <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">order</span>);
             <span class="ident">block_start</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">order</span>;
@@ -400,8 +397,7 @@
          * block numbers.
          */</span>
         <span class="ident">Frame</span>::<span class="ident">contains</span>(
-            <span class="ident">PhysicalAddress</span>::<span class="ident">new</span>(<span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">x</span>.<span class="ident">start_address</span>) <span class="op">^</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> (<span class="ident">order</span> <span class="op">+</span> <span class="ident">Size4KiB</span>::<span class="ident">LOG2_SIZE</span>)))
-                .<span class="ident">unwrap</span>(),
+            <span class="ident">PhysicalAddress</span>::<span class="ident">new</span>(<span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">x</span>.<span class="ident">start_address</span>) <span class="op">^</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> (<span class="ident">order</span> <span class="op">+</span> <span class="ident">Size4KiB</span>::<span class="ident">LOG2_SIZE</span>))).<span class="ident">unwrap</span>(),
         )
     }
 

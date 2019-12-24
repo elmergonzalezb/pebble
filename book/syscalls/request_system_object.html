@@ -81,7 +81,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div id="sidebar-scrollbox" class="sidebar-scrollbox">
-                <ol class="chapter"><li class="expanded "><a href="../introduction/index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="expanded "><a href="../kernel/index.html"><strong aria-hidden="true">2.</strong> The Kernel</a></li><li><ol class="section"><li class="expanded "><a href="../kernel/bootcmd.html"><strong aria-hidden="true">2.1.</strong> Bootcmd</a></li><li class="expanded "><a href="../kernel/booting_x86_64.html"><strong aria-hidden="true">2.2.</strong> Booting (x86_64)</a></li><li class="expanded "><a href="../kernel/object_ids.html"><strong aria-hidden="true">2.3.</strong> Kernel Object IDs</a></li><li class="expanded "><a href="../kernel/syscalls.html"><strong aria-hidden="true">2.4.</strong> System calls</a></li></ol></li><li class="expanded "><a href="../syscalls/index.html"><strong aria-hidden="true">3.</strong> Syscalls</a></li><li><ol class="section"><li class="expanded "><a href="../syscalls/yield.html"><strong aria-hidden="true">3.1.</strong> yield</a></li><li class="expanded "><a href="../syscalls/early_log.html"><strong aria-hidden="true">3.2.</strong> early_log</a></li><li class="expanded "><a href="../syscalls/request_system_object.html" class="active"><strong aria-hidden="true">3.3.</strong> request_system_object</a></li><li class="expanded "><a href="../syscalls/my_address_space.html"><strong aria-hidden="true">3.4.</strong> my_address_space</a></li><li class="expanded "><a href="../syscalls/map_memory_object.html"><strong aria-hidden="true">3.5.</strong> map_memory_object</a></li></ol></li><li class="expanded "><a href="../userspace/index.html"><strong aria-hidden="true">4.</strong> Userspace</a></li><li><ol class="section"><li class="expanded "><a href="../userspace/capabilities.html"><strong aria-hidden="true">4.1.</strong> Capabilities</a></li><li class="expanded "><a href="../userspace/memory_map_x86_64.html"><strong aria-hidden="true">4.2.</strong> Memory map (x86_64)</a></li></ol></li><li class="expanded "><a href="../message_passing/index.html"><strong aria-hidden="true">5.</strong> Message Passing</a></li><li><ol class="section"><li class="expanded "><a href="../message_passing/fmt.html"><strong aria-hidden="true">5.1.</strong> Message Format</a></li></ol></li></ol>
+                <ol class="chapter"><li class="expanded "><a href="../introduction/index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="expanded "><a href="../kernel/index.html"><strong aria-hidden="true">2.</strong> The Kernel</a></li><li><ol class="section"><li class="expanded "><a href="../kernel/bootcmd.html"><strong aria-hidden="true">2.1.</strong> Bootcmd</a></li><li class="expanded "><a href="../kernel/booting_x86_64.html"><strong aria-hidden="true">2.2.</strong> Booting (x86_64)</a></li><li class="expanded "><a href="../kernel/kernel_objects.html"><strong aria-hidden="true">2.3.</strong> Kernel Objects</a></li><li class="expanded "><a href="../kernel/syscalls.html"><strong aria-hidden="true">2.4.</strong> System calls</a></li></ol></li><li class="expanded "><a href="../syscalls/index.html"><strong aria-hidden="true">3.</strong> Syscalls</a></li><li><ol class="section"><li class="expanded "><a href="../syscalls/yield.html"><strong aria-hidden="true">3.1.</strong> yield</a></li><li class="expanded "><a href="../syscalls/early_log.html"><strong aria-hidden="true">3.2.</strong> early_log</a></li><li class="expanded "><a href="../syscalls/request_system_object.html" class="active"><strong aria-hidden="true">3.3.</strong> request_system_object</a></li><li class="expanded "><a href="../syscalls/my_address_space.html"><strong aria-hidden="true">3.4.</strong> my_address_space</a></li><li class="expanded "><a href="../syscalls/map_memory_object.html"><strong aria-hidden="true">3.5.</strong> map_memory_object</a></li></ol></li><li class="expanded "><a href="../userspace/index.html"><strong aria-hidden="true">4.</strong> Userspace</a></li><li><ol class="section"><li class="expanded "><a href="../userspace/capabilities.html"><strong aria-hidden="true">4.1.</strong> Capabilities</a></li><li class="expanded "><a href="../userspace/memory_map_x86_64.html"><strong aria-hidden="true">4.2.</strong> Memory map (x86_64)</a></li></ol></li><li class="expanded "><a href="../message_passing/index.html"><strong aria-hidden="true">5.</strong> Message Passing</a></li><li><ol class="section"><li class="expanded "><a href="../message_passing/fmt.html"><strong aria-hidden="true">5.1.</strong> Message Format</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -162,7 +162,7 @@ can use the returned id in other system calls.</p>
 hardcoded and therefore can change between boots) of the system object. The meaning of the other parameters
 depend on the object requested. The allowed values are:</p>
 <table><thead><tr><th><code>a</code></th><th>Object being requested</th><th>Type</th><th><code>b</code></th><th><code>c</code></th><th><code>d</code></th><th><code>e</code></th></tr></thead><tbody>
-<tr><td><code>0</code></td><td>The backup framebuffer</td><td><code>MemoryObject</code></td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td><code>0</code></td><td>The backup framebuffer</td><td><code>MemoryObject</code></td><td>ptr to info</td><td>-</td><td>-</td><td>-</td></tr>
 </tbody></table>
 <p>TODO: id for accessing Pci config space where extra params are bus, device, function (+segment or whatever)
 numbers.</p>
@@ -184,6 +184,30 @@ access it</li>
 <table><thead><tr><th>id</th><th>Capability needed</th></tr></thead><tbody>
 <tr><td><code>0</code></td><td><code>AccessBackupFramebuffer</code></td></tr>
 </tbody></table>
+<h3><a class="header" href="#system-object-backup-framebuffer" id="system-object-backup-framebuffer">System object: backup framebuffer</a></h3>
+<p>An ID of <code>0</code> corresponds to the backup framebuffer system object - a framebuffer created by the bootloader or
+kernel that can be used if there is not a more specialized graphics driver available (e.g. on x86_64, this uses the
+UEFI Graphics Output Protocol to create a basic linear framebuffer). The object is a <code>MemoryObject</code> that is meant
+to be mapped into the userspace driver and directly written to as video memory.</p>
+<p>A userspace address should be passed as <code>b</code>, which is used to pass information about the framebuffer back to
+userspace from the kernel. The memory must be user-accessible and writable. The format of the written structure is:</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>#[repr(C)]
+struct FramebufferInfo {
+    /// The address of the start of the framebuffer
+    address: usize,
+
+    width: u16,
+    height: u16,
+    stride: u16,
+    /// 0 = RGB32
+    /// 1 = BGR32
+    pixel_format: u8,
+}
+<span class="boring">}
+</span></code></pre></pre>
 
                     </main>
 

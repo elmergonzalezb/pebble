@@ -527,7 +527,7 @@
 <span id="527">527</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">interrupt</span>::{<span class="ident">InterruptModel</span>, <span class="ident">InterruptSourceOverride</span>, <span class="ident">IoApic</span>, <span class="ident">NmiSource</span>, <span class="ident">Polarity</span>, <span class="ident">TriggerMode</span>},
+    <span class="ident">interrupt</span>::{<span class="ident">Apic</span>, <span class="ident">InterruptModel</span>, <span class="ident">InterruptSourceOverride</span>, <span class="ident">IoApic</span>, <span class="ident">NmiSource</span>, <span class="ident">Polarity</span>, <span class="ident">TriggerMode</span>},
     <span class="ident">sdt</span>::<span class="ident">SdtHeader</span>,
     <span class="ident">Acpi</span>,
     <span class="ident">AcpiError</span>,
@@ -1025,7 +1025,7 @@
         }
     }
 
-    <span class="prelude-val">Ok</span>(<span class="ident">InterruptModel</span>::<span class="ident">Apic</span> {
+    <span class="prelude-val">Ok</span>(<span class="ident">InterruptModel</span>::<span class="ident">Apic</span>(<span class="ident">Apic</span> {
         <span class="ident">local_apic_address</span>,
         <span class="ident">io_apics</span>,
         <span class="ident">local_apic_nmi_line</span>: <span class="ident">local_apic_nmi_line</span>
@@ -1033,7 +1033,7 @@
         <span class="ident">interrupt_source_overrides</span>,
         <span class="ident">nmi_sources</span>,
         <span class="ident">also_has_legacy_pics</span>: (<span class="kw-2">*</span><span class="ident">mapping</span>).<span class="ident">supports_8259</span>(),
-    })
+    }))
 }
 
 <span class="kw">fn</span> <span class="ident">parse_mps_inti_flags</span>(<span class="ident">flags</span>: <span class="ident">u16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Polarity</span>, <span class="ident">TriggerMode</span>), <span class="ident">AcpiError</span><span class="op">&gt;</span> {

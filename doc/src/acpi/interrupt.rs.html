@@ -70,6 +70,9 @@
 <span id="70">70</span>
 <span id="71">71</span>
 <span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">vec</span>::<span class="ident">Vec</span>;
 
@@ -122,6 +125,20 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Apic</span> {
+    <span class="kw">pub</span> <span class="ident">local_apic_address</span>: <span class="ident">u64</span>,
+    <span class="kw">pub</span> <span class="ident">io_apics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">IoApic</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">local_apic_nmi_line</span>: <span class="ident">LocalInterruptLine</span>,
+    <span class="kw">pub</span> <span class="ident">interrupt_source_overrides</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">InterruptSourceOverride</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">nmi_sources</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NmiSource</span><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// If this field is set, you must remap and mask all the lines of the legacy PIC, even if</span>
+    <span class="doccomment">/// you choose to use the APIC. It&#39;s recommended that you do this even if ACPI does not</span>
+    <span class="doccomment">/// require you to.</span>
+    <span class="kw">pub</span> <span class="ident">also_has_legacy_pics</span>: <span class="ident">bool</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">InterruptModel</span> {
     <span class="doccomment">/// This model is only chosen when a newer one can not be found and the system supports the</span>
     <span class="doccomment">/// legacy dual-8259 PIC.</span>
@@ -130,18 +147,7 @@
     <span class="doccomment">/// Describes an interrupt controller based around the Advanced Programmable Interrupt</span>
     <span class="doccomment">/// Controllers. These are likely to be found on x86 and x86_64 systems and are made up of a</span>
     <span class="doccomment">/// Local APIC for each core and one or more I/O APICs to handle external interrupts.</span>
-    <span class="ident">Apic</span> {
-        <span class="ident">local_apic_address</span>: <span class="ident">u64</span>,
-        <span class="ident">io_apics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">IoApic</span><span class="op">&gt;</span>,
-        <span class="ident">local_apic_nmi_line</span>: <span class="ident">LocalInterruptLine</span>,
-        <span class="ident">interrupt_source_overrides</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">InterruptSourceOverride</span><span class="op">&gt;</span>,
-        <span class="ident">nmi_sources</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NmiSource</span><span class="op">&gt;</span>,
-
-        <span class="doccomment">/// If this field is set, you must remap and mask all the lines of the legacy PIC, even if</span>
-        <span class="doccomment">/// you choose to use the APIC. It&#39;s recommended that you do this even if ACPI does not</span>
-        <span class="doccomment">/// require you to.</span>
-        <span class="ident">also_has_legacy_pics</span>: <span class="ident">bool</span>,
-    },
+    <span class="ident">Apic</span>(<span class="ident">Apic</span>),
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "acpi";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

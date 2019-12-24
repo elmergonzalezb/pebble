@@ -90,8 +90,6 @@
 <span id="90">90</span>
 <span id="91">91</span>
 <span id="92">92</span>
-<span id="93">93</span>
-<span id="94">94</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module probably looks rather sparse! Check the root of one of the architecture modules for</span>
 <span class="doccomment">//! an entry point.</span>
@@ -107,11 +105,9 @@
     <span class="ident">trait_alias</span>,
     <span class="ident">type_ascription</span>,
     <span class="ident">naked_functions</span>,
-    <span class="ident">bind_by_move_pattern_guards</span>,
     <span class="ident">box_syntax</span>,
     <span class="ident">const_generics</span>,
-    <span class="ident">global_asm</span>,
-    <span class="ident">pin_into_inner</span>
+    <span class="ident">global_asm</span>
 )]</span>
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
@@ -166,14 +162,14 @@
     <span class="doccomment">/// If the bootloader switched to a graphics mode that enables the use of a linear framebuffer,</span>
     <span class="doccomment">/// this kernel object will be a MemoryObject that maps the backing memory into a userspace</span>
     <span class="doccomment">/// driver. This is provided to userspace through the `request_system_object` system call.</span>
-    <span class="kw">pub</span> <span class="ident">backup_framebuffer_object</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">KernelObjectId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">backup_framebuffer</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">KernelObjectId</span>, <span class="ident">libpebble</span>::<span class="ident">syscall</span>::<span class="ident">FramebufferSystemObjectInfo</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Common</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Common</span> {
         <span class="ident">Common</span> {
             <span class="ident">object_map</span>: <span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="ident">ObjectMap</span>::<span class="ident">new</span>(<span class="kw">crate</span>::<span class="ident">object</span>::<span class="ident">map</span>::<span class="ident">INITIAL_OBJECT_CAPACITY</span>)),
-            <span class="ident">backup_framebuffer_object</span>: <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>),
+            <span class="ident">backup_framebuffer</span>: <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>),
         }
     }
 }

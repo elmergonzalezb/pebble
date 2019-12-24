@@ -317,9 +317,6 @@
 <span id="317">317</span>
 <span id="318">318</span>
 <span id="319">319</span>
-<span id="320">320</span>
-<span id="321">321</span>
-<span id="322">322</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">core</span>::{
     <span class="ident">alloc</span>::{<span class="ident">AllocErr</span>, <span class="ident">GlobalAlloc</span>, <span class="ident">Layout</span>},
@@ -496,10 +493,7 @@
     <span class="kw">let</span> <span class="ident">aligned_hole</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">aligned_addr</span> <span class="op">+</span> <span class="ident">required_size</span> <span class="op">&gt;</span> <span class="ident">hole</span>.<span class="ident">addr</span> <span class="op">+</span> <span class="ident">hole</span>.<span class="ident">size</span> {
         <span class="kw">return</span> <span class="prelude-val">None</span>; <span class="comment">// Hole is too small</span>
     } <span class="kw">else</span> {
-        <span class="ident">HoleInfo</span> {
-            <span class="ident">addr</span>: <span class="ident">aligned_addr</span>,
-            <span class="ident">size</span>: <span class="ident">hole</span>.<span class="ident">size</span> <span class="op">-</span> (<span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">aligned_addr</span>) <span class="op">-</span> <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">hole</span>.<span class="ident">addr</span>)),
-        }
+        <span class="ident">HoleInfo</span> { <span class="ident">addr</span>: <span class="ident">aligned_addr</span>, <span class="ident">size</span>: <span class="ident">hole</span>.<span class="ident">size</span> <span class="op">-</span> (<span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">aligned_addr</span>) <span class="op">-</span> <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">hole</span>.<span class="ident">addr</span>)) }
     };
 
     <span class="kw">let</span> <span class="ident">back_pad</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">aligned_hole</span>.<span class="ident">size</span> <span class="op">=</span><span class="op">=</span> <span class="ident">required_size</span> {

@@ -196,8 +196,6 @@
 <span id="196">196</span>
 <span id="197">197</span>
 <span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">tss</span>::<span class="ident">Tss</span>, <span class="ident">DescriptorTablePointer</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">memory</span>::<span class="ident">VirtualAddress</span>;
@@ -244,9 +242,7 @@
          * XXX: the Accessed and Readable bits of 64-bit code segments should be ignored, but my
          * old-ish AMD #GPs if they&#39;re not set ¯\_(ツ)_/¯
          */</span>
-        <span class="ident">CodeSegment</span>(
-            <span class="ident">ACCESSED</span> <span class="op">+</span> <span class="ident">READABLE</span> <span class="op">+</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">43</span>) <span class="op">+</span> <span class="ident">USER_SEGMENT</span> <span class="op">+</span> <span class="ident">PRESENT</span> <span class="op">+</span> <span class="ident">LONG_MODE</span> <span class="op">+</span> ((<span class="ident">ring</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">45</span>),
-        )
+        <span class="ident">CodeSegment</span>(<span class="ident">ACCESSED</span> <span class="op">+</span> <span class="ident">READABLE</span> <span class="op">+</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">43</span>) <span class="op">+</span> <span class="ident">USER_SEGMENT</span> <span class="op">+</span> <span class="ident">PRESENT</span> <span class="op">+</span> <span class="ident">LONG_MODE</span> <span class="op">+</span> ((<span class="ident">ring</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">45</span>))
     }
 }
 

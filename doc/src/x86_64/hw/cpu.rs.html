@@ -306,9 +306,6 @@
 <span id="306">306</span>
 <span id="307">307</span>
 <span id="308">308</span>
-<span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/// This module gets and decodes information about the CPU we&#39;re running on, using the `cpuid`</span>
 <span class="doccomment">/// instruction. If we&#39;re running under a hypervisor, we use the [Linux standard for</span>
@@ -557,11 +554,8 @@
 
     <span class="kw">let</span> <span class="ident">extended_family</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">family</span> <span class="op">=</span><span class="op">=</span> <span class="number">0xf</span> { <span class="ident">family</span> <span class="op">+</span> <span class="ident">model_info</span>.<span class="ident">get_bits</span>(<span class="number">20</span>..<span class="number">28</span>) <span class="kw">as</span> <span class="ident">u8</span> } <span class="kw">else</span> { <span class="ident">family</span> };
 
-    <span class="kw">let</span> <span class="ident">extended_model</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">family</span> <span class="op">=</span><span class="op">=</span> <span class="number">0xf</span> <span class="op">|</span><span class="op">|</span> <span class="ident">family</span> <span class="op">=</span><span class="op">=</span> <span class="number">0x6</span> {
-        <span class="ident">model</span> <span class="op">+</span> ((<span class="ident">model_info</span>.<span class="ident">get_bits</span>(<span class="number">16</span>..<span class="number">20</span>) <span class="kw">as</span> <span class="ident">u8</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>)
-    } <span class="kw">else</span> {
-        <span class="ident">model</span>
-    };
+    <span class="kw">let</span> <span class="ident">extended_model</span> <span class="op">=</span>
+        <span class="kw">if</span> <span class="ident">family</span> <span class="op">=</span><span class="op">=</span> <span class="number">0xf</span> <span class="op">|</span><span class="op">|</span> <span class="ident">family</span> <span class="op">=</span><span class="op">=</span> <span class="number">0x6</span> { <span class="ident">model</span> <span class="op">+</span> ((<span class="ident">model_info</span>.<span class="ident">get_bits</span>(<span class="number">16</span>..<span class="number">20</span>) <span class="kw">as</span> <span class="ident">u8</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>) } <span class="kw">else</span> { <span class="ident">model</span> };
 
     <span class="ident">ModelInfo</span> { <span class="ident">family</span>, <span class="ident">model</span>, <span class="ident">stepping</span>, <span class="ident">extended_family</span>, <span class="ident">extended_model</span> }
 }

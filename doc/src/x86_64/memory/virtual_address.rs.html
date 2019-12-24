@@ -225,7 +225,6 @@
 <span id="225">225</span>
 <span id="226">226</span>
 <span id="227">227</span>
-<span id="228">228</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">FrameSize</span>;
 <span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
@@ -276,8 +275,7 @@
         <span class="ident">p1</span>: <span class="ident">usize</span>,
         <span class="ident">offset</span>: <span class="ident">usize</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VirtualAddress</span> {
-        <span class="ident">VirtualAddress</span>((<span class="ident">p4</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">39</span>) <span class="op">|</span> (<span class="ident">p3</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">30</span>) <span class="op">|</span> (<span class="ident">p2</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">21</span>) <span class="op">|</span> (<span class="ident">p1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">12</span>) <span class="op">|</span> (<span class="ident">offset</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>))
-            .<span class="ident">canonicalise</span>()
+        <span class="ident">VirtualAddress</span>((<span class="ident">p4</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">39</span>) <span class="op">|</span> (<span class="ident">p3</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">30</span>) <span class="op">|</span> (<span class="ident">p2</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">21</span>) <span class="op">|</span> (<span class="ident">p1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">12</span>) <span class="op">|</span> (<span class="ident">offset</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>)).<span class="ident">canonicalise</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">ptr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T</span> {

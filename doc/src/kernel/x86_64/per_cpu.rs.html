@@ -184,8 +184,8 @@
     <span class="ident">_self_pointer</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">PerCpu</span>,
     <span class="doccomment">/// This structure must be pinned in memory for two reasons:</span>
     <span class="doccomment">///     - the self pointer makes this structure self-referential.</span>
-    <span class="doccomment">///     - we put the address of this structure in the `IA32_GS_BASE` MSR. If this structure moves, that</span>
-    <span class="doccomment">///       memory address becomes invalid and accessing the per-cpu data no longer has defined behaviour.</span>
+    <span class="doccomment">///     - we put the address of this structure in the `IA32_GS_BASE` MSR. If this structure moves, that memory</span>
+    <span class="doccomment">///       address becomes invalid and accessing the per-cpu data no longer has defined behaviour.</span>
     <span class="ident">_pin</span>: <span class="ident">PhantomPinned</span>,
 
     <span class="doccomment">/// This holds the kernel `rsp` of the current task, and makes it efficient and easy to switch</span>
