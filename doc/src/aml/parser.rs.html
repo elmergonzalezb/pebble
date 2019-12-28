@@ -479,13 +479,6 @@
 <span id="479">479</span>
 <span id="480">480</span>
 <span id="481">481</span>
-<span id="482">482</span>
-<span id="483">483</span>
-<span id="484">484</span>
-<span id="485">485</span>
-<span id="486">486</span>
-<span id="487">487</span>
-<span id="488">488</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">pkg_length</span>::<span class="ident">PkgLength</span>, <span class="ident">AmlContext</span>, <span class="ident">AmlError</span>};
 <span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">vec</span>::<span class="ident">Vec</span>;
@@ -604,10 +597,7 @@
         <span class="prelude-val">Ok</span>((
             <span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">4</span>..],
             <span class="ident">context</span>,
-            <span class="ident">input</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="ident">u32</span>
-                <span class="op">+</span> ((<span class="ident">input</span>[<span class="number">1</span>] <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>)
-                <span class="op">+</span> ((<span class="ident">input</span>[<span class="number">2</span>] <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>)
-                <span class="op">+</span> ((<span class="ident">input</span>[<span class="number">3</span>] <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">24</span>),
+            <span class="ident">input</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> ((<span class="ident">input</span>[<span class="number">1</span>] <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">+</span> ((<span class="ident">input</span>[<span class="number">2</span>] <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">16</span>) <span class="op">+</span> ((<span class="ident">input</span>[<span class="number">3</span>] <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">24</span>),
         ))
     }
 }
@@ -960,11 +950,7 @@
         <span class="macro">check_err</span><span class="macro">!</span>(<span class="ident">take_u16</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x34</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="ident">AmlError</span>::<span class="ident">UnexpectedEndOfStream</span>, <span class="kw-2">&amp;</span>[<span class="number">0x34</span>]);
         <span class="macro">check_ok</span><span class="macro">!</span>(<span class="ident">take_u16</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x34</span>, <span class="number">0x12</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="number">0x1234</span>, <span class="kw-2">&amp;</span>[]);
 
-        <span class="macro">check_err</span><span class="macro">!</span>(
-            <span class="ident">take_u32</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x34</span>, <span class="number">0x12</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>),
-            <span class="ident">AmlError</span>::<span class="ident">UnexpectedEndOfStream</span>,
-            <span class="kw-2">&amp;</span>[<span class="number">0x34</span>, <span class="number">0x12</span>]
-        );
+        <span class="macro">check_err</span><span class="macro">!</span>(<span class="ident">take_u32</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x34</span>, <span class="number">0x12</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="ident">AmlError</span>::<span class="ident">UnexpectedEndOfStream</span>, <span class="kw-2">&amp;</span>[<span class="number">0x34</span>, <span class="number">0x12</span>]);
         <span class="macro">check_ok</span><span class="macro">!</span>(<span class="ident">take_u32</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x34</span>, <span class="number">0x12</span>, <span class="number">0xf4</span>, <span class="number">0xc3</span>, <span class="number">0x3e</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="number">0xc3f41234</span>, <span class="kw-2">&amp;</span>[<span class="number">0x3e</span>]);
 
         <span class="macro">check_err</span><span class="macro">!</span>(<span class="ident">take_u64</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x34</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="ident">AmlError</span>::<span class="ident">UnexpectedEndOfStream</span>, <span class="kw-2">&amp;</span>[<span class="number">0x34</span>]);

@@ -101,7 +101,6 @@
 <span id="101">101</span>
 <span id="102">102</span>
 <span id="103">103</span>
-<span id="104">104</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">parse_validated_rsdp</span>, <span class="ident">rsdp</span>::<span class="ident">Rsdp</span>, <span class="ident">Acpi</span>, <span class="ident">AcpiError</span>, <span class="ident">AcpiHandler</span>};
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">mem</span>, <span class="ident">ops</span>::<span class="ident">RangeInclusive</span>};
@@ -130,8 +129,7 @@
 {
     <span class="comment">// Read base segment from BIOS area. This is not always given by the bios, so it needs to be</span>
     <span class="comment">// checked. We left shift 4 because it is a segment ptr.</span>
-    <span class="kw">let</span> <span class="ident">ebda_start_mapping</span> <span class="op">=</span>
-        <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>(<span class="ident">EBDA_START_SEGMENT_PTR</span>, <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>());
+    <span class="kw">let</span> <span class="ident">ebda_start_mapping</span> <span class="op">=</span> <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>(<span class="ident">EBDA_START_SEGMENT_PTR</span>, <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>());
     <span class="kw">let</span> <span class="ident">ebda_start</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">ebda_start_mapping</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>;
     <span class="ident">handler</span>.<span class="ident">unmap_physical_region</span>(<span class="ident">ebda_start_mapping</span>);
 

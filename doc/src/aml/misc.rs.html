@@ -77,7 +77,6 @@
 <span id="77">77</span>
 <span id="78">78</span>
 <span id="79">79</span>
-<span id="80">80</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">opcode</span>::{<span class="self">self</span>, <span class="ident">ext_opcode</span>, <span class="ident">opcode</span>},
@@ -145,9 +144,8 @@
      * Arg5Op = 0x6d
      * Arg6Op = 0x6e
      */</span>
-    <span class="kw">let</span> <span class="ident">arg_parser</span> <span class="op">=</span> <span class="op">|</span><span class="ident">i</span>, <span class="ident">arg_opcode</span><span class="op">|</span> {
-        <span class="ident">opcode</span>(<span class="ident">arg_opcode</span>).<span class="ident">then</span>(<span class="ident">comment_scope_verbose</span>(<span class="string">&quot;ArgObj&quot;</span>, <span class="ident">id</span>())).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span>((), <span class="kw">_</span>)<span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">i</span>))
-    };
+    <span class="kw">let</span> <span class="ident">arg_parser</span> <span class="op">=</span>
+        <span class="op">|</span><span class="ident">i</span>, <span class="ident">arg_opcode</span><span class="op">|</span> <span class="ident">opcode</span>(<span class="ident">arg_opcode</span>).<span class="ident">then</span>(<span class="ident">comment_scope_verbose</span>(<span class="string">&quot;ArgObj&quot;</span>, <span class="ident">id</span>())).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span>((), <span class="kw">_</span>)<span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">i</span>));
 
     <span class="macro">choice</span><span class="macro">!</span>(
         <span class="ident">arg_parser</span>(<span class="number">0</span>, <span class="ident">opcode</span>::<span class="ident">ARG0_OP</span>),

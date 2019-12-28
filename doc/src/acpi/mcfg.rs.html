@@ -123,8 +123,8 @@
         <span class="kw">let</span> <span class="ident">num_entries</span> <span class="op">=</span> <span class="ident">length</span> <span class="op">/</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">McfgEntry</span><span class="op">&gt;</span>();
 
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">pointer</span> <span class="op">=</span> (<span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Mcfg</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>).<span class="ident">offset</span>(<span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">Mcfg</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">isize</span>)
-                <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">McfgEntry</span>;
+            <span class="kw">let</span> <span class="ident">pointer</span> <span class="op">=</span>
+                (<span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Mcfg</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>).<span class="ident">offset</span>(<span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">Mcfg</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">isize</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">McfgEntry</span>;
             <span class="ident">slice</span>::<span class="ident">from_raw_parts</span>(<span class="ident">pointer</span>, <span class="ident">num_entries</span>)
         }
     }

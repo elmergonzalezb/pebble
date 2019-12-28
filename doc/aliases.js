@@ -3,6 +3,7 @@ ALIASES["acpi"] = {};
 ALIASES["aml"] = {};
 ALIASES["bit_field"] = {};
 ALIASES["bitflags"] = {};
+ALIASES["byteorder"] = {};
 ALIASES["cfg_if"] = {};
 ALIASES["kernel"] = {};
 ALIASES["libpebble"] = {};

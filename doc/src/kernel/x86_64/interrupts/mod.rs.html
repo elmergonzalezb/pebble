@@ -303,7 +303,6 @@
 <span id="303">303</span>
 <span id="304">304</span>
 <span id="305">305</span>
-<span id="306">306</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">mod</span> <span class="ident">exception</span>;
 
@@ -384,12 +383,11 @@
                 <span class="comment">/*
                  * Get the PCI routing table.
                  */</span>
-                <span class="kw">let</span> <span class="ident">prt</span> <span class="op">=</span> <span class="ident">arch</span>
-                    .<span class="ident">aml_context</span>
-                    .<span class="ident">lock</span>()
-                    .<span class="ident">invoke_method</span>(<span class="kw-2">&amp;</span><span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\_SB.PCI0._PRT&quot;</span>).<span class="ident">unwrap</span>(), <span class="ident">AmlArgs</span>::<span class="ident">default</span>())
-                    .<span class="ident">expect</span>(<span class="string">&quot;Failed to execute _PRT method&quot;</span>);
-                <span class="kw">let</span> <span class="ident">pci_routing</span> <span class="op">=</span> <span class="ident">PciRoutingTable</span>::<span class="ident">from_prt</span>(<span class="kw-2">&amp;</span><span class="ident">prt</span>).<span class="ident">expect</span>(<span class="string">&quot;Invalid PRT&quot;</span>);
+                <span class="kw">let</span> <span class="ident">pci_routing</span> <span class="op">=</span> <span class="ident">PciRoutingTable</span>::<span class="ident">from_prt_path</span>(
+                    <span class="kw-2">&amp;</span><span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\_SB.PCI0._PRT&quot;</span>).<span class="ident">unwrap</span>(),
+                    <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arch</span>.<span class="ident">aml_context</span>.<span class="ident">lock</span>(),
+                )
+                .<span class="ident">expect</span>(<span class="string">&quot;Failed to parse _PRT&quot;</span>);
 
                 <span class="comment">/*
                  * Map the local APIC&#39;s configuration space into the kernel address space.

@@ -608,80 +608,6 @@
 <span id="608">608</span>
 <span id="609">609</span>
 <span id="610">610</span>
-<span id="611">611</span>
-<span id="612">612</span>
-<span id="613">613</span>
-<span id="614">614</span>
-<span id="615">615</span>
-<span id="616">616</span>
-<span id="617">617</span>
-<span id="618">618</span>
-<span id="619">619</span>
-<span id="620">620</span>
-<span id="621">621</span>
-<span id="622">622</span>
-<span id="623">623</span>
-<span id="624">624</span>
-<span id="625">625</span>
-<span id="626">626</span>
-<span id="627">627</span>
-<span id="628">628</span>
-<span id="629">629</span>
-<span id="630">630</span>
-<span id="631">631</span>
-<span id="632">632</span>
-<span id="633">633</span>
-<span id="634">634</span>
-<span id="635">635</span>
-<span id="636">636</span>
-<span id="637">637</span>
-<span id="638">638</span>
-<span id="639">639</span>
-<span id="640">640</span>
-<span id="641">641</span>
-<span id="642">642</span>
-<span id="643">643</span>
-<span id="644">644</span>
-<span id="645">645</span>
-<span id="646">646</span>
-<span id="647">647</span>
-<span id="648">648</span>
-<span id="649">649</span>
-<span id="650">650</span>
-<span id="651">651</span>
-<span id="652">652</span>
-<span id="653">653</span>
-<span id="654">654</span>
-<span id="655">655</span>
-<span id="656">656</span>
-<span id="657">657</span>
-<span id="658">658</span>
-<span id="659">659</span>
-<span id="660">660</span>
-<span id="661">661</span>
-<span id="662">662</span>
-<span id="663">663</span>
-<span id="664">664</span>
-<span id="665">665</span>
-<span id="666">666</span>
-<span id="667">667</span>
-<span id="668">668</span>
-<span id="669">669</span>
-<span id="670">670</span>
-<span id="671">671</span>
-<span id="672">672</span>
-<span id="673">673</span>
-<span id="674">674</span>
-<span id="675">675</span>
-<span id="676">676</span>
-<span id="677">677</span>
-<span id="678">678</span>
-<span id="679">679</span>
-<span id="680">680</span>
-<span id="681">681</span>
-<span id="682">682</span>
-<span id="683">683</span>
-<span id="684">684</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">misc</span>::{<span class="ident">arg_obj</span>, <span class="ident">local_obj</span>},
@@ -704,12 +630,12 @@
     },
     <span class="ident">pkg_length</span>::{<span class="ident">pkg_length</span>, <span class="ident">PkgLength</span>},
     <span class="ident">type1</span>::<span class="ident">type1_opcode</span>,
-    <span class="ident">type2</span>::<span class="ident">type2_opcode</span>,
+    <span class="ident">type2</span>::{<span class="ident">def_buffer</span>, <span class="ident">def_package</span>, <span class="ident">type2_opcode</span>},
     <span class="ident">value</span>::{<span class="ident">AmlValue</span>, <span class="ident">FieldFlags</span>, <span class="ident">MethodFlags</span>, <span class="ident">RegionSpace</span>},
     <span class="ident">AmlContext</span>,
     <span class="ident">AmlError</span>,
 };
-<span class="kw">use</span> <span class="ident">alloc</span>::{<span class="ident">string</span>::<span class="ident">String</span>, <span class="ident">vec</span>::<span class="ident">Vec</span>};
+<span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">string</span>::<span class="ident">String</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">str</span>;
 
 <span class="doccomment">/// `TermList`s are usually found within explicit-length objects (so they have a `PkgLength`</span>
@@ -1134,69 +1060,6 @@
         .<span class="ident">discard_result</span>()
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">def_buffer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="ident">AmlValue</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="lifetime">&#39;c</span>: <span class="lifetime">&#39;a</span>,
-{
-    <span class="comment">/*
-     * DefBuffer := 0x11 PkgLength BufferSize ByteList
-     * BufferSize := TermArg =&gt; Integer
-     *
-     * XXX: The spec says that zero-length buffers (e.g. the PkgLength is 0) are illegal, but
-     * we&#39;ve encountered them in QEMU-generated tables, so we return an empty buffer in these
-     * cases.
-     */</span>
-    <span class="ident">opcode</span>(<span class="ident">opcode</span>::<span class="ident">DEF_BUFFER_OP</span>)
-        .<span class="ident">then</span>(<span class="ident">comment_scope</span>(
-            <span class="string">&quot;DefBuffer&quot;</span>,
-            <span class="ident">pkg_length</span>().<span class="ident">then</span>(<span class="ident">term_arg</span>()).<span class="ident">feed</span>(<span class="op">|</span>(<span class="ident">pkg_length</span>, <span class="ident">buffer_size</span>)<span class="op">|</span> {
-                <span class="ident">take_to_end_of_pkglength</span>(<span class="ident">pkg_length</span>)
-                    .<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">bytes</span><span class="op">|</span> <span class="prelude-val">Ok</span>((<span class="ident">bytes</span>.<span class="ident">to_vec</span>(), <span class="ident">buffer_size</span>.<span class="ident">as_integer</span>()<span class="question-mark">?</span>)))
-            }),
-        ))
-        .<span class="ident">map</span>(<span class="op">|</span>((), (<span class="ident">bytes</span>, <span class="ident">buffer_size</span>))<span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">AmlValue</span>::<span class="ident">Buffer</span> { <span class="ident">bytes</span>, <span class="ident">size</span>: <span class="ident">buffer_size</span> }))
-}
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">def_package</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="ident">AmlValue</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="lifetime">&#39;c</span>: <span class="lifetime">&#39;a</span>,
-{
-    <span class="comment">/*
-     * DefPackage := 0x12 PkgLength NumElements PackageElementList
-     * NumElements := ByteData
-     * PackageElementList := Nothing | &lt;PackageElement PackageElementList&gt;
-     * PackageElement := DataRefObject | NameString
-     */</span>
-    <span class="ident">opcode</span>(<span class="ident">opcode</span>::<span class="ident">DEF_PACKAGE_OP</span>)
-        .<span class="ident">then</span>(<span class="ident">comment_scope</span>(
-            <span class="string">&quot;DefPackage&quot;</span>,
-            <span class="ident">pkg_length</span>().<span class="ident">then</span>(<span class="ident">take</span>()).<span class="ident">feed</span>(<span class="op">|</span>(<span class="ident">pkg_length</span>, <span class="ident">num_elements</span>)<span class="op">|</span> {
-                <span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">input</span>, <span class="kw-2">mut</span> <span class="ident">context</span><span class="op">|</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">package_contents</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
-
-                    <span class="kw">while</span> <span class="ident">pkg_length</span>.<span class="ident">still_parsing</span>(<span class="ident">input</span>) {
-                        <span class="kw">let</span> (<span class="ident">new_input</span>, <span class="ident">new_context</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="ident">package_element</span>().<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-                        <span class="ident">input</span> <span class="op">=</span> <span class="ident">new_input</span>;
-                        <span class="ident">context</span> <span class="op">=</span> <span class="ident">new_context</span>;
-
-                        <span class="ident">package_contents</span>.<span class="ident">push</span>(<span class="ident">value</span>);
-                    }
-
-                    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">package_contents</span>.<span class="ident">len</span>(), <span class="ident">num_elements</span> <span class="kw">as</span> <span class="ident">usize</span>);
-                    <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">context</span>, <span class="ident">AmlValue</span>::<span class="ident">Package</span>(<span class="ident">package_contents</span>)))
-                }
-            }),
-        ))
-        .<span class="ident">map</span>(<span class="op">|</span>((), <span class="ident">package</span>)<span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">package</span>))
-}
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">package_element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="ident">AmlValue</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="lifetime">&#39;c</span>: <span class="lifetime">&#39;a</span>,
-{
-    <span class="macro">choice</span><span class="macro">!</span>(<span class="ident">data_ref_object</span>(), <span class="ident">name_string</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">string</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">AmlValue</span>::<span class="ident">String</span>(<span class="ident">string</span>.<span class="ident">as_string</span>()))))
-}
-
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">term_arg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="ident">AmlValue</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="lifetime">&#39;c</span>: <span class="lifetime">&#39;a</span>,
@@ -1288,9 +1151,7 @@
             <span class="ident">opcode</span>::<span class="ident">DWORD_CONST</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">take_u32</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="ident">value</span> <span class="kw">as</span> <span class="ident">u64</span>))).<span class="ident">parse</span>(<span class="ident">new_input</span>, <span class="ident">context</span>)
             }
-            <span class="ident">opcode</span>::<span class="ident">QWORD_CONST</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">take_u64</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="ident">value</span>))).<span class="ident">parse</span>(<span class="ident">new_input</span>, <span class="ident">context</span>)
-            }
+            <span class="ident">opcode</span>::<span class="ident">QWORD_CONST</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">take_u64</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="ident">value</span>))).<span class="ident">parse</span>(<span class="ident">new_input</span>, <span class="ident">context</span>),
             <span class="ident">opcode</span>::<span class="ident">STRING_PREFIX</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">string_parser</span>.<span class="ident">parse</span>(<span class="ident">new_input</span>, <span class="ident">context</span>),
             <span class="ident">opcode</span>::<span class="ident">ZERO_OP</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>((<span class="ident">new_input</span>, <span class="ident">context</span>, <span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="number">0</span>))),
             <span class="ident">opcode</span>::<span class="ident">ONE_OP</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>((<span class="ident">new_input</span>, <span class="ident">context</span>, <span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="number">1</span>))),
@@ -1303,8 +1164,7 @@
     <span class="ident">comment_scope_verbose</span>(
         <span class="string">&quot;ComputationalData&quot;</span>,
         <span class="macro">choice</span><span class="macro">!</span>(
-            <span class="ident">ext_opcode</span>(<span class="ident">opcode</span>::<span class="ident">EXT_REVISION_OP</span>)
-                .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="kw">crate</span>::<span class="ident">AML_INTERPRETER_REVISION</span>))),
+            <span class="ident">ext_opcode</span>(<span class="ident">opcode</span>::<span class="ident">EXT_REVISION_OP</span>).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="kw">crate</span>::<span class="ident">AML_INTERPRETER_REVISION</span>))),
             <span class="ident">const_parser</span>,
             <span class="macro">make_parser_concrete</span><span class="macro">!</span>(<span class="ident">def_buffer</span>())
         ),
@@ -1339,16 +1199,8 @@
             <span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="kw">crate</span>::<span class="ident">AML_INTERPRETER_REVISION</span>),
             <span class="kw-2">&amp;</span>[]
         );
-        <span class="macro">check_ok</span><span class="macro">!</span>(
-            <span class="ident">computational_data</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x0a</span>, <span class="number">0xf3</span>, <span class="number">0x35</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>),
-            <span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="number">0xf3</span>),
-            <span class="kw-2">&amp;</span>[<span class="number">0x35</span>]
-        );
-        <span class="macro">check_ok</span><span class="macro">!</span>(
-            <span class="ident">computational_data</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x0b</span>, <span class="number">0xf3</span>, <span class="number">0x35</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>),
-            <span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="number">0x35f3</span>),
-            <span class="kw-2">&amp;</span>[]
-        );
+        <span class="macro">check_ok</span><span class="macro">!</span>(<span class="ident">computational_data</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x0a</span>, <span class="number">0xf3</span>, <span class="number">0x35</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="number">0xf3</span>), <span class="kw-2">&amp;</span>[<span class="number">0x35</span>]);
+        <span class="macro">check_ok</span><span class="macro">!</span>(<span class="ident">computational_data</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x0b</span>, <span class="number">0xf3</span>, <span class="number">0x35</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="number">0x35f3</span>), <span class="kw-2">&amp;</span>[]);
         <span class="macro">check_ok</span><span class="macro">!</span>(
             <span class="ident">computational_data</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x0c</span>, <span class="number">0xf3</span>, <span class="number">0x35</span>, <span class="number">0x12</span>, <span class="number">0x65</span>, <span class="number">0xff</span>, <span class="number">0x00</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>),
             <span class="ident">AmlValue</span>::<span class="ident">Integer</span>(<span class="number">0x651235f3</span>),

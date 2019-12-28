@@ -345,6 +345,50 @@
 <span id="345">345</span>
 <span id="346">346</span>
 <span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">name_object</span>::<span class="ident">NameSeg</span>, <span class="ident">value</span>::<span class="ident">AmlValue</span>, <span class="ident">AmlError</span>};
 <span class="kw">use</span> <span class="ident">alloc</span>::{
@@ -445,9 +489,9 @@
     }
 
     <span class="doccomment">/// Search for an object at the given path of the namespace, applying the search rules</span>
-    <span class="doccomment">/// described in §5.3 of the ACPI specification, if they are applicable. Returns the handle of</span>
-    <span class="doccomment">/// the first valid object, if found.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">search</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">AmlName</span>, <span class="ident">starting_scope</span>: <span class="kw-2">&amp;</span><span class="ident">AmlName</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AmlHandle</span>, <span class="ident">AmlError</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// described in §5.3 of the ACPI specification, if they are applicable. Returns the resolved name, and the</span>
+    <span class="doccomment">/// handle of the first valid object, if found.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">search</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">AmlName</span>, <span class="ident">starting_scope</span>: <span class="kw-2">&amp;</span><span class="ident">AmlName</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">AmlName</span>, <span class="ident">AmlHandle</span>), <span class="ident">AmlError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">search_rules_apply</span>() {
             <span class="comment">/*
              * If search rules apply, we need to recursively look through the namespace. If the
@@ -458,8 +502,9 @@
             <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">scope</span>.<span class="ident">is_absolute</span>());
             <span class="kw">loop</span> {
                 <span class="comment">// Search for the name at this namespace level. If we find it, we&#39;re done.</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">handle</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">name_map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>.<span class="ident">resolve</span>(<span class="kw-2">&amp;</span><span class="ident">scope</span>)<span class="question-mark">?</span>) {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><span class="ident">handle</span>);
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">resolve</span>(<span class="kw-2">&amp;</span><span class="ident">scope</span>)<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">handle</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">name_map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>) {
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">name</span>, <span class="kw-2">*</span><span class="ident">handle</span>));
                 }
 
                 <span class="comment">// If we don&#39;t find it, go up a level in the namespace and search for it there,</span>
@@ -467,18 +512,20 @@
                 <span class="kw">match</span> <span class="ident">scope</span>.<span class="ident">parent</span>() {
                     <span class="prelude-val">Ok</span>(<span class="ident">parent</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">scope</span> <span class="op">=</span> <span class="ident">parent</span>,
                     <span class="comment">// If we still haven&#39;t found the value and have run out of parents, return `None`.</span>
-                    <span class="prelude-val">Err</span>(<span class="ident">AmlError</span>::<span class="ident">RootHasNoParent</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">AmlError</span>::<span class="ident">ObjectDoesNotExist</span>(<span class="ident">path</span>.<span class="ident">as_string</span>()))
-                    }
+                    <span class="prelude-val">Err</span>(<span class="ident">AmlError</span>::<span class="ident">RootHasNoParent</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">AmlError</span>::<span class="ident">ObjectDoesNotExist</span>(<span class="ident">path</span>.<span class="ident">as_string</span>())),
                     <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>),
                 }
             }
         } <span class="kw">else</span> {
             <span class="comment">// If search rules don&#39;t apply, simply resolve it against the starting scope</span>
-            <span class="self">self</span>.<span class="ident">name_map</span>
-                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>.<span class="ident">resolve</span>(<span class="ident">starting_scope</span>)<span class="question-mark">?</span>)
-                .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">handle</span><span class="op">|</span> <span class="ident">handle</span>)
-                .<span class="ident">ok_or</span>(<span class="ident">AmlError</span>::<span class="ident">ObjectDoesNotExist</span>(<span class="ident">path</span>.<span class="ident">as_string</span>()))
+            <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">resolve</span>(<span class="ident">starting_scope</span>)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>((
+                <span class="ident">name</span>,
+                <span class="self">self</span>.<span class="ident">name_map</span>
+                    .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>.<span class="ident">resolve</span>(<span class="ident">starting_scope</span>)<span class="question-mark">?</span>)
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">handle</span><span class="op">|</span> <span class="ident">handle</span>)
+                    .<span class="ident">ok_or</span>(<span class="ident">AmlError</span>::<span class="ident">ObjectDoesNotExist</span>(<span class="ident">path</span>.<span class="ident">as_string</span>()))<span class="question-mark">?</span>,
+            ))
         }
     }
 }
@@ -505,11 +552,10 @@
         <span class="ident">AmlName</span>(<span class="ident">alloc</span>::<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">NameComponent</span>::<span class="ident">Segment</span>(<span class="ident">seg</span>)])
     }
 
-    <span class="doccomment">/// Convert a string representation of an AML name into an `AmlName`. Returns `None` if the</span>
-    <span class="doccomment">/// passed string is not a valid AML path.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="kw-2">mut</span> <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AmlName</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Convert a string representation of an AML name into an `AmlName`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="kw-2">mut</span> <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AmlName</span>, <span class="ident">AmlError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">string</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">AmlError</span>::<span class="ident">EmptyNamesAreInvalid</span>);
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">components</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
@@ -533,7 +579,7 @@
             }
         }
 
-        <span class="prelude-val">Some</span>(<span class="ident">AmlName</span>(<span class="ident">components</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">AmlName</span>(<span class="ident">components</span>))
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
@@ -571,12 +617,29 @@
         }
     }
 
-    <span class="doccomment">/// Normalize an AML path, resolving prefix chars. Returns `None` if the path normalizes to an</span>
-    <span class="doccomment">/// invalid path (e.g. `\^_FOO`)</span>
+    <span class="doccomment">/// Normalize an AML path, resolving prefix chars. Returns `AmlError::InvalidNormalizedName` if the path</span>
+    <span class="doccomment">/// normalizes to an invalid path (e.g. `\^_FOO`)</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">normalize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AmlName</span>, <span class="ident">AmlError</span><span class="op">&gt;</span> {
-        <span class="comment">// TODO: currently, this doesn&#39;t do anything. Work out a nice way of handling prefix chars.</span>
-        <span class="comment">// If the name can&#39;t be normalized, emit AmlError::InvalidNormalizedName</span>
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">AmlName</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">try_fold</span>(<span class="ident">alloc</span>::<span class="macro">vec</span><span class="macro">!</span>[], <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">name</span>, <span class="kw-2">&amp;</span><span class="ident">component</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">component</span> {
+            <span class="ident">seg</span> @ <span class="ident">NameComponent</span>::<span class="ident">Segment</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">name</span>.<span class="ident">push</span>(<span class="ident">seg</span>);
+                <span class="prelude-val">Ok</span>(<span class="ident">name</span>)
+            }
+
+            <span class="ident">NameComponent</span>::<span class="ident">Root</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">name</span>.<span class="ident">push</span>(<span class="ident">NameComponent</span>::<span class="ident">Root</span>);
+                <span class="prelude-val">Ok</span>(<span class="ident">name</span>)
+            }
+
+            <span class="ident">NameComponent</span>::<span class="ident">Prefix</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">NameComponent</span>::<span class="ident">Segment</span>(<span class="kw">_</span>)) <span class="op">=</span> <span class="ident">name</span>.<span class="ident">iter</span>().<span class="ident">last</span>() {
+                    <span class="ident">name</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>();
+                    <span class="prelude-val">Ok</span>(<span class="ident">name</span>)
+                } <span class="kw">else</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">AmlError</span>::<span class="ident">InvalidNormalizedName</span>(<span class="self">self</span>.<span class="ident">clone</span>()))
+                }
+            }
+        })<span class="question-mark">?</span>))
     }
 
     <span class="doccomment">/// Get the parent of this `AmlName`. For example, the parent of `\_SB.PCI0._PRT` is `\_SB.PCI0`. The root</span>
@@ -616,7 +679,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">NameComponent</span> {
     <span class="ident">Root</span>,
     <span class="ident">Prefix</span>,
@@ -629,11 +692,11 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_aml_name_from_str</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;&quot;</span>), <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\&quot;</span>), <span class="prelude-val">Some</span>(<span class="ident">AmlName</span>::<span class="ident">root</span>()));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">AmlError</span>::<span class="ident">EmptyNamesAreInvalid</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\&quot;</span>), <span class="prelude-val">Ok</span>(<span class="ident">AmlName</span>::<span class="ident">root</span>()));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\_SB.PCI0&quot;</span>),
-            <span class="prelude-val">Some</span>(<span class="ident">AmlName</span>(<span class="ident">alloc</span>::<span class="macro">vec</span><span class="macro">!</span>[
+            <span class="prelude-val">Ok</span>(<span class="ident">AmlName</span>(<span class="ident">alloc</span>::<span class="macro">vec</span><span class="macro">!</span>[
                 <span class="ident">NameComponent</span>::<span class="ident">Root</span>,
                 <span class="ident">NameComponent</span>::<span class="ident">Segment</span>(<span class="ident">NameSeg</span>([<span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;S&#39;</span>, <span class="string">b&#39;B&#39;</span>, <span class="string">b&#39;_&#39;</span>])),
                 <span class="ident">NameComponent</span>::<span class="ident">Segment</span>(<span class="ident">NameSeg</span>([<span class="string">b&#39;P&#39;</span>, <span class="string">b&#39;C&#39;</span>, <span class="string">b&#39;I&#39;</span>, <span class="string">b&#39;0&#39;</span>]))
@@ -641,7 +704,7 @@
         );
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\_SB.^^^PCI0&quot;</span>),
-            <span class="prelude-val">Some</span>(<span class="ident">AmlName</span>(<span class="ident">alloc</span>::<span class="macro">vec</span><span class="macro">!</span>[
+            <span class="prelude-val">Ok</span>(<span class="ident">AmlName</span>(<span class="ident">alloc</span>::<span class="macro">vec</span><span class="macro">!</span>[
                 <span class="ident">NameComponent</span>::<span class="ident">Root</span>,
                 <span class="ident">NameComponent</span>::<span class="ident">Segment</span>(<span class="ident">NameSeg</span>([<span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;S&#39;</span>, <span class="string">b&#39;B&#39;</span>, <span class="string">b&#39;_&#39;</span>])),
                 <span class="ident">NameComponent</span>::<span class="ident">Prefix</span>,
@@ -660,6 +723,34 @@
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\^_SB.^^PCI0.VGA&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">is_normal</span>(), <span class="bool-val">false</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;_SB.^^PCI0.VGA&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">is_normal</span>(), <span class="bool-val">false</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;_SB.PCI0.VGA&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">is_normal</span>(), <span class="bool-val">true</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_normalization</span>() {
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\_SB.PCI0&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">normalize</span>(),
+            <span class="prelude-val">Ok</span>(<span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\_SB.PCI0&quot;</span>).<span class="ident">unwrap</span>())
+        );
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\_SB.^PCI0&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">normalize</span>(),
+            <span class="prelude-val">Ok</span>(<span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\PCI0&quot;</span>).<span class="ident">unwrap</span>())
+        );
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\_SB.PCI0.^^FOO&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">normalize</span>(),
+            <span class="prelude-val">Ok</span>(<span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\FOO&quot;</span>).<span class="ident">unwrap</span>())
+        );
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;_SB.PCI0.^FOO.BAR&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">normalize</span>(),
+            <span class="prelude-val">Ok</span>(<span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;_SB.FOO.BAR&quot;</span>).<span class="ident">unwrap</span>())
+        );
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\^_SB&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">normalize</span>(),
+            <span class="prelude-val">Err</span>(<span class="ident">AmlError</span>::<span class="ident">InvalidNormalizedName</span>(<span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\^_SB&quot;</span>).<span class="ident">unwrap</span>()))
+        );
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\_SB.PCI0.FOO.^^^^BAR&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">normalize</span>(),
+            <span class="prelude-val">Err</span>(<span class="ident">AmlError</span>::<span class="ident">InvalidNormalizedName</span>(<span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\_SB.PCI0.FOO.^^^^BAR&quot;</span>).<span class="ident">unwrap</span>()))
+        );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -686,10 +777,7 @@
     <span class="kw">fn</span> <span class="ident">test_aml_name_parent</span>() {
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">parent</span>(), <span class="prelude-val">Err</span>(<span class="ident">AmlError</span>::<span class="ident">RootHasNoParent</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\_SB&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">parent</span>(), <span class="prelude-val">Ok</span>(<span class="ident">AmlName</span>::<span class="ident">root</span>()));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\_SB.PCI0&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">parent</span>(),
-            <span class="prelude-val">Ok</span>(<span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\_SB&quot;</span>).<span class="ident">unwrap</span>())
-        );
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\_SB.PCI0&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">parent</span>(), <span class="prelude-val">Ok</span>(<span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\_SB&quot;</span>).<span class="ident">unwrap</span>()));
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">AmlName</span>::<span class="ident">from_str</span>(<span class="string">&quot;\\_SB.PCI0&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">parent</span>().<span class="ident">unwrap</span>().<span class="ident">parent</span>(), <span class="prelude-val">Ok</span>(<span class="ident">AmlName</span>::<span class="ident">root</span>()));
     }
 }

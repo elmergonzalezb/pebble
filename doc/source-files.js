@@ -1,8 +1,9 @@
 var N = null;var sourcesIndex = {};
 sourcesIndex["acpi"] = {"name":"","files":["fadt.rs","handler.rs","hpet.rs","interrupt.rs","lib.rs","madt.rs","mcfg.rs","rsdp.rs","rsdp_search.rs","sdt.rs"]};
-sourcesIndex["aml"] = {"name":"","files":["lib.rs","misc.rs","name_object.rs","namespace.rs","opcode.rs","parser.rs","pci_routing.rs","pkg_length.rs","term_object.rs","type1.rs","type2.rs","value.rs"]};
+sourcesIndex["aml"] = {"name":"","files":["lib.rs","misc.rs","name_object.rs","namespace.rs","opcode.rs","parser.rs","pci_routing.rs","pkg_length.rs","resource.rs","term_object.rs","type1.rs","type2.rs","value.rs"]};
 sourcesIndex["bit_field"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["bitflags"] = {"name":"","files":["lib.rs"]};
+sourcesIndex["byteorder"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["cfg_if"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["kernel"] = {"name":"","dirs":[{"name":"object","files":["common.rs","map.rs","mod.rs"]},{"name":"syscall","files":["mod.rs"]},{"name":"x86_64","dirs":[{"name":"interrupts","files":["exception.rs","mod.rs"]},{"name":"memory","files":["buddy_allocator.rs","mod.rs","userspace_map.rs"]}],"files":["acpi_handler.rs","address_space.rs","cpu.rs","logger.rs","memory_object.rs","mod.rs","per_cpu.rs","task.rs"]}],"files":["arch.rs","heap_allocator.rs","lib.rs","per_cpu.rs","scheduler.rs"]};
 sourcesIndex["libpebble"] = {"name":"","dirs":[{"name":"syscall","files":["mod.rs","raw_x86_64.rs"]}],"files":["caps.rs","lib.rs","object.rs"]};

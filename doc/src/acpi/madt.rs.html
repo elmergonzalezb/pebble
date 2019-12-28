@@ -521,10 +521,6 @@
 <span id="521">521</span>
 <span id="522">522</span>
 <span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
-<span id="526">526</span>
-<span id="527">527</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">interrupt</span>::{<span class="ident">Apic</span>, <span class="ident">InterruptModel</span>, <span class="ident">InterruptSourceOverride</span>, <span class="ident">IoApic</span>, <span class="ident">NmiSource</span>, <span class="ident">Polarity</span>, <span class="ident">TriggerMode</span>},
@@ -960,12 +956,8 @@
                     (<span class="bool-val">false</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ProcessorState</span>::<span class="ident">Running</span>,
                 };
 
-                <span class="kw">let</span> <span class="ident">processor</span> <span class="op">=</span> <span class="ident">Processor</span> {
-                    <span class="ident">processor_uid</span>: <span class="ident">entry</span>.<span class="ident">processor_id</span>,
-                    <span class="ident">local_apic_id</span>: <span class="ident">entry</span>.<span class="ident">apic_id</span>,
-                    <span class="ident">state</span>,
-                    <span class="ident">is_ap</span>,
-                };
+                <span class="kw">let</span> <span class="ident">processor</span> <span class="op">=</span>
+                    <span class="ident">Processor</span> { <span class="ident">processor_uid</span>: <span class="ident">entry</span>.<span class="ident">processor_id</span>, <span class="ident">local_apic_id</span>: <span class="ident">entry</span>.<span class="ident">apic_id</span>, <span class="ident">state</span>, <span class="ident">is_ap</span> };
 
                 <span class="kw">if</span> <span class="ident">is_ap</span> {
                     <span class="ident">acpi</span>.<span class="ident">application_processors</span>.<span class="ident">push</span>(<span class="ident">processor</span>);

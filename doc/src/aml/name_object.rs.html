@@ -258,10 +258,6 @@
 <span id="258">258</span>
 <span id="259">259</span>
 <span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">misc</span>::{<span class="ident">arg_obj</span>, <span class="ident">debug_obj</span>, <span class="ident">local_obj</span>, <span class="ident">ArgNum</span>, <span class="ident">LocalNum</span>},
@@ -404,10 +400,10 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NameSeg</span>(<span class="kw">pub</span>(<span class="kw">crate</span>) [<span class="ident">u8</span>; <span class="number">4</span>]);
 
 <span class="kw">impl</span> <span class="ident">NameSeg</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NameSeg</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NameSeg</span>, <span class="ident">AmlError</span><span class="op">&gt;</span> {
         <span class="comment">// Each NameSeg can only have four chars, and must have at least one</span>
         <span class="kw">if</span> <span class="ident">string</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">string</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">4</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">AmlError</span>::<span class="ident">InvalidNameSeg</span>);
         }
 
         <span class="comment">// We pre-fill the array with &#39;_&#39;, so it will already be correct if the length is &lt; 4</span>
@@ -416,19 +412,19 @@
 
         <span class="comment">// Manually do the first one, because we have to check it&#39;s a LeadNameChar</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">is_lead_name_char</span>(<span class="ident">bytes</span>[<span class="number">0</span>]) {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">AmlError</span>::<span class="ident">InvalidNameSeg</span>);
         }
         <span class="ident">seg</span>[<span class="number">0</span>] <span class="op">=</span> <span class="ident">bytes</span>[<span class="number">0</span>];
 
         <span class="comment">// Copy the rest of the chars, checking that they&#39;re NameChars</span>
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">1</span>..<span class="ident">bytes</span>.<span class="ident">len</span>() {
             <span class="kw">if</span> <span class="op">!</span><span class="ident">is_name_char</span>(<span class="ident">bytes</span>[<span class="ident">i</span>]) {
-                <span class="kw">return</span> <span class="prelude-val">None</span>;
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">AmlError</span>::<span class="ident">InvalidNameSeg</span>);
             }
             <span class="ident">seg</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">bytes</span>[<span class="ident">i</span>];
         }
 
-        <span class="prelude-val">Some</span>(<span class="ident">NameSeg</span>(<span class="ident">seg</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">NameSeg</span>(<span class="ident">seg</span>))
     }
 
     <span class="doccomment">/// Turn a `NameSeg` into a `&amp;str`. Returns it in a `ParseResult` so it&#39;s easy to use from</span>
@@ -512,11 +508,7 @@
         <span class="macro">check_err</span><span class="macro">!</span>(<span class="ident">name_path</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="ident">AmlError</span>::<span class="ident">UnexpectedEndOfStream</span>, <span class="kw-2">&amp;</span>[]);
         <span class="macro">check_ok</span><span class="macro">!</span>(<span class="ident">name_path</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x00</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="ident">alloc</span>::<span class="macro">vec</span><span class="macro">!</span>[], <span class="kw-2">&amp;</span>[]);
         <span class="macro">check_ok</span><span class="macro">!</span>(<span class="ident">name_path</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x00</span>, <span class="number">0x00</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="ident">alloc</span>::<span class="macro">vec</span><span class="macro">!</span>[], <span class="kw-2">&amp;</span>[<span class="number">0x00</span>]);
-        <span class="macro">check_err</span><span class="macro">!</span>(
-            <span class="ident">name_path</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x2e</span>, <span class="string">b&#39;A&#39;</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>),
-            <span class="ident">AmlError</span>::<span class="ident">UnexpectedEndOfStream</span>,
-            <span class="kw-2">&amp;</span>[<span class="number">0x2e</span>, <span class="string">b&#39;A&#39;</span>]
-        );
+        <span class="macro">check_err</span><span class="macro">!</span>(<span class="ident">name_path</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x2e</span>, <span class="string">b&#39;A&#39;</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>), <span class="ident">AmlError</span>::<span class="ident">UnexpectedEndOfStream</span>, <span class="kw-2">&amp;</span>[<span class="number">0x2e</span>, <span class="string">b&#39;A&#39;</span>]);
         <span class="macro">check_ok</span><span class="macro">!</span>(
             <span class="ident">name_path</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span>[<span class="number">0x2e</span>, <span class="string">b&#39;A&#39;</span>, <span class="string">b&#39;B&#39;</span>, <span class="string">b&#39;C&#39;</span>, <span class="string">b&#39;D&#39;</span>, <span class="string">b&#39;E&#39;</span>, <span class="string">b&#39;_&#39;</span>, <span class="string">b&#39;F&#39;</span>, <span class="string">b&#39;G&#39;</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>),
             <span class="ident">alloc</span>::<span class="macro">vec</span><span class="macro">!</span>[
