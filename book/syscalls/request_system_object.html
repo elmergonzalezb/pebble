@@ -167,18 +167,14 @@ depend on the object requested. The allowed values are:</p>
 <p>TODO: id for accessing Pci config space where extra params are bus, device, function (+segment or whatever)
 numbers.</p>
 <h3><a class="header" href="#returns" id="returns">Returns</a></h3>
+<p>This system call uses the standard way to fallibly return a <code>KernelObjectId</code> (detailed in the
+<a href="../kernel/syscalls.html">page on syscalls</a>). The status codes used are:</p>
 <ul>
-<li>Bits <code>0..16</code> contain the index of the requested object's ID, if the system call succeeded</li>
-<li>Bits <code>16..32</code> contain the generation of the requested object's ID, if the system call succeeded</li>
-<li>Bits <code>32..63</code> contain the status of the system call:
-<ul>
-<li><code>0</code> means the system call succeeded and bits <code>0..32</code> hold a valid kernel object id</li>
-<li><code>1</code> means that the requested object is a valid system object, but does not exist</li>
-<li><code>2</code> means that the id does not correspond to a valid system object</li>
-<li><code>3</code> means that the requested object id is valid, but the task does not have the correct capabilities to
-access it</li>
-</ul>
-</li>
+<li><code>0</code> means that the system call was successful</li>
+<li><code>1</code> means that the requested ID is valid, but that the system object hasn't been created</li>
+<li><code>2</code> means that the ID does not correspond to a valid system object</li>
+<li><code>3</code> means that the requested object ID is valid, but that the task does not have the correct capability
+to access it. This is returned even if the system object doesn't exist.</li>
 </ul>
 <h3><a class="header" href="#capabilities-needed" id="capabilities-needed">Capabilities needed</a></h3>
 <table><thead><tr><th>id</th><th>Capability needed</th></tr></thead><tbody>

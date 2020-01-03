@@ -249,25 +249,21 @@ you think it points to - lots of systems solve this problem by never reusing IDs
 ID is not reallocated). However, this often requires complex data structures to make efficient use of memory, and
 so Pebble uses generational IDs instead (where the index remains a simple index into the backing memory).</p>
 <h1><a class="header" href="#system-calls" id="system-calls">System calls</a></h1>
-<p>Userspace code can interact with the kernel through system calls. Unlike traditional monolithic kernels, Pebble's system call interface is designed to be very minimal; many of the operations traditionally
-supported by system calls (such as filesystem operations) are not provided by the kernel in Pebble, and so are instead accessed through passing messages to other userspace processes.</p>
-<p>Pebble's original design had userspace processes communicate with the kernel by passing messages to it, like it would communicate with another userspace process. Having a system call interface has a few
-advantages over this design:</p>
-<ul>
-<li>System calls have much less overhead</li>
-<li>Programs that otherwise wouldn't need to pass messages don't need the extra machinery to talk to the kernel</li>
-<li>The kernel no longer has to deserialize messages. While it still contains some message-passing infrastructure, it only needs to pass the headers and <code>memcpy</code> stuff to the right place. This hugely reduces the
-attack surface of the kernel.</li>
-</ul>
-<p>Each system call has a unique number that is used to identify it. A system call can then take up to five parameters, each a maximum in size of the system's register width. It can return a single value, also
-the size of a register.</p>
+<p>Userspace code can interact with the kernel through system calls. Pebble's system call interface is based around
+'kernel objects', and so many of the system calls are to create, destroy, or modify the state of various types of
+kernel object. Because of Pebble's microkernel design, many traditional system calls (e.g. <code>open</code>) are not present,
+their functionality instead being provided by userspace.</p>
+<p>Each system call has a unique number that is used to identify it. A system call can then take up to five
+parameters, each a maximum in size of the system's register width. It can return a single value, also the size of
+a register.</p>
 <h3><a class="header" href="#overview-of-system-calls" id="overview-of-system-calls">Overview of system calls</a></h3>
-<table><thead><tr><th>Number</th><th>System call</th><th>a</th><th>b</th><th>c</th><th>d</th><th>e</th><th>Return value</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>0</code></td><td><code>yield</code></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>Yield to the kernel.</td></tr>
-<tr><td><code>1</code></td><td><code>early_log</code></td><td>length of string</td><td>ptr to string</td><td>-</td><td>-</td><td>-</td><td>success / error</td><td>Log a message. Designed to be used from early processes.</td></tr>
-<tr><td><code>2</code></td><td><code>request_system_object</code></td><td>object id</td><td>{depends on id}</td><td>{depends on id}</td><td>{depends on id}</td><td>{depends on id}</td><td>id of object + status</td><td>Request the id of a system kernel object.</td></tr>
-<tr><td><code>3</code></td><td><code>my_address_space</code></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>AddressSpace id</td><td>Get the id of the calling task's AddressSpace.</td></tr>
-<tr><td><code>4</code></td><td><code>map_memory_object</code></td><td>MemoryObject id</td><td>AddressSpace id</td><td>-</td><td>-</td><td>-</td><td>success / error</td><td>Map a MemoryObject into an AddressSpace.</td></tr>
+<table><thead><tr><th>Number</th><th>System call</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>0</code></td><td><code>yield</code></td><td>Yield to the kernel.</td></tr>
+<tr><td><code>1</code></td><td><code>early_log</code></td><td>Log a message. Designed to be used from early processes.</td></tr>
+<tr><td><code>2</code></td><td><code>request_system_object</code></td><td>Request the id of a system kernel object.</td></tr>
+<tr><td><code>3</code></td><td><code>my_address_space</code></td><td>Get the id of the calling task's AddressSpace.</td></tr>
+<tr><td><code>4</code></td><td><code>map_memory_object</code></td><td>Map a MemoryObject into an AddressSpace.</td></tr>
+<tr><td><code>5</code></td><td><code>create_mailbox</code></td><td>Create a Mailbox kernel object.</td></tr>
 </tbody></table>
 <h3><a class="header" href="#making-a-system-call-on-x86_64" id="making-a-system-call-on-x86_64">Making a system call on x86_64</a></h3>
 <p>To make a system call on x86_64, populate these registers:</p>
@@ -276,8 +272,22 @@ the size of a register.</p>
 </tbody></table>
 <p>The only way in which these registers deviate from the x86_64 Sys-V ABI is that <code>c</code> is passed in <code>r10</code> instead
 of <code>rcx</code>. This is because <code>rcx</code> is used by the <code>syscall</code> instruction, and so is not free.
-You can then make the system call by executing <code>syscall</code>. Before the kernel returns to userspace, it will put the result of the system call (if there is one) in <code>rax</code>.
-If a system call takes less than five parameters, the unused parameter registers will be preserved across the system call.</p>
+You can then make the system call by executing <code>syscall</code>. Before the kernel returns to userspace, it will put the
+result of the system call (if there is one) in <code>rax</code>. If a system call takes less than five parameters, the unused
+parameter registers will be preserved across the system call.</p>
+<h3><a class="header" href="#returning-kernel-object-ids" id="returning-kernel-object-ids">Returning kernel object IDs</a></h3>
+<p>Often, system calls need to return something of the form of the Rust type <code>Result&lt;KernelObjectId, SomeErrorType&gt;</code>.</p>
+<p>There is a common pattern used to represent this in the single <code>usize</code>:</p>
+<ul>
+<li>Bits <code>0..16</code> contain the index of the object's ID, if the call succeeded</li>
+<li>Bits <code>16..32</code> contain the generation of the object's ID, if the call succeeded</li>
+<li>Bits <code>32..64</code> contain the status:
+<ul>
+<li><code>0</code> means the system call succeeded, and bits <code>0..32</code> contain a valid object ID</li>
+<li><code>&gt;0</code> means that the system call failed. The meaning of the status is system-call dependent.</li>
+</ul>
+</li>
+</ul>
 <h1><a class="header" href="#yield" id="yield"><code>yield</code></a></h1>
 <p>Used by a task that can't do any work at the moment, allowing the kernel to schedule other tasks.</p>
 <h3><a class="header" href="#parameters" id="parameters">Parameters</a></h3>
@@ -322,18 +332,14 @@ depend on the object requested. The allowed values are:</p>
 <p>TODO: id for accessing Pci config space where extra params are bus, device, function (+segment or whatever)
 numbers.</p>
 <h3><a class="header" href="#returns-2" id="returns-2">Returns</a></h3>
+<p>This system call uses the standard way to fallibly return a <code>KernelObjectId</code> (detailed in the
+<a href="syscalls/../kernel/syscalls.html">page on syscalls</a>). The status codes used are:</p>
 <ul>
-<li>Bits <code>0..16</code> contain the index of the requested object's ID, if the system call succeeded</li>
-<li>Bits <code>16..32</code> contain the generation of the requested object's ID, if the system call succeeded</li>
-<li>Bits <code>32..63</code> contain the status of the system call:
-<ul>
-<li><code>0</code> means the system call succeeded and bits <code>0..32</code> hold a valid kernel object id</li>
-<li><code>1</code> means that the requested object is a valid system object, but does not exist</li>
-<li><code>2</code> means that the id does not correspond to a valid system object</li>
-<li><code>3</code> means that the requested object id is valid, but the task does not have the correct capabilities to
-access it</li>
-</ul>
-</li>
+<li><code>0</code> means that the system call was successful</li>
+<li><code>1</code> means that the requested ID is valid, but that the system object hasn't been created</li>
+<li><code>2</code> means that the ID does not correspond to a valid system object</li>
+<li><code>3</code> means that the requested object ID is valid, but that the task does not have the correct capability
+to access it. This is returned even if the system object doesn't exist.</li>
 </ul>
 <h3><a class="header" href="#capabilities-needed-2" id="capabilities-needed-2">Capabilities needed</a></h3>
 <table><thead><tr><th>id</th><th>Capability needed</th></tr></thead><tbody>

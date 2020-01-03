@@ -62,7 +62,7 @@
 
     <span class="doccomment">/// Convert this `KernelObjectId` to the form used in the system call interface. Should not be</span>
     <span class="doccomment">/// used from normal usercode (unless you&#39;re trying to make a raw system call).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_syscall_repr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_syscall_repr</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">repr</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="ident">repr</span>.<span class="ident">set_bits</span>(<span class="number">0</span>..<span class="number">16</span>, <span class="self">self</span>.<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>);
         <span class="ident">repr</span>.<span class="ident">set_bits</span>(<span class="number">16</span>..<span class="number">32</span>, <span class="self">self</span>.<span class="ident">generation</span> <span class="kw">as</span> <span class="ident">usize</span>);
