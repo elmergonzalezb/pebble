@@ -510,8 +510,8 @@
 <span class="doccomment">/// Perform a context-switch between the currently running task, `old`, and a new task, `new`. This</span>
 <span class="doccomment">/// function is fairly fragile as it may not always return (in the case of the new task never</span>
 <span class="doccomment">/// having been run before, in which case this returns into the trampoline instead of back up the</span>
-<span class="doccomment">/// kernel callstack), and so we have to be very careful to drop any locks we hold before &quot;returning&quot;</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">context_switch</span>(<span class="ident">old</span>: <span class="ident">WrappedKernelObject</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span>, <span class="ident">new</span>: <span class="ident">WrappedKernelObject</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span>) {
+<span class="doccomment">/// kernel callstack), and so we have to be very careful to drop any locks we hold before &quot;returning&quot;.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">context_switch</span>(<span class="ident">old</span>: <span class="ident">WrappedKernelObject</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span>, <span class="ident">new</span>: <span class="ident">WrappedKernelObject</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span>, <span class="ident">new_state</span>: <span class="ident">TaskState</span>) {
     <span class="comment">/*
      * After this scope ends, all locks on the task objects must be dropped, as the call to
      * `do_context_switch` may not return, which means that stuff in the function scope is not
@@ -523,7 +523,7 @@
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">old_task</span>.<span class="ident">state</span>, <span class="ident">TaskState</span>::<span class="ident">Running</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">new_task</span>.<span class="ident">state</span>, <span class="ident">TaskState</span>::<span class="ident">Ready</span>);
-        <span class="ident">old_task</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">TaskState</span>::<span class="ident">Ready</span>;
+        <span class="ident">old_task</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">new_state</span>;
         <span class="ident">new_task</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">TaskState</span>::<span class="ident">Running</span>;
 
         <span class="comment">// Switch to the new task&#39;s address space</span>

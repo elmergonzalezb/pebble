@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["caps",""],["object",""],["syscall",""]]});
+initSidebarItems({"macro":[["define_error_type",""]],"mod":[["caps",""],["object",""],["syscall",""]]});

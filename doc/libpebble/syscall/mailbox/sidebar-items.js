@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["MAIL_TYPE_INTERRUPT",""]],"enum":[["Mail",""],["MailboxError",""]],"fn":[["create_mailbox",""],["wait_for_mail",""]],"struct":[["InterruptMailRepr",""],["MailRepr",""]],"type":[["MailType",""]],"union":[["MailPayload",""]]});

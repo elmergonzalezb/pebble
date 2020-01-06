@@ -10,7 +10,7 @@ stack when it's suspended.</p>
 <table><tr class='module-item'><td><a class="fn" href="fn.context_switch.html" title='kernel::x86_64::task::context_switch fn'>context_switch</a></td><td class='docblock-short'><p>Perform a context-switch between the currently running task, <code>old</code>, and a new task, <code>new</code>. This
 function is fairly fragile as it may not always return (in the case of the new task never
 having been run before, in which case this returns into the trampoline instead of back up the
-kernel callstack), and so we have to be very careful to drop any locks we hold before &quot;returning&quot;</p>
+kernel callstack), and so we have to be very careful to drop any locks we hold before &quot;returning&quot;.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.decode_capabilities.html" title='kernel::x86_64::task::decode_capabilities fn'>decode_capabilities</a></td><td class='docblock-short'><p>Decode a capability stream (as found in a task's image) into a set of capabilities as they're
 represented in the kernel. For the format that's being decoded here, refer to the
 <code>(3.1) Userspace/Capabilities</code> section of the Book.</p>

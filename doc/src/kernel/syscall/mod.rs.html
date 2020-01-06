@@ -170,15 +170,76 @@
 <span id="170">170</span>
 <span id="171">171</span>
 <span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">arch_impl</span>::{<span class="ident">common_per_cpu_data</span>, <span class="ident">common_per_cpu_data_mut</span>},
-    <span class="ident">object</span>::<span class="ident">common</span>::{<span class="ident">CommonTask</span>, <span class="ident">MemoryObjectMappingError</span>},
+    <span class="ident">mailbox</span>::<span class="ident">Mailbox</span>,
+    <span class="ident">object</span>::{
+        <span class="ident">common</span>::{<span class="ident">CommonTask</span>, <span class="ident">TaskBlock</span>, <span class="ident">TaskState</span>},
+        <span class="ident">KernelObject</span>,
+    },
     <span class="ident">COMMON</span>,
 };
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">slice</span>, <span class="ident">str</span>};
-<span class="kw">use</span> <span class="ident">libpebble</span>::{<span class="ident">caps</span>::<span class="ident">Capability</span>, <span class="ident">syscall</span>, <span class="ident">syscall</span>::<span class="ident">result</span>::<span class="ident">result_to_syscall_repr</span>, <span class="ident">KernelObjectId</span>};
+<span class="kw">use</span> <span class="ident">libpebble</span>::{
+    <span class="ident">caps</span>::<span class="ident">Capability</span>,
+    <span class="ident">syscall</span>,
+    <span class="ident">syscall</span>::{
+        <span class="ident">mailbox</span>::<span class="ident">MailboxError</span>,
+        <span class="ident">result</span>::{<span class="ident">result_to_syscall_repr</span>, <span class="ident">status_to_syscall_repr</span>},
+        <span class="ident">MemoryObjectMappingError</span>,
+    },
+    <span class="ident">KernelObjectId</span>,
+};
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">info</span>, <span class="ident">trace</span>, <span class="ident">warn</span>};
+<span class="kw">use</span> <span class="ident">spin</span>::<span class="ident">RwLock</span>;
 
 <span class="doccomment">/// This is the architecture-independent syscall handler. It should be called by the handler that</span>
 <span class="doccomment">/// receives the syscall (each architecture is free to do this however it wishes). The only</span>
@@ -196,7 +257,9 @@
         <span class="ident">syscall</span>::<span class="ident">SYSCALL_EARLY_LOG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">early_log</span>(<span class="ident">a</span>, <span class="ident">b</span>),
         <span class="ident">syscall</span>::<span class="ident">SYSCALL_REQUEST_SYSTEM_OBJECT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">request_system_object</span>(<span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">c</span>, <span class="ident">d</span>, <span class="ident">e</span>),
         <span class="ident">syscall</span>::<span class="ident">SYSCALL_MY_ADDRESS_SPACE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">my_address_space</span>(),
-        <span class="ident">syscall</span>::<span class="ident">SYSCALL_MAP_MEMORY_OBJECT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">map_memory_object</span>(<span class="ident">a</span>, <span class="ident">b</span>),
+        <span class="ident">syscall</span>::<span class="ident">SYSCALL_MAP_MEMORY_OBJECT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">status_to_syscall_repr</span>(<span class="ident">map_memory_object</span>(<span class="ident">a</span>, <span class="ident">b</span>)),
+        <span class="ident">syscall</span>::<span class="ident">SYSCALL_CREATE_MAILBOX</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">result_to_syscall_repr</span>(<span class="ident">create_mailbox</span>()),
+        <span class="ident">syscall</span>::<span class="ident">SYSCALL_WAIT_FOR_MAIL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">status_to_syscall_repr</span>(<span class="ident">wait_for_mail</span>(<span class="ident">a</span>, <span class="ident">b</span>)),
 
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// TODO: unsupported system call number, kill process or something?</span>
@@ -207,14 +270,9 @@
 }
 
 <span class="kw">fn</span> <span class="ident">yield_syscall</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-    <span class="comment">/*
-     * This is a fairly unique system call in that it can return into a different context than the
-     * one that called it. We ask the scheduler to move us to the next task, then return to the new
-     * userspace context.
-     */</span>
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Process yielded!&quot;</span>);
     <span class="kw">unsafe</span> {
-        <span class="ident">common_per_cpu_data_mut</span>().<span class="ident">scheduler</span>.<span class="ident">switch_to_next</span>();
+        <span class="ident">common_per_cpu_data_mut</span>().<span class="ident">scheduler</span>.<span class="ident">switch_to_next</span>(<span class="ident">TaskState</span>::<span class="ident">Ready</span>);
     }
 
     <span class="number">0</span>
@@ -309,39 +367,75 @@
         .<span class="ident">to_syscall_repr</span>()
 }
 
-<span class="kw">fn</span> <span class="ident">map_memory_object</span>(<span class="ident">memory_object_id</span>: <span class="ident">usize</span>, <span class="ident">address_space_id</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">fn</span> <span class="ident">map_memory_object</span>(<span class="ident">memory_object_id</span>: <span class="ident">usize</span>, <span class="ident">address_space_id</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MemoryObjectMappingError</span><span class="op">&gt;</span> {
     <span class="comment">/*
      * TODO: enforce that the calling task must have access to the AddressSpace and MemoryObject
      * for this to work (we need to build the owning / access system first).
      */</span>
-    <span class="kw">const</span> <span class="ident">STATUS_SUCCESS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">const</span> <span class="ident">STATUS_ALREADY_OCCUPIED</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
-    <span class="kw">const</span> <span class="ident">STATUS_ACCESS_TO_MEMORY_OBJECT_DENIED</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2</span>;
-    <span class="kw">const</span> <span class="ident">STATUS_ACCESS_TO_ADDRESS_SPACE_DENIED</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">3</span>;
-    <span class="kw">const</span> <span class="ident">STATUS_NOT_A_MEMORY_OBJECT</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4</span>;
-    <span class="kw">const</span> <span class="ident">STATUS_NOT_AN_ADDRESS_SPACE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">5</span>;
-
     <span class="kw">let</span> <span class="ident">memory_object</span> <span class="op">=</span>
         <span class="kw">match</span> <span class="ident">COMMON</span>.<span class="ident">get</span>().<span class="ident">object_map</span>.<span class="ident">read</span>().<span class="ident">get</span>(<span class="ident">KernelObjectId</span>::<span class="ident">from_syscall_repr</span>(<span class="ident">memory_object_id</span>)) {
             <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">object</span>.<span class="ident">clone</span>(),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">STATUS_NOT_A_MEMORY_OBJECT</span>,
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectMappingError</span>::<span class="ident">NotAMemoryObject</span>),
         };
 
     <span class="comment">// Check it&#39;s a MemoryObject</span>
     <span class="kw">if</span> <span class="ident">memory_object</span>.<span class="ident">object</span>.<span class="ident">memory_object</span>().<span class="ident">is_none</span>() {
-        <span class="kw">return</span> <span class="ident">STATUS_NOT_A_MEMORY_OBJECT</span>;
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectMappingError</span>::<span class="ident">NotAMemoryObject</span>);
     }
 
     <span class="kw">match</span> <span class="ident">COMMON</span>.<span class="ident">get</span>().<span class="ident">object_map</span>.<span class="ident">read</span>().<span class="ident">get</span>(<span class="ident">KernelObjectId</span>::<span class="ident">from_syscall_repr</span>(<span class="ident">address_space_id</span>)) {
         <span class="prelude-val">Some</span>(<span class="ident">address_space</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">address_space</span>.<span class="ident">object</span>.<span class="ident">address_space</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">address_space</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">address_space</span>.<span class="ident">write</span>().<span class="ident">map_memory_object</span>(<span class="ident">memory_object</span>) {
-                <span class="prelude-val">Ok</span>(()) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">STATUS_SUCCESS</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectMappingError</span>::<span class="ident">SpaceAlreadyOccupied</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">STATUS_ALREADY_OCCUPIED</span>,
-            },
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">STATUS_NOT_AN_ADDRESS_SPACE</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">address_space</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">address_space</span>.<span class="ident">write</span>().<span class="ident">map_memory_object</span>(<span class="ident">memory_object</span>),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectMappingError</span>::<span class="ident">NotAnAddressSpace</span>),
         },
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">STATUS_NOT_AN_ADDRESS_SPACE</span>,
+        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectMappingError</span>::<span class="ident">NotAnAddressSpace</span>),
     }
+}
+
+<span class="kw">fn</span> <span class="ident">create_mailbox</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">KernelObjectId</span>, <span class="ident">MailboxError</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">object_map</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">crate</span>::<span class="ident">COMMON</span>.<span class="ident">get</span>().<span class="ident">object_map</span>.<span class="ident">write</span>();
+    <span class="kw">let</span> <span class="ident">mailbox</span> <span class="op">=</span> <span class="ident">KernelObject</span>::<span class="ident">Mailbox</span>(<span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="kw">box</span> <span class="ident">Mailbox</span>::<span class="ident">new</span>())).<span class="ident">add_to_map</span>(<span class="ident">object_map</span>);
+    <span class="prelude-val">Ok</span>(<span class="ident">mailbox</span>.<span class="ident">id</span>)
+}
+
+<span class="kw">fn</span> <span class="ident">wait_for_mail</span>(<span class="ident">mailbox_id</span>: <span class="ident">usize</span>, <span class="ident">output_buffer_address</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MailboxError</span><span class="op">&gt;</span> {
+    <span class="kw">use</span> <span class="ident">libpebble</span>::<span class="ident">syscall</span>::<span class="ident">mailbox</span>::{<span class="ident">Mail</span>, <span class="ident">MailRepr</span>};
+    <span class="kw">let</span> <span class="ident">mailbox_id</span> <span class="op">=</span> <span class="ident">KernelObjectId</span>::<span class="ident">from_syscall_repr</span>(<span class="ident">mailbox_id</span>);
+
+    <span class="kw">let</span> <span class="ident">mailbox</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">COMMON</span>.<span class="ident">get</span>().<span class="ident">object_map</span>.<span class="ident">read</span>().<span class="ident">get</span>(<span class="ident">mailbox_id</span>) {
+        <span class="prelude-val">Some</span>(<span class="ident">mailbox</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mailbox</span>.<span class="ident">clone</span>(),
+        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MailboxError</span>::<span class="ident">NotAMailbox</span>),
+    };
+
+    <span class="comment">// Check it&#39;s actually a mailbox</span>
+    <span class="kw">if</span> <span class="ident">mailbox</span>.<span class="ident">object</span>.<span class="ident">mailbox</span>().<span class="ident">is_none</span>() {
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MailboxError</span>::<span class="ident">NotAMailbox</span>);
+    }
+
+    <span class="comment">/*
+     * If there&#39;s mail waiting to be handled, pass it back to userspace and return immediately.
+     */</span>
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">mail</span>) <span class="op">=</span> <span class="ident">mailbox</span>.<span class="ident">object</span>.<span class="ident">mailbox</span>().<span class="ident">unwrap</span>().<span class="ident">write</span>().<span class="ident">get_next</span>() {
+        <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;You&#39;ve got mail! Mail: {:?}&quot;</span>, <span class="ident">mail</span>);
+        <span class="comment">// TODO: validate this address as a mapped, correctly-sized, writable virtual address</span>
+        <span class="comment">// in userspace (with a helper struct or something (I&#39;m thinking UserAddress)?)</span>
+        <span class="kw">unsafe</span> {
+            <span class="kw-2">*</span>(<span class="ident">output_buffer_address</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">MailRepr</span>) <span class="op">=</span> <span class="ident">mail</span>.<span class="ident">to_syscall_repr</span>();
+        }
+
+        <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+    }
+
+    <span class="comment">/*
+     * If there wasn&#39;t any mail waiting, ask the scheduler to block us until some mail arrives on this mailbox,
+     * then fill it in when this task is switched back to.
+     */</span>
+    <span class="kw">unsafe</span> {
+        <span class="ident">common_per_cpu_data_mut</span>().<span class="ident">scheduler</span>.<span class="ident">switch_to_next</span>(<span class="ident">TaskState</span>::<span class="ident">Blocked</span>(<span class="ident">TaskBlock</span>::<span class="ident">WaitForMail</span>(<span class="ident">mailbox_id</span>)));
+        <span class="kw-2">*</span>(<span class="ident">output_buffer_address</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">MailRepr</span>) <span class="op">=</span>
+            <span class="ident">mailbox</span>.<span class="ident">object</span>.<span class="ident">mailbox</span>().<span class="ident">unwrap</span>().<span class="ident">write</span>().<span class="ident">get_next</span>().<span class="ident">unwrap</span>().<span class="ident">to_syscall_repr</span>();
+    }
+    <span class="prelude-val">Ok</span>(())
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "kernel";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
