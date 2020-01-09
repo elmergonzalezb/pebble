@@ -162,6 +162,8 @@
 <span id="162">162</span>
 <span id="163">163</span>
 <span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">memory</span>::<span class="ident">userspace_map</span>, <span class="ident">Arch</span>, <span class="ident">ARCH</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">object</span>::<span class="ident">WrappedKernelObject</span>;
@@ -173,8 +175,10 @@
     <span class="ident">EntryFlags</span>,
     <span class="ident">Frame</span>,
     <span class="ident">FrameAllocator</span>,
+    <span class="ident">FrameSize</span>,
     <span class="ident">Page</span>,
     <span class="ident">PageTable</span>,
+    <span class="ident">Size4KiB</span>,
     <span class="ident">TranslationResult</span>,
     <span class="ident">VirtualAddress</span>,
 };
@@ -252,10 +256,10 @@
             <span class="kw">let</span> <span class="ident">memory_obj_info</span> <span class="op">=</span> <span class="ident">memory_object</span>.<span class="ident">object</span>.<span class="ident">memory_object</span>().<span class="ident">expect</span>(<span class="string">&quot;Not a MemoryObject&quot;</span>).<span class="ident">read</span>();
 
             <span class="kw">let</span> <span class="ident">start_page</span> <span class="op">=</span> <span class="ident">Page</span>::<span class="ident">starts_with</span>(<span class="ident">memory_obj_info</span>.<span class="ident">virtual_address</span>);
-            <span class="kw">let</span> <span class="ident">pages</span> <span class="op">=</span> <span class="ident">start_page</span>..(<span class="ident">start_page</span> <span class="op">+</span> <span class="ident">memory_obj_info</span>.<span class="ident">num_pages</span>);
+            <span class="kw">let</span> <span class="ident">pages</span> <span class="op">=</span> <span class="ident">start_page</span>..(<span class="ident">start_page</span> <span class="op">+</span> (<span class="ident">memory_obj_info</span>.<span class="ident">size</span> <span class="op">/</span> <span class="ident">Size4KiB</span>::<span class="ident">SIZE</span>));
 
             <span class="kw">let</span> <span class="ident">start_frame</span> <span class="op">=</span> <span class="ident">Frame</span>::<span class="ident">starts_with</span>(<span class="ident">memory_obj_info</span>.<span class="ident">physical_address</span>);
-            <span class="kw">let</span> <span class="ident">frames</span> <span class="op">=</span> <span class="ident">start_frame</span>..(<span class="ident">start_frame</span> <span class="op">+</span> <span class="ident">memory_obj_info</span>.<span class="ident">num_pages</span>);
+            <span class="kw">let</span> <span class="ident">frames</span> <span class="op">=</span> <span class="ident">start_frame</span>..(<span class="ident">start_frame</span> <span class="op">+</span> (<span class="ident">memory_obj_info</span>.<span class="ident">size</span> <span class="op">/</span> <span class="ident">Size4KiB</span>::<span class="ident">SIZE</span>));
 
             <span class="comment">/*
              * Check that the entire range of pages we&#39;ll be mapping into is currently free.

@@ -101,6 +101,9 @@
 <span id="101">101</span>
 <span id="102">102</span>
 <span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">acpi</span>::<span class="ident">PciConfigRegions</span>;
 <span class="kw">use</span> <span class="ident">aml</span>::{<span class="ident">pci_routing</span>::<span class="ident">PciRoutingTable</span>, <span class="ident">AmlContext</span>, <span class="ident">AmlName</span>};
@@ -201,7 +204,10 @@
             <span class="comment">// TODO: check if the function is a PCI-to-PCI bridge, and if so, call check_bus on the secondary bus</span>
             <span class="comment">// number (from the bridge&#39;s config space)</span>
 
-            <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Found PCI device (bus={}, device={}, function={}): {:x?}&quot;</span>, <span class="ident">bus</span>, <span class="ident">device</span>, <span class="ident">function</span>, <span class="ident">config_space</span>);
+            <span class="macro">info</span><span class="macro">!</span>(
+                <span class="string">&quot;Found PCI device (bus={}, device={}, function={}): (vendor = {:#x}, device = {:#x})&quot;</span>,
+                <span class="ident">bus</span>, <span class="ident">device</span>, <span class="ident">function</span>, <span class="ident">config_space</span>.<span class="ident">vendor_id</span>, <span class="ident">config_space</span>.<span class="ident">device_id</span>
+            );
         }
     }
 }
