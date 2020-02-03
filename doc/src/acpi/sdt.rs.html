@@ -206,33 +206,34 @@
 <span id="206">206</span>
 <span id="207">207</span>
 <span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">fadt</span>::<span class="ident">Fadt</span>, <span class="ident">hpet</span>::<span class="ident">HpetTable</span>, <span class="ident">madt</span>::<span class="ident">Madt</span>, <span class="ident">mcfg</span>::<span class="ident">Mcfg</span>, <span class="ident">Acpi</span>, <span class="ident">AcpiError</span>, <span class="ident">AcpiHandler</span>, <span class="ident">AmlTable</span>};
-<span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">marker</span>::<span class="ident">PhantomData</span>, <span class="ident">mem</span>, <span class="ident">str</span>};
+<span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">fmt</span>, <span class="ident">mem</span>, <span class="ident">mem</span>::<span class="ident">MaybeUninit</span>, <span class="ident">str</span>};
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">trace</span>, <span class="ident">warn</span>};
-<span class="kw">use</span> <span class="ident">typenum</span>::<span class="ident">Unsigned</span>;
 
-<span class="doccomment">/// A union that represents a field that is not necessarily present and is only present in a later</span>
-<span class="doccomment">/// ACPI version (represented by the compile time number and type parameter `R`)</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ACPI_VERSION_2_0</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">20</span>;
+
+<span class="doccomment">/// Represents a field which may or may not be present within an ACPI structure, depending on the version of ACPI</span>
+<span class="doccomment">/// that a system supports. If the field is not present, it is not safe to treat the data as initialised.</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>, <span class="ident">packed</span>)]</span>
-<span class="kw">pub</span> <span class="ident">union</span> <span class="ident">ExtendedField</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Copy</span>, <span class="ident">R</span>: <span class="ident">Unsigned</span><span class="op">&gt;</span> {
-    <span class="ident">field</span>: <span class="ident">T</span>,
-    <span class="ident">nothing</span>: (),
-    <span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-}
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExtendedField</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Copy</span>, <span class="kw">const</span> <span class="ident">MIN_VERSION</span>: <span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Copy</span>, <span class="ident">R</span>: <span class="ident">Unsigned</span><span class="op">&gt;</span> <span class="ident">ExtendedField</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Checks that the given revision is greater than `R` (typenum revision number) and then</span>
-    <span class="doccomment">/// returns the field, otherwise returning `None`.</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Copy</span>, <span class="kw">const</span> <span class="ident">MIN_VERSION</span>: <span class="ident">u8</span><span class="op">&gt;</span> <span class="ident">ExtendedField</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">MIN_VERSION</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Access the field if it&#39;s present for the given ACPI version. You should get this version from another ACPI</span>
+    <span class="doccomment">/// structure, such as the RSDT/XSDT.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// # Unsafety</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is unsafe as the given `revision` could be incorrect or fabricated. However, it should</span>
-    <span class="doccomment">/// be safe if it represents the revision of the table this field is present in.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">revision</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">revision</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">R</span>::<span class="ident">to_u8</span>() {
-            <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">field</span>)
+    <span class="doccomment">/// ### Safety</span>
+    <span class="doccomment">/// If a bogus ACPI version is passed, this function may access uninitialised data, which is unsafe.</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">access</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">version</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">version</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">MIN_VERSION</span> {
+            <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">assume_init</span>())
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
         }
@@ -275,15 +276,15 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>, <span class="ident">packed</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SdtHeader</span> {
-    <span class="ident">signature</span>: [<span class="ident">u8</span>; <span class="number">4</span>],
-    <span class="ident">length</span>: <span class="ident">u32</span>,
-    <span class="ident">revision</span>: <span class="ident">u8</span>,
-    <span class="ident">checksum</span>: <span class="ident">u8</span>,
-    <span class="ident">oem_id</span>: [<span class="ident">u8</span>; <span class="number">6</span>],
-    <span class="ident">oem_table_id</span>: [<span class="ident">u8</span>; <span class="number">8</span>],
-    <span class="ident">oem_revision</span>: <span class="ident">u32</span>,
-    <span class="ident">creator_id</span>: <span class="ident">u32</span>,
-    <span class="ident">creator_revision</span>: <span class="ident">u32</span>,
+    <span class="kw">pub</span> <span class="ident">signature</span>: <span class="ident">Signature</span>,
+    <span class="kw">pub</span> <span class="ident">length</span>: <span class="ident">u32</span>,
+    <span class="kw">pub</span> <span class="ident">revision</span>: <span class="ident">u8</span>,
+    <span class="kw">pub</span> <span class="ident">checksum</span>: <span class="ident">u8</span>,
+    <span class="kw">pub</span> <span class="ident">oem_id</span>: [<span class="ident">u8</span>; <span class="number">6</span>],
+    <span class="kw">pub</span> <span class="ident">oem_table_id</span>: [<span class="ident">u8</span>; <span class="number">8</span>],
+    <span class="kw">pub</span> <span class="ident">oem_revision</span>: <span class="ident">u32</span>,
+    <span class="kw">pub</span> <span class="ident">creator_id</span>: <span class="ident">u32</span>,
+    <span class="kw">pub</span> <span class="ident">creator_revision</span>: <span class="ident">u32</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">SdtHeader</span> {
@@ -292,20 +293,20 @@
     <span class="doccomment">///     b) The checksum of the SDT</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This assumes that the whole SDT is mapped.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">signature</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>; <span class="number">4</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AcpiError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">signature</span>: <span class="ident">Signature</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AcpiError</span><span class="op">&gt;</span> {
         <span class="comment">// Check the signature</span>
-        <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">signature</span> <span class="op">!</span><span class="op">=</span> <span class="ident">signature</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">AcpiError</span>::<span class="ident">SdtInvalidSignature</span>(<span class="kw-2">*</span><span class="ident">signature</span>));
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">signature</span> <span class="op">!</span><span class="op">=</span> <span class="ident">signature</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">AcpiError</span>::<span class="ident">SdtInvalidSignature</span>(<span class="ident">signature</span>));
         }
 
         <span class="comment">// Check the OEM id</span>
         <span class="kw">if</span> <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">oem_id</span>).<span class="ident">is_err</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">AcpiError</span>::<span class="ident">SdtInvalidOemId</span>(<span class="kw-2">*</span><span class="ident">signature</span>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">AcpiError</span>::<span class="ident">SdtInvalidOemId</span>(<span class="ident">signature</span>));
         }
 
         <span class="comment">// Check the OEM table id</span>
         <span class="kw">if</span> <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">oem_table_id</span>).<span class="ident">is_err</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">AcpiError</span>::<span class="ident">SdtInvalidTableId</span>(<span class="kw-2">*</span><span class="ident">signature</span>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">AcpiError</span>::<span class="ident">SdtInvalidTableId</span>(<span class="ident">signature</span>));
         }
 
         <span class="comment">// Validate the checksum</span>
@@ -316,27 +317,10 @@
         }
 
         <span class="kw">if</span> <span class="ident">sum</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">AcpiError</span>::<span class="ident">SdtInvalidChecksum</span>(<span class="kw-2">*</span><span class="ident">signature</span>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">AcpiError</span>::<span class="ident">SdtInvalidChecksum</span>(<span class="ident">signature</span>));
         }
 
         <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw_signature</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u8</span>; <span class="number">4</span>] {
-        <span class="self">self</span>.<span class="ident">signature</span>
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signature</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
-        <span class="comment">// Safe to unwrap because we check signature is valid UTF8 in `validate`</span>
-        <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">signature</span>).<span class="ident">unwrap</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
-        <span class="self">self</span>.<span class="ident">length</span>
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">revision</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
-        <span class="self">self</span>.<span class="ident">revision</span>
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">oem_id</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
@@ -347,6 +331,36 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">oem_table_id</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
         <span class="comment">// Safe to unwrap because checked in `validate`</span>
         <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">oem_table_id</span>).<span class="ident">unwrap</span>()
+    }
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Signature</span>([<span class="ident">u8</span>; <span class="number">4</span>]);
+
+<span class="kw">impl</span> <span class="ident">Signature</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RSDT</span>: <span class="ident">Signature</span> <span class="op">=</span> <span class="ident">Signature</span>(<span class="kw-2">*</span><span class="string">b&quot;RSDT&quot;</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">XSDT</span>: <span class="ident">Signature</span> <span class="op">=</span> <span class="ident">Signature</span>(<span class="kw-2">*</span><span class="string">b&quot;XSDT&quot;</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FADT</span>: <span class="ident">Signature</span> <span class="op">=</span> <span class="ident">Signature</span>(<span class="kw-2">*</span><span class="string">b&quot;FACP&quot;</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">HPET</span>: <span class="ident">Signature</span> <span class="op">=</span> <span class="ident">Signature</span>(<span class="kw-2">*</span><span class="string">b&quot;HPET&quot;</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MADT</span>: <span class="ident">Signature</span> <span class="op">=</span> <span class="ident">Signature</span>(<span class="kw-2">*</span><span class="string">b&quot;APIC&quot;</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MCFG</span>: <span class="ident">Signature</span> <span class="op">=</span> <span class="ident">Signature</span>(<span class="kw-2">*</span><span class="string">b&quot;MCFG&quot;</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSDT</span>: <span class="ident">Signature</span> <span class="op">=</span> <span class="ident">Signature</span>(<span class="kw-2">*</span><span class="string">b&quot;SSDT&quot;</span>);
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+        <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>).<span class="ident">unwrap</span>()
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Signature</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">as_str</span>())
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Signature</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;\&quot;{}\&quot;&quot;</span>, <span class="self">self</span>.<span class="ident">as_str</span>())
     }
 }
 
@@ -370,39 +384,39 @@
     <span class="ident">H</span>: <span class="ident">AcpiHandler</span>,
 {
     <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">peek_at_sdt_header</span>(<span class="ident">handler</span>, <span class="ident">physical_address</span>);
-    <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Found ACPI table with signature {:?} and length {:?}&quot;</span>, <span class="ident">header</span>.<span class="ident">signature</span>(), <span class="ident">header</span>.<span class="ident">length</span>());
+    <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Found ACPI table with signature {:?} and length {:?}&quot;</span>, <span class="ident">header</span>.<span class="ident">signature</span>, <span class="ident">header</span>.<span class="ident">length</span>);
 
     <span class="comment">/*
      * For a recognised signature, a new physical mapping should be created with the correct type
      * and length, and then the dispatched to the correct function to actually parse the table.
      */</span>
-    <span class="kw">match</span> <span class="ident">header</span>.<span class="ident">signature</span>() {
-        <span class="string">&quot;FACP&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+    <span class="kw">match</span> <span class="ident">header</span>.<span class="ident">signature</span> {
+        <span class="ident">Signature</span>::<span class="ident">FADT</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">fadt_mapping</span> <span class="op">=</span> <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">Fadt</span><span class="op">&gt;</span>(<span class="ident">physical_address</span>, <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">Fadt</span><span class="op">&gt;</span>());
             <span class="kw">crate</span>::<span class="ident">fadt</span>::<span class="ident">parse_fadt</span>(<span class="ident">acpi</span>, <span class="ident">handler</span>, <span class="kw-2">&amp;</span><span class="ident">fadt_mapping</span>)<span class="question-mark">?</span>;
             <span class="ident">handler</span>.<span class="ident">unmap_physical_region</span>(<span class="ident">fadt_mapping</span>);
         }
 
-        <span class="string">&quot;HPET&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Signature</span>::<span class="ident">HPET</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">hpet_mapping</span> <span class="op">=</span>
                 <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">HpetTable</span><span class="op">&gt;</span>(<span class="ident">physical_address</span>, <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">HpetTable</span><span class="op">&gt;</span>());
             <span class="kw">crate</span>::<span class="ident">hpet</span>::<span class="ident">parse_hpet</span>(<span class="ident">acpi</span>, <span class="kw-2">&amp;</span><span class="ident">hpet_mapping</span>)<span class="question-mark">?</span>;
             <span class="ident">handler</span>.<span class="ident">unmap_physical_region</span>(<span class="ident">hpet_mapping</span>);
         }
 
-        <span class="string">&quot;APIC&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">madt_mapping</span> <span class="op">=</span> <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">Madt</span><span class="op">&gt;</span>(<span class="ident">physical_address</span>, <span class="ident">header</span>.<span class="ident">length</span>() <span class="kw">as</span> <span class="ident">usize</span>);
+        <span class="ident">Signature</span>::<span class="ident">MADT</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">madt_mapping</span> <span class="op">=</span> <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">Madt</span><span class="op">&gt;</span>(<span class="ident">physical_address</span>, <span class="ident">header</span>.<span class="ident">length</span> <span class="kw">as</span> <span class="ident">usize</span>);
             <span class="kw">crate</span>::<span class="ident">madt</span>::<span class="ident">parse_madt</span>(<span class="ident">acpi</span>, <span class="ident">handler</span>, <span class="kw-2">&amp;</span><span class="ident">madt_mapping</span>)<span class="question-mark">?</span>;
             <span class="ident">handler</span>.<span class="ident">unmap_physical_region</span>(<span class="ident">madt_mapping</span>);
         }
 
-        <span class="string">&quot;MCFG&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">mcfg_mapping</span> <span class="op">=</span> <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">Mcfg</span><span class="op">&gt;</span>(<span class="ident">physical_address</span>, <span class="ident">header</span>.<span class="ident">length</span>() <span class="kw">as</span> <span class="ident">usize</span>);
+        <span class="ident">Signature</span>::<span class="ident">MCFG</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">mcfg_mapping</span> <span class="op">=</span> <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">Mcfg</span><span class="op">&gt;</span>(<span class="ident">physical_address</span>, <span class="ident">header</span>.<span class="ident">length</span> <span class="kw">as</span> <span class="ident">usize</span>);
             <span class="kw">crate</span>::<span class="ident">mcfg</span>::<span class="ident">parse_mcfg</span>(<span class="ident">acpi</span>, <span class="kw-2">&amp;</span><span class="ident">mcfg_mapping</span>)<span class="question-mark">?</span>;
             <span class="ident">handler</span>.<span class="ident">unmap_physical_region</span>(<span class="ident">mcfg_mapping</span>);
         }
 
-        <span class="string">&quot;SSDT&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">acpi</span>.<span class="ident">ssdts</span>.<span class="ident">push</span>(<span class="ident">AmlTable</span>::<span class="ident">new</span>(<span class="ident">physical_address</span>, <span class="ident">header</span>.<span class="ident">length</span>())),
+        <span class="ident">Signature</span>::<span class="ident">SSDT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">acpi</span>.<span class="ident">ssdts</span>.<span class="ident">push</span>(<span class="ident">AmlTable</span>::<span class="ident">new</span>(<span class="ident">physical_address</span>, <span class="ident">header</span>.<span class="ident">length</span>)),
 
         <span class="ident">signature</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">/*

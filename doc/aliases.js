@@ -16,5 +16,4 @@ ALIASES["num_rational"] = {};
 ALIASES["num_traits"] = {};
 ALIASES["pebble_util"] = {};
 ALIASES["spin"] = {};
-ALIASES["typenum"] = {};
 ALIASES["x86_64"] = {};

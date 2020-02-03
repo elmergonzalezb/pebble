@@ -217,6 +217,19 @@
 <span id="217">217</span>
 <span id="218">218</span>
 <span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">arch_impl</span>::{<span class="ident">common_per_cpu_data</span>, <span class="ident">common_per_cpu_data_mut</span>},
@@ -227,6 +240,7 @@
     },
     <span class="ident">COMMON</span>,
 };
+<span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">slice</span>, <span class="ident">str</span>};
 <span class="kw">use</span> <span class="ident">libpebble</span>::{
     <span class="ident">caps</span>::<span class="ident">Capability</span>,
@@ -234,7 +248,7 @@
     <span class="ident">syscall</span>::{
         <span class="ident">mailbox</span>::<span class="ident">MailboxError</span>,
         <span class="ident">result</span>::{<span class="ident">result_to_syscall_repr</span>, <span class="ident">status_to_syscall_repr</span>},
-        <span class="ident">MemoryObjectMappingError</span>,
+        <span class="ident">MemoryObjectError</span>,
     },
     <span class="ident">KernelObjectId</span>,
 };
@@ -257,6 +271,7 @@
         <span class="ident">syscall</span>::<span class="ident">SYSCALL_EARLY_LOG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">early_log</span>(<span class="ident">a</span>, <span class="ident">b</span>),
         <span class="ident">syscall</span>::<span class="ident">SYSCALL_REQUEST_SYSTEM_OBJECT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">request_system_object</span>(<span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">c</span>, <span class="ident">d</span>, <span class="ident">e</span>),
         <span class="ident">syscall</span>::<span class="ident">SYSCALL_MY_ADDRESS_SPACE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">my_address_space</span>(),
+        <span class="ident">syscall</span>::<span class="ident">SYSCALL_CREATE_MEMORY_OBJECT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">result_to_syscall_repr</span>(<span class="ident">create_memory_object</span>(<span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">c</span>)),
         <span class="ident">syscall</span>::<span class="ident">SYSCALL_MAP_MEMORY_OBJECT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">status_to_syscall_repr</span>(<span class="ident">map_memory_object</span>(<span class="ident">a</span>, <span class="ident">b</span>)),
         <span class="ident">syscall</span>::<span class="ident">SYSCALL_CREATE_MAILBOX</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">result_to_syscall_repr</span>(<span class="ident">create_mailbox</span>()),
         <span class="ident">syscall</span>::<span class="ident">SYSCALL_WAIT_FOR_MAIL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">status_to_syscall_repr</span>(<span class="ident">wait_for_mail</span>(<span class="ident">a</span>, <span class="ident">b</span>)),
@@ -367,7 +382,18 @@
         .<span class="ident">to_syscall_repr</span>()
 }
 
-<span class="kw">fn</span> <span class="ident">map_memory_object</span>(<span class="ident">memory_object_id</span>: <span class="ident">usize</span>, <span class="ident">address_space_id</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MemoryObjectMappingError</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">create_memory_object</span>(
+    <span class="ident">virtual_address</span>: <span class="ident">usize</span>,
+    <span class="ident">size</span>: <span class="ident">usize</span>,
+    <span class="ident">flags</span>: <span class="ident">usize</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">KernelObjectId</span>, <span class="ident">MemoryObjectError</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">writable</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">get_bit</span>(<span class="number">0</span>);
+    <span class="kw">let</span> <span class="ident">executable</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">get_bit</span>(<span class="number">1</span>);
+
+    <span class="macro">unimplemented</span><span class="macro">!</span>()
+}
+
+<span class="kw">fn</span> <span class="ident">map_memory_object</span>(<span class="ident">memory_object_id</span>: <span class="ident">usize</span>, <span class="ident">address_space_id</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MemoryObjectError</span><span class="op">&gt;</span> {
     <span class="comment">/*
      * TODO: enforce that the calling task must have access to the AddressSpace and MemoryObject
      * for this to work (we need to build the owning / access system first).
@@ -375,20 +401,20 @@
     <span class="kw">let</span> <span class="ident">memory_object</span> <span class="op">=</span>
         <span class="kw">match</span> <span class="ident">COMMON</span>.<span class="ident">get</span>().<span class="ident">object_map</span>.<span class="ident">read</span>().<span class="ident">get</span>(<span class="ident">KernelObjectId</span>::<span class="ident">from_syscall_repr</span>(<span class="ident">memory_object_id</span>)) {
             <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">object</span>.<span class="ident">clone</span>(),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectMappingError</span>::<span class="ident">NotAMemoryObject</span>),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectError</span>::<span class="ident">NotAMemoryObject</span>),
         };
 
     <span class="comment">// Check it&#39;s a MemoryObject</span>
     <span class="kw">if</span> <span class="ident">memory_object</span>.<span class="ident">object</span>.<span class="ident">memory_object</span>().<span class="ident">is_none</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectMappingError</span>::<span class="ident">NotAMemoryObject</span>);
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectError</span>::<span class="ident">NotAMemoryObject</span>);
     }
 
     <span class="kw">match</span> <span class="ident">COMMON</span>.<span class="ident">get</span>().<span class="ident">object_map</span>.<span class="ident">read</span>().<span class="ident">get</span>(<span class="ident">KernelObjectId</span>::<span class="ident">from_syscall_repr</span>(<span class="ident">address_space_id</span>)) {
         <span class="prelude-val">Some</span>(<span class="ident">address_space</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">address_space</span>.<span class="ident">object</span>.<span class="ident">address_space</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">address_space</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">address_space</span>.<span class="ident">write</span>().<span class="ident">map_memory_object</span>(<span class="ident">memory_object</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectMappingError</span>::<span class="ident">NotAnAddressSpace</span>),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectError</span>::<span class="ident">NotAnAddressSpace</span>),
         },
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectMappingError</span>::<span class="ident">NotAnAddressSpace</span>),
+        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectError</span>::<span class="ident">NotAnAddressSpace</span>),
     }
 }
 
@@ -399,7 +425,7 @@
 }
 
 <span class="kw">fn</span> <span class="ident">wait_for_mail</span>(<span class="ident">mailbox_id</span>: <span class="ident">usize</span>, <span class="ident">output_buffer_address</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MailboxError</span><span class="op">&gt;</span> {
-    <span class="kw">use</span> <span class="ident">libpebble</span>::<span class="ident">syscall</span>::<span class="ident">mailbox</span>::{<span class="ident">Mail</span>, <span class="ident">MailRepr</span>};
+    <span class="kw">use</span> <span class="ident">libpebble</span>::<span class="ident">syscall</span>::<span class="ident">mailbox</span>::<span class="ident">MailRepr</span>;
     <span class="kw">let</span> <span class="ident">mailbox_id</span> <span class="op">=</span> <span class="ident">KernelObjectId</span>::<span class="ident">from_syscall_repr</span>(<span class="ident">mailbox_id</span>);
 
     <span class="kw">let</span> <span class="ident">mailbox</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">COMMON</span>.<span class="ident">get</span>().<span class="ident">object_map</span>.<span class="ident">read</span>().<span class="ident">get</span>(<span class="ident">mailbox_id</span>) {

@@ -16,6 +16,5 @@ sourcesIndex["num_rational"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["num_traits"] = {"name":"","dirs":[{"name":"ops","files":["checked.rs","inv.rs","mod.rs","mul_add.rs","saturating.rs","wrapping.rs"]}],"files":["bounds.rs","cast.rs","float.rs","identities.rs","int.rs","lib.rs","macros.rs","pow.rs","sign.rs"]};
 sourcesIndex["pebble_util"] = {"name":"","files":["binary_pretty_print.rs","bitmap.rs","init_guard.rs","lib.rs","math.rs"]};
 sourcesIndex["spin"] = {"name":"","files":["lib.rs","mutex.rs","once.rs","rw_lock.rs"]};
-sourcesIndex["typenum"] = {"name":"","files":["array.rs","bit.rs","int.rs","lib.rs","marker_traits.rs","operator_aliases.rs","private.rs","type_operators.rs","uint.rs"]};
 sourcesIndex["x86_64"] = {"name":"","dirs":[{"name":"hw","files":["cpu.rs","gdt.rs","i8259_pic.rs","idt.rs","local_apic.rs","mod.rs","port.rs","registers.rs","serial.rs","tlb.rs","tss.rs"]},{"name":"memory","files":["frame.rs","frame_allocator.rs","kernel_map.rs","mod.rs","page.rs","page_table.rs","physical_address.rs","virtual_address.rs"]}],"files":["boot.rs","lib.rs"]};
 createSourceSidebar();

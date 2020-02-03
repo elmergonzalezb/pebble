@@ -565,7 +565,7 @@
     <span class="kw">fn</span> <span class="ident">entries</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MadtEntryIter</span> {
         <span class="ident">MadtEntryIter</span> {
             <span class="ident">pointer</span>: <span class="kw">unsafe</span> { (<span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Madt</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>).<span class="ident">offset</span>(<span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">Madt</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">isize</span>) },
-            <span class="ident">remaining_length</span>: <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">length</span>() <span class="op">-</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">Madt</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+            <span class="ident">remaining_length</span>: <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">length</span> <span class="op">-</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">Madt</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u32</span>,
             <span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
         }
     }
@@ -861,7 +861,7 @@
 <span class="kw">where</span>
     <span class="ident">H</span>: <span class="ident">AcpiHandler</span>,
 {
-    (<span class="kw-2">*</span><span class="ident">mapping</span>).<span class="ident">header</span>.<span class="ident">validate</span>(<span class="string">b&quot;APIC&quot;</span>)<span class="question-mark">?</span>;
+    (<span class="kw-2">*</span><span class="ident">mapping</span>).<span class="ident">header</span>.<span class="ident">validate</span>(<span class="kw">crate</span>::<span class="ident">sdt</span>::<span class="ident">Signature</span>::<span class="ident">MADT</span>)<span class="question-mark">?</span>;
 
     <span class="comment">/*
      * If the MADT doesn&#39;t contain another supported interrupt model (either APIC, SAPIC, X2APIC

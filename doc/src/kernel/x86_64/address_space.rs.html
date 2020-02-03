@@ -168,7 +168,7 @@
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">memory</span>::<span class="ident">userspace_map</span>, <span class="ident">Arch</span>, <span class="ident">ARCH</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">object</span>::<span class="ident">WrappedKernelObject</span>;
 <span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">vec</span>::<span class="ident">Vec</span>;
-<span class="kw">use</span> <span class="ident">libpebble</span>::<span class="ident">syscall</span>::<span class="ident">MemoryObjectMappingError</span>;
+<span class="kw">use</span> <span class="ident">libpebble</span>::<span class="ident">syscall</span>::<span class="ident">MemoryObjectError</span>;
 <span class="kw">use</span> <span class="ident">pebble_util</span>::<span class="ident">bitmap</span>::{<span class="ident">Bitmap</span>, <span class="ident">BitmapArray</span>};
 <span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::{
     <span class="ident">kernel_map</span>,
@@ -250,7 +250,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_memory_object</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">memory_object</span>: <span class="ident">WrappedKernelObject</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MemoryObjectMappingError</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MemoryObjectError</span><span class="op">&gt;</span> {
         {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mapper</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">table</span>.<span class="ident">mapper</span>();
             <span class="kw">let</span> <span class="ident">memory_obj_info</span> <span class="op">=</span> <span class="ident">memory_object</span>.<span class="ident">object</span>.<span class="ident">memory_object</span>().<span class="ident">expect</span>(<span class="string">&quot;Not a MemoryObject&quot;</span>).<span class="ident">read</span>();
@@ -267,7 +267,7 @@
             <span class="kw">for</span> <span class="ident">page</span> <span class="kw">in</span> <span class="ident">pages</span>.<span class="ident">clone</span>() {
                 <span class="kw">match</span> <span class="ident">mapper</span>.<span class="ident">translate</span>(<span class="ident">page</span>.<span class="ident">start_address</span>) {
                     <span class="ident">TranslationResult</span>::<span class="ident">NotMapped</span> <span class="op">=</span><span class="op">&gt;</span> (),
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectMappingError</span>::<span class="ident">AddressRangeNotFree</span>),
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectError</span>::<span class="ident">AddressRangeNotFree</span>),
                 }
             }
 

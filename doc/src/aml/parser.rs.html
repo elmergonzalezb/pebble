@@ -478,7 +478,6 @@
 <span id="478">478</span>
 <span id="479">479</span>
 <span id="480">480</span>
-<span id="481">481</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">pkg_length</span>::<span class="ident">PkgLength</span>, <span class="ident">AmlContext</span>, <span class="ident">AmlError</span>};
 <span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">vec</span>::<span class="ident">Vec</span>;
@@ -650,7 +649,6 @@
     }
 }
 
-<span class="comment">// TODO: can we use const generics (e.g. [R; N]) to avoid allocating?</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">n_of</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="ident">P</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">parser</span>: <span class="ident">P</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;c</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="lifetime">&#39;c</span>: <span class="lifetime">&#39;a</span>,
