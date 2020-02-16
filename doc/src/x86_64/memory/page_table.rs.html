@@ -442,8 +442,30 @@
 <span id="442">442</span>
 <span id="443">443</span>
 <span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Frame</span>, <span class="ident">FrameAllocator</span>, <span class="ident">Page</span>, <span class="ident">PhysicalAddress</span>, <span class="ident">Size2MiB</span>, <span class="ident">Size4KiB</span>, <span class="ident">VirtualAddress</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Frame</span>, <span class="ident">FrameAllocator</span>, <span class="ident">FrameSize</span>, <span class="ident">Page</span>, <span class="ident">PhysicalAddress</span>, <span class="ident">Size2MiB</span>, <span class="ident">Size4KiB</span>, <span class="ident">VirtualAddress</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">hw</span>::{<span class="ident">registers</span>::<span class="ident">write_control_reg</span>, <span class="ident">tlb</span>};
 <span class="kw">use</span> <span class="ident">bitflags</span>::<span class="ident">bitflags</span>;
 <span class="kw">use</span> <span class="ident">core</span>::{
@@ -853,6 +875,28 @@
         }
 
         <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Map `size` bytes at `virtual_start` to `physical_start` with the given set of flags. `size` must be a</span>
+    <span class="doccomment">/// multiple of the smallest frame size.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_area_to</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">virtual_start</span>: <span class="ident">VirtualAddress</span>,
+        <span class="ident">physical_start</span>: <span class="ident">PhysicalAddress</span>,
+        <span class="ident">size</span>: <span class="ident">usize</span>,
+        <span class="ident">flags</span>: <span class="ident">EntryFlags</span>,
+        <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MapError</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">A</span>: <span class="ident">FrameAllocator</span>,
+    {
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">virtual_start</span>.<span class="ident">is_page_aligned</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">physical_start</span>.<span class="ident">is_frame_aligned</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">size</span> <span class="op">%</span> <span class="ident">Size4KiB</span>::<span class="ident">SIZE</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+
+        <span class="kw">let</span> <span class="ident">pages</span> <span class="op">=</span> <span class="ident">Page</span>::<span class="ident">starts_with</span>(<span class="ident">virtual_start</span>)..<span class="ident">Page</span>::<span class="ident">starts_with</span>(<span class="ident">virtual_start</span> <span class="op">+</span> <span class="ident">size</span>);
+        <span class="kw">let</span> <span class="ident">frames</span> <span class="op">=</span> <span class="ident">Frame</span>::<span class="ident">starts_with</span>(<span class="ident">physical_start</span>)..<span class="ident">Frame</span>::<span class="ident">starts_with</span>(<span class="ident">physical_start</span> <span class="op">+</span> <span class="ident">size</span>);
+        <span class="self">self</span>.<span class="ident">map_range_to</span>(<span class="ident">pages</span>, <span class="ident">frames</span>, <span class="ident">flags</span>, <span class="ident">allocator</span>)
     }
 
     <span class="doccomment">/// Unmap the given page, returning the `Frame` it was mapped to so the caller can choose to</span>
