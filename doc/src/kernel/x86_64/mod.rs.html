@@ -300,6 +300,9 @@
 <span id="300">300</span>
 <span id="301">301</span>
 <span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module defines the kernel entry-point on x86_64.</span>
 
@@ -400,6 +403,9 @@
         <span class="ident">cpu_info</span>.<span class="ident">model_info</span>,
         <span class="ident">cpu_info</span>.<span class="ident">microarch</span>()
     );
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">hypervisor_info</span>) <span class="op">=</span> <span class="ident">cpu_info</span>.<span class="ident">hypervisor_info</span> {
+        <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;We&#39;re running under a hypervisor ({:?})&quot;</span>, <span class="ident">hypervisor_info</span>.<span class="ident">vendor</span>);
+    }
     <span class="ident">check_support</span>(<span class="kw-2">&amp;</span><span class="ident">cpu_info</span>);
 
     <span class="comment">/*

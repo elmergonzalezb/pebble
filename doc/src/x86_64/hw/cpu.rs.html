@@ -461,9 +461,9 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HypervisorInfo</span> {
-    <span class="ident">vendor</span>: <span class="ident">HypervisorVendor</span>,
-    <span class="ident">max_leaf</span>: <span class="ident">u32</span>,
-    <span class="ident">apic_frequency</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">vendor</span>: <span class="ident">HypervisorVendor</span>,
+    <span class="kw">pub</span> <span class="ident">max_leaf</span>: <span class="ident">u32</span>,
+    <span class="kw">pub</span> <span class="ident">apic_frequency</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// This is used to reinterpret the bytes of the vendor strings that are spread across the three</span>
