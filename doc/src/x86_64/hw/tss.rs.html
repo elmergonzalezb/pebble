@@ -69,9 +69,9 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Tss</span> {
         <span class="ident">Tss</span> {
             <span class="ident">_reserved_1</span>: <span class="number">0</span>,
-            <span class="ident">privilege_stack_table</span>: [<span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0</span>) }; <span class="number">3</span>],
+            <span class="ident">privilege_stack_table</span>: [<span class="ident">VirtualAddress</span>::<span class="ident">new</span>(<span class="number">0x0</span>); <span class="number">3</span>],
             <span class="ident">_reserved_2</span>: <span class="number">0</span>,
-            <span class="ident">interrupt_stack_table</span>: [<span class="kw">unsafe</span> { <span class="ident">VirtualAddress</span>::<span class="ident">new_unchecked</span>(<span class="number">0</span>) }; <span class="number">7</span>],
+            <span class="ident">interrupt_stack_table</span>: [<span class="ident">VirtualAddress</span>::<span class="ident">new</span>(<span class="number">0x0</span>); <span class="number">7</span>],
             <span class="ident">_reserved_3</span>: <span class="number">0</span>,
             <span class="ident">_reserved_4</span>: <span class="number">0</span>,
             <span class="ident">iomap_base</span>: <span class="number">0</span>,

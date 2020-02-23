@@ -16,6 +16,5 @@ CPUs. This has the potential to end up as a bit of a &quot;God struct&quot;, so 
 same data), including from system call and interrupt handlers. I haven't discovered a
 particularly elegant way of doing that in Rust yet, but this isn't totally awful.</p>
 </td></tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
-<table><tr class='module-item'><td><a class="fn" href="fn.kmain.html" title='kernel::kmain fn'>kmain</a></td><td class='docblock-short'><p>This is the entry point for the kernel on x86_64. It is called from the UEFI bootloader and
-initialises the system, then passes control into the common part of the kernel.</p>
+<table><tr class='module-item'><td><a class="fn" href="fn.kmain.html" title='kernel::kmain fn'>kmain</a></td><td class='docblock-short'><p>This is the entry point for the kernel on x86_64. It is called from <code>efiloader</code>.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.panic.html" title='kernel::panic fn'>panic</a></td><td class='docblock-short'></td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "kernel";</script><script src="../aliases.js"></script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

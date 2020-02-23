@@ -55,7 +55,6 @@
 <span id="55">55</span>
 <span id="56">56</span>
 <span id="57">57</span>
-<span id="58">58</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">sdt</span>::<span class="ident">SdtHeader</span>, <span class="ident">Acpi</span>, <span class="ident">AcpiError</span>, <span class="ident">GenericAddress</span>, <span class="ident">PhysicalMapping</span>};
 <span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
@@ -73,13 +72,12 @@
 <span class="doccomment">/// Information about the High Precision Event Timer</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HpetInfo</span> {
-    <span class="ident">event_timer_block_id</span>: <span class="ident">u32</span>,
-    <span class="ident">base_address</span>: <span class="ident">usize</span>,
-    <span class="ident">hpet_number</span>: <span class="ident">u8</span>,
-    <span class="doccomment">/// The minimum number of clock ticks that can be set without losing interrupts (for timers in</span>
-    <span class="doccomment">/// Periodic Mode)</span>
-    <span class="ident">clock_tick_unit</span>: <span class="ident">u16</span>,
-    <span class="ident">page_protection</span>: <span class="ident">PageProtection</span>,
+    <span class="kw">pub</span> <span class="ident">event_timer_block_id</span>: <span class="ident">u32</span>,
+    <span class="kw">pub</span> <span class="ident">base_address</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span> <span class="ident">hpet_number</span>: <span class="ident">u8</span>,
+    <span class="doccomment">/// The minimum number of clock ticks that can be set without losing interrupts (for timers in Periodic Mode)</span>
+    <span class="kw">pub</span> <span class="ident">clock_tick_unit</span>: <span class="ident">u16</span>,
+    <span class="kw">pub</span> <span class="ident">page_protection</span>: <span class="ident">PageProtection</span>,
 }
 
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>, <span class="ident">packed</span>)]</span>

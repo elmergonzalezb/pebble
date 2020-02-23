@@ -18,10 +18,12 @@
 <span id="18">18</span>
 <span id="19">19</span>
 <span id="20">20</span>
+<span id="21">21</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">acpi</span>::{<span class="ident">AcpiHandler</span>, <span class="ident">PhysicalMapping</span> <span class="kw">as</span> <span class="ident">AcpiPhysicalMapping</span>};
+<span class="kw">use</span> <span class="ident">boot_info_x86_64</span>::<span class="ident">kernel_map</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ptr</span>::<span class="ident">NonNull</span>;
-<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::{<span class="ident">kernel_map</span>, <span class="ident">PhysicalAddress</span>};
+<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::<span class="ident">PhysicalAddress</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PebbleAcpiHandler</span>;
 

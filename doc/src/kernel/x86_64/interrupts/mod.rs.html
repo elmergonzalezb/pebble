@@ -305,6 +305,21 @@
 <span id="305">305</span>
 <span id="306">306</span>
 <span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">mod</span> <span class="ident">exception</span>;
 <span class="kw">mod</span> <span class="ident">pci</span>;
@@ -313,9 +328,11 @@
 <span class="kw">use</span> <span class="ident">acpi</span>::<span class="ident">interrupt</span>::<span class="ident">InterruptModel</span>;
 <span class="kw">use</span> <span class="ident">aml</span>::{<span class="ident">value</span>::<span class="ident">Args</span> <span class="kw">as</span> <span class="ident">AmlArgs</span>, <span class="ident">AmlName</span>, <span class="ident">AmlValue</span>};
 <span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
+<span class="kw">use</span> <span class="ident">boot_info_x86_64</span>::<span class="ident">kernel_map</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">info</span>, <span class="ident">warn</span>};
 <span class="kw">use</span> <span class="ident">pci</span>::<span class="ident">PciResolver</span>;
+<span class="kw">use</span> <span class="ident">pebble_util</span>::<span class="ident">InitGuard</span>;
 <span class="kw">use</span> <span class="ident">x86_64</span>::{
     <span class="ident">hw</span>::{
         <span class="ident">gdt</span>::<span class="ident">KERNEL_CODE_SELECTOR</span>,
@@ -324,7 +341,7 @@
         <span class="ident">local_apic</span>::<span class="ident">LocalApic</span>,
         <span class="ident">registers</span>::<span class="ident">write_msr</span>,
     },
-    <span class="ident">memory</span>::{<span class="ident">kernel_map</span>, <span class="ident">EntryFlags</span>, <span class="ident">Frame</span>, <span class="ident">Page</span>, <span class="ident">PhysicalAddress</span>},
+    <span class="ident">memory</span>::{<span class="ident">EntryFlags</span>, <span class="ident">Frame</span>, <span class="ident">Page</span>, <span class="ident">PhysicalAddress</span>},
 };
 
 <span class="macro">global_asm</span><span class="macro">!</span>(<span class="macro">include_str</span><span class="macro">!</span>(<span class="string">&quot;syscall.s&quot;</span>));
@@ -346,6 +363,8 @@
 <span class="doccomment">/// |        ff        | APIC spurious interrupt     |</span>
 <span class="doccomment">/// |------------------|-----------------------------|</span>
 <span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">IDT</span>: <span class="ident">Idt</span> <span class="op">=</span> <span class="ident">Idt</span>::<span class="ident">empty</span>();
+
+<span class="kw">static</span> <span class="ident">LOCAL_APIC</span>: <span class="ident">InitGuard</span><span class="op">&lt;</span><span class="ident">LocalApic</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">InitGuard</span>::<span class="ident">uninit</span>();
 
 <span class="comment">/*
  * These constants define the IDT&#39;s layout. Refer to the documentation of the `IDT` static for
@@ -374,6 +393,17 @@
                 }
 
                 <span class="comment">/*
+                 * Initialise `LOCAL_APIC` to point at the right address.
+                 * TODO: we might need to map it separately or something so we can set custom flags on the
+                 * paging entry (do we need to set NO_CACHE on it?)
+                 */</span>
+                <span class="ident">LOCAL_APIC</span>.<span class="ident">initialize</span>(<span class="kw">unsafe</span> {
+                    <span class="ident">LocalApic</span>::<span class="ident">new</span>(<span class="ident">kernel_map</span>::<span class="ident">physical_to_virtual</span>(
+                        <span class="ident">PhysicalAddress</span>::<span class="ident">new</span>(<span class="ident">info</span>.<span class="ident">local_apic_address</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">unwrap</span>(),
+                    ))
+                });
+
+                <span class="comment">/*
                  * Tell ACPI that we intend to use the APICs instead of the legacy PIC.
                  */</span>
                 <span class="ident">arch</span>.<span class="ident">aml_context</span>
@@ -393,19 +423,19 @@
                     <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arch</span>.<span class="ident">aml_context</span>.<span class="ident">lock</span>(),
                 );
 
-                <span class="comment">/*
-                 * Map the local APIC&#39;s configuration space into the kernel address space.
-                 */</span>
-                <span class="ident">arch</span>.<span class="ident">kernel_page_table</span>
-                    .<span class="ident">lock</span>()
-                    .<span class="ident">mapper</span>()
-                    .<span class="ident">map_to</span>(
-                        <span class="ident">Page</span>::<span class="ident">contains</span>(<span class="ident">kernel_map</span>::<span class="ident">LOCAL_APIC_CONFIG</span>),
-                        <span class="ident">Frame</span>::<span class="ident">contains</span>(<span class="ident">PhysicalAddress</span>::<span class="ident">new</span>(<span class="ident">info</span>.<span class="ident">local_apic_address</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">unwrap</span>()),
-                        <span class="ident">EntryFlags</span>::<span class="ident">PRESENT</span> <span class="op">|</span> <span class="ident">EntryFlags</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">EntryFlags</span>::<span class="ident">NO_EXECUTE</span> <span class="op">|</span> <span class="ident">EntryFlags</span>::<span class="ident">NO_CACHE</span>,
-                        <span class="kw-2">&amp;</span><span class="ident">arch</span>.<span class="ident">physical_memory_manager</span>,
-                    )
-                    .<span class="ident">unwrap</span>();
+                <span class="comment">// /*</span>
+                <span class="comment">//  * Map the local APIC&#39;s configuration space into the kernel address space.</span>
+                <span class="comment">//  */</span>
+                <span class="comment">// arch.kernel_page_table</span>
+                <span class="comment">//     .lock()</span>
+                <span class="comment">//     .mapper()</span>
+                <span class="comment">//     .map_to(</span>
+                <span class="comment">//         Page::contains(kernel_map::LOCAL_APIC_CONFIG),</span>
+                <span class="comment">//         Frame::contains(PhysicalAddress::new(info.local_apic_address as usize).unwrap()),</span>
+                <span class="comment">//         EntryFlags::PRESENT | EntryFlags::WRITABLE | EntryFlags::NO_EXECUTE |</span>
+                <span class="comment">// EntryFlags::NO_CACHE,         &amp;arch.physical_memory_manager,</span>
+                <span class="comment">//     )</span>
+                <span class="comment">//     .unwrap();</span>
 
                 <span class="comment">/*
                  * Install handlers for the spurious interrupt and local APIC timer, and then
@@ -416,7 +446,7 @@
                     <span class="ident">IDT</span>[<span class="ident">APIC_TIMER_VECTOR</span>]
                         .<span class="ident">set_handler</span>(<span class="macro">wrap_handler</span><span class="macro">!</span>(<span class="ident">local_apic_timer_handler</span>), <span class="ident">KERNEL_CODE_SELECTOR</span>);
                     <span class="ident">IDT</span>[<span class="ident">APIC_SPURIOUS_VECTOR</span>].<span class="ident">set_handler</span>(<span class="macro">wrap_handler</span><span class="macro">!</span>(<span class="ident">spurious_handler</span>), <span class="ident">KERNEL_CODE_SELECTOR</span>);
-                    <span class="ident">LocalApic</span>::<span class="ident">enable</span>(<span class="ident">APIC_SPURIOUS_VECTOR</span>);
+                    <span class="ident">LOCAL_APIC</span>.<span class="ident">get</span>().<span class="ident">enable</span>(<span class="ident">APIC_SPURIOUS_VECTOR</span>);
                 }
 
                 <span class="ident">InterruptController</span> {}
@@ -435,7 +465,7 @@
          */</span>
         <span class="kw">match</span> <span class="ident">arch</span>.<span class="ident">cpu_info</span>.<span class="ident">apic_frequency</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">apic_frequency</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">LocalApic</span>::<span class="ident">enable_timer</span>(<span class="ident">period</span>.<span class="ident">as_millis</span>() <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">apic_frequency</span>, <span class="ident">APIC_TIMER_VECTOR</span>)
+                <span class="ident">LOCAL_APIC</span>.<span class="ident">get</span>().<span class="ident">enable_timer</span>(<span class="ident">period</span>.<span class="ident">as_millis</span>() <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">apic_frequency</span>, <span class="ident">APIC_TIMER_VECTOR</span>);
             }
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;Couldn&#39;t find frequency of APIC from cpuid. Local APIC timer not enabled!&quot;</span>),
         }
@@ -497,7 +527,7 @@
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">local_apic_timer_handler</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">InterruptStackFrame</span>) {
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Tick!&quot;</span>);
     <span class="kw">unsafe</span> {
-        <span class="ident">LocalApic</span>::<span class="ident">send_eoi</span>();
+        <span class="ident">LOCAL_APIC</span>.<span class="ident">get</span>().<span class="ident">send_eoi</span>();
     }
 }
 

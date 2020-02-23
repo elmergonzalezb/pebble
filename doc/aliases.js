@@ -3,6 +3,7 @@ ALIASES["acpi"] = {};
 ALIASES["aml"] = {};
 ALIASES["bit_field"] = {};
 ALIASES["bitflags"] = {};
+ALIASES["boot_info_x86_64"] = {};
 ALIASES["byteorder"] = {};
 ALIASES["cfg_if"] = {};
 ALIASES["kernel"] = {};

@@ -110,8 +110,12 @@
 <span id="110">110</span>
 <span id="111">111</span>
 <span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">memory</span>::<span class="ident">kernel_map</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">memory</span>::<span class="ident">VirtualAddress</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ptr</span>;
 
 <span class="doccomment">/// Represents a register in the local APIC&#39;s configuration area.</span>
@@ -140,21 +144,25 @@
 <span class="doccomment">/// local APIC&#39;s configuration space (mapped to the virtual address</span>
 <span class="doccomment">/// `kernel_map::LOCAL_APIC_CONFIG`) is managed by the `InterruptController`. None of the methods</span>
 <span class="doccomment">/// on this type are safe to use until that mapping has been constructed.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LocalApic</span>;
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LocalApic</span>(<span class="ident">VirtualAddress</span>);
 
 <span class="kw">impl</span> <span class="ident">LocalApic</span> {
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">enable</span>(<span class="ident">spurious_vector</span>: <span class="ident">u8</span>) {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">address</span>: <span class="ident">VirtualAddress</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalApic</span> {
+        <span class="ident">LocalApic</span>(<span class="ident">address</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">enable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">spurious_vector</span>: <span class="ident">u8</span>) {
         <span class="comment">/*
          * - Enable the local APIC by setting bit 8
          * - Set the IRQ for spurious interrupts
          */</span>
-        <span class="self">Self</span>::<span class="ident">register</span>(<span class="number">0xf0</span>).<span class="ident">write</span>((<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">|</span> <span class="ident">u32</span>::<span class="ident">from</span>(<span class="ident">spurious_vector</span>));
+        <span class="self">self</span>.<span class="ident">register</span>(<span class="number">0xf0</span>).<span class="ident">write</span>((<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">|</span> <span class="ident">u32</span>::<span class="ident">from</span>(<span class="ident">spurious_vector</span>));
     }
 
     <span class="doccomment">/// Set the local APIC timer to interrupt every `duration` ms, and then enable it. The timer</span>
     <span class="doccomment">/// will signal on the specified vector. The frequency of the local APIC must be passed (in Hz), and</span>
     <span class="doccomment">/// can sometimes be retrieved from the `CpuInfo`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enable_timer</span>(<span class="ident">duration</span>: <span class="ident">u32</span>, <span class="ident">apic_frequency</span>: <span class="ident">u32</span>, <span class="ident">vector</span>: <span class="ident">u8</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enable_timer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">duration</span>: <span class="ident">u32</span>, <span class="ident">apic_frequency</span>: <span class="ident">u32</span>, <span class="ident">vector</span>: <span class="ident">u8</span>) {
         <span class="comment">/*
          * Calculate the number of ticks in one millisecond. We also divide by 16 because we will
          * set the divider to 16, so the given frequency will be 16 times faster than the count
@@ -171,9 +179,9 @@
          * divider of 1, which would be the simplest.
          */</span>
         <span class="kw">unsafe</span> {
-            <span class="self">Self</span>::<span class="ident">register</span>(<span class="number">0x3e0</span>).<span class="ident">write</span>(<span class="number">0x3</span>); <span class="comment">// Step 1: Set the divider to 3</span>
-            <span class="self">Self</span>::<span class="ident">register</span>(<span class="number">0x320</span>).<span class="ident">write</span>(<span class="ident">u32</span>::<span class="ident">from</span>(<span class="ident">vector</span>) <span class="op">|</span> <span class="number">0x20000</span>); <span class="comment">// Step 2: enable the timer</span>
-            <span class="self">Self</span>::<span class="ident">register</span>(<span class="number">0x380</span>).<span class="ident">write</span>(<span class="ident">ticks</span>); <span class="comment">// Step 3: Set the initial count</span>
+            <span class="self">self</span>.<span class="ident">register</span>(<span class="number">0x3e0</span>).<span class="ident">write</span>(<span class="number">0x3</span>); <span class="comment">// Step 1: Set the divider to 3</span>
+            <span class="self">self</span>.<span class="ident">register</span>(<span class="number">0x320</span>).<span class="ident">write</span>(<span class="ident">u32</span>::<span class="ident">from</span>(<span class="ident">vector</span>) <span class="op">|</span> <span class="number">0x20000</span>); <span class="comment">// Step 2: enable the timer</span>
+            <span class="self">self</span>.<span class="ident">register</span>(<span class="number">0x380</span>).<span class="ident">write</span>(<span class="ident">ticks</span>); <span class="comment">// Step 3: Set the initial count</span>
         }
 
         <span class="comment">/*
@@ -208,19 +216,19 @@
         <span class="comment">// }</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">register</span>(<span class="ident">offset</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalApicRegister</span> {
-        <span class="ident">LocalApicRegister</span>::<span class="ident">new</span>(<span class="ident">kernel_map</span>::<span class="ident">LOCAL_APIC_CONFIG</span>.<span class="ident">offset</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">isize</span>).<span class="ident">mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u32</span>)
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">offset</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LocalApicRegister</span> {
+        <span class="ident">LocalApicRegister</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">offset</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">isize</span>).<span class="ident">mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u32</span>)
     }
 
     <span class="doccomment">/// Send an End Of Interrupt to the local APIC. This should be called by interrupt handlers</span>
     <span class="doccomment">/// that handle external interrupts. Unsafe because the local APIC will get confused if you</span>
     <span class="doccomment">/// send it a random EOI. An EOI should not be sent when handling a spurious interrupt.</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">send_eoi</span>() {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">send_eoi</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="comment">/*
-         * To send an EOI, we write 0 to the register with offset 0xB0. Writing any other value
+         * To send an EOI, we write 0 to the register with offset 0xb0. Writing any other value
          * will cause a #GP.
          */</span>
-        <span class="self">Self</span>::<span class="ident">register</span>(<span class="number">0xb0</span>).<span class="ident">write</span>(<span class="number">0</span>);
+        <span class="self">self</span>.<span class="ident">register</span>(<span class="number">0xb0</span>).<span class="ident">write</span>(<span class="number">0</span>);
     }
 }
 </pre></div>

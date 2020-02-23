@@ -299,10 +299,6 @@
 <span id="299">299</span>
 <span id="300">300</span>
 <span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
-<span id="304">304</span>
-<span id="305">305</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module defines the kernel entry-point on x86_64.</span>
 
@@ -341,18 +337,18 @@
 };
 <span class="kw">use</span> <span class="ident">acpi</span>::<span class="ident">Acpi</span>;
 <span class="kw">use</span> <span class="ident">aml</span>::<span class="ident">AmlContext</span>;
+<span class="kw">use</span> <span class="ident">boot_info_x86_64</span>::{<span class="ident">kernel_map</span>, <span class="ident">BootInfo</span>, <span class="ident">LoadedImage</span>};
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">error</span>, <span class="ident">info</span>, <span class="ident">warn</span>};
 <span class="kw">use</span> <span class="ident">pebble_util</span>::<span class="ident">InitGuard</span>;
 <span class="kw">use</span> <span class="ident">spin</span>::{<span class="ident">Mutex</span>, <span class="ident">RwLock</span>};
 <span class="kw">use</span> <span class="ident">x86_64</span>::{
-    <span class="ident">boot</span>::{<span class="ident">BootInfo</span>, <span class="ident">ImageInfo</span>},
     <span class="ident">hw</span>::{<span class="ident">cpu</span>::<span class="ident">CpuInfo</span>, <span class="ident">gdt</span>::<span class="ident">Gdt</span>, <span class="ident">registers</span>::<span class="ident">read_control_reg</span>},
-    <span class="ident">memory</span>::{<span class="ident">kernel_map</span>, <span class="ident">Frame</span>, <span class="ident">PageTable</span>, <span class="ident">PhysicalAddress</span>},
+    <span class="ident">memory</span>::{<span class="ident">Frame</span>, <span class="ident">PageTable</span>, <span class="ident">PhysicalAddress</span>},
 };
 
 <span class="kw">pub</span>(<span class="self">self</span>) <span class="kw">static</span> <span class="ident">GDT</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Gdt</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">Gdt</span>::<span class="ident">new</span>());
-<span class="kw">pub</span>(<span class="self">self</span>) <span class="kw">static</span> <span class="ident">ARCH</span>: <span class="ident">InitGuard</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">InitGuard</span>::<span class="ident">uninit</span>();
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">ARCH</span>: <span class="ident">InitGuard</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">InitGuard</span>::<span class="ident">uninit</span>();
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Arch</span> {
     <span class="kw">pub</span> <span class="ident">cpu_info</span>: <span class="ident">CpuInfo</span>,
@@ -385,16 +381,19 @@
     }
 }
 
-<span class="doccomment">/// This is the entry point for the kernel on x86_64. It is called from the UEFI bootloader and</span>
-<span class="doccomment">/// initialises the system, then passes control into the common part of the kernel.</span>
+<span class="doccomment">/// This is the entry point for the kernel on x86_64. It is called from `efiloader`.</span>
 <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kmain</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="op">!</span> {
+<span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">kmain</span>(<span class="ident">boot_info</span>: <span class="kw-2">&amp;</span><span class="ident">BootInfo</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="op">!</span> {
     <span class="comment">/*
      * Initialise the logger.
      */</span>
     <span class="ident">log</span>::<span class="ident">set_logger</span>(<span class="kw-2">&amp;</span><span class="ident">KernelLogger</span>).<span class="ident">unwrap</span>();
     <span class="ident">log</span>::<span class="ident">set_max_level</span>(<span class="ident">log</span>::<span class="ident">LevelFilter</span>::<span class="ident">Trace</span>);
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;The Pebble kernel is running&quot;</span>);
+
+    <span class="kw">if</span> <span class="ident">boot_info</span>.<span class="ident">magic</span> <span class="op">!</span><span class="op">=</span> <span class="ident">boot_info_x86_64</span>::<span class="ident">BOOT_INFO_MAGIC</span> {
+        <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Boot info magic is not correct!&quot;</span>);
+    }
 
     <span class="kw">let</span> <span class="ident">cpu_info</span> <span class="op">=</span> <span class="ident">CpuInfo</span>::<span class="ident">new</span>();
     <span class="macro">info</span><span class="macro">!</span>(
@@ -414,39 +413,30 @@
      */</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">test</span>))]</span>
     <span class="kw">unsafe</span> {
-        <span class="kw">crate</span>::<span class="ident">ALLOCATOR</span>.<span class="ident">lock</span>().<span class="ident">init</span>(<span class="ident">kernel_map</span>::<span class="ident">HEAP_START</span>, <span class="ident">kernel_map</span>::<span class="ident">HEAP_END</span>);
-    }
-
-    <span class="comment">/*
-     * Retrieve the `BootInfo` passed to us from the bootloader and make sure it has the correct
-     * magic number.
-     */</span>
-    <span class="kw">let</span> <span class="ident">boot_info</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="ident">kernel_map</span>::<span class="ident">BOOT_INFO</span>.<span class="ident">mut_ptr</span>::<span class="op">&lt;</span><span class="ident">BootInfo</span><span class="op">&gt;</span>()) };
-    <span class="kw">if</span> <span class="ident">boot_info</span>.<span class="ident">magic</span> <span class="op">!</span><span class="op">=</span> <span class="ident">x86_64</span>::<span class="ident">boot</span>::<span class="ident">BOOT_INFO_MAGIC</span> {
-        <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Boot info magic number is not correct!&quot;</span>);
+        <span class="kw">crate</span>::<span class="ident">ALLOCATOR</span>.<span class="ident">lock</span>().<span class="ident">init</span>(<span class="ident">boot_info</span>.<span class="ident">heap_address</span>, <span class="ident">boot_info</span>.<span class="ident">heap_size</span>);
     }
 
     <span class="comment">/*
      * Parse the static ACPI tables.
      */</span>
-    <span class="kw">let</span> <span class="ident">acpi_info</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">boot_info</span>.<span class="ident">rsdp_address</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">rsdp_address</span>) <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handler</span> <span class="op">=</span> <span class="ident">PebbleAcpiHandler</span>;
-            <span class="kw">match</span> <span class="ident">acpi</span>::<span class="ident">parse_rsdp</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">handler</span>, <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">rsdp_address</span>)) {
-                <span class="prelude-val">Ok</span>(<span class="ident">acpi_info</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">acpi_info</span>),
+    <span class="comment">// let acpi_info = match boot_info.rsdp_address {</span>
+    <span class="comment">//     Some(rsdp_address) =&gt; {</span>
+    <span class="comment">//         let mut handler = PebbleAcpiHandler;</span>
+    <span class="comment">//         match acpi::parse_rsdp(&amp;mut handler, usize::from(rsdp_address)) {</span>
+    <span class="comment">//             Ok(acpi_info) =&gt; Some(acpi_info),</span>
 
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Failed to parse static ACPI tables: {:?}&quot;</span>, <span class="ident">err</span>);
-                    <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;Continuing. Some functionality may not work, or the kernel may panic!&quot;</span>);
-                    <span class="prelude-val">None</span>
-                }
-            }
-        }
+    <span class="comment">//             Err(err) =&gt; {</span>
+    <span class="comment">//                 error!(&quot;Failed to parse static ACPI tables: {:?}&quot;, err);</span>
+    <span class="comment">//                 warn!(&quot;Continuing. Some functionality may not work, or the kernel may panic!&quot;);</span>
+    <span class="comment">//                 None</span>
+    <span class="comment">//             }</span>
+    <span class="comment">//         }</span>
+    <span class="comment">//     }</span>
 
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-    };
+    <span class="comment">//     None =&gt; None,</span>
+    <span class="comment">// };</span>
 
-    <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;{:#?}&quot;</span>, <span class="ident">acpi_info</span>);
+    <span class="comment">// info!(&quot;{:#?}&quot;, acpi_info);</span>
 
     <span class="comment">/*
      * Set up the main kernel data structure, which also initializes the physical memory manager.
@@ -456,19 +446,19 @@
      * full physical mapping in the correct location. Strange things will happen if this is not
      * true, so this process is a tad unsafe.
      */</span>
-    <span class="ident">ARCH</span>.<span class="ident">initialize</span>(<span class="ident">Arch</span> {
-        <span class="ident">cpu_info</span>,
-        <span class="ident">acpi_info</span>,
-        <span class="ident">aml_context</span>: <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">AmlContext</span>::<span class="ident">new</span>()),
-        <span class="ident">physical_memory_manager</span>: <span class="ident">LockedPhysicalMemoryManager</span>::<span class="ident">new</span>(<span class="ident">boot_info</span>),
-        <span class="ident">kernel_page_table</span>: <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="kw">unsafe</span> {
-            <span class="ident">PageTable</span>::<span class="ident">from_frame</span>(
-                <span class="ident">Frame</span>::<span class="ident">starts_with</span>(<span class="ident">PhysicalAddress</span>::<span class="ident">new</span>(<span class="macro">read_control_reg</span><span class="macro">!</span>(<span class="ident">cr3</span>) <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">unwrap</span>()),
-                <span class="ident">kernel_map</span>::<span class="ident">PHYSICAL_MAPPING_BASE</span>,
-            )
-        }),
-        <span class="ident">kernel_stack_bitmap</span>: <span class="ident">Mutex</span>::<span class="ident">new</span>([<span class="number">0</span>; <span class="number">128</span>]),
-    });
+    <span class="comment">// ARCH.initialize(Arch {</span>
+    <span class="comment">//     cpu_info,</span>
+    <span class="comment">//     acpi_info,</span>
+    <span class="comment">//     aml_context: Mutex::new(AmlContext::new()),</span>
+    <span class="comment">//     physical_memory_manager: LockedPhysicalMemoryManager::new(boot_info),</span>
+    <span class="comment">//     kernel_page_table: Mutex::new(unsafe {</span>
+    <span class="comment">//         PageTable::from_frame(</span>
+    <span class="comment">//             Frame::starts_with(PhysicalAddress::new(read_control_reg!(cr3) as usize).unwrap()),</span>
+    <span class="comment">//             kernel_map::PHYSICAL_MAPPING_BASE,</span>
+    <span class="comment">//         )</span>
+    <span class="comment">//     }),</span>
+    <span class="comment">//     kernel_stack_bitmap: Mutex::new([0; 128]),</span>
+    <span class="comment">// });</span>
 
     <span class="comment">/*
      * Initialize the common kernel data structures too.
@@ -512,21 +502,22 @@
     <span class="comment">/*
      * Create the backup framebuffer if the bootloader switched to a graphics mode.
      */</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">video_info</span>) <span class="op">=</span> <span class="ident">boot_info</span>.<span class="ident">video_info</span> {
-        <span class="ident">create_framebuffer</span>(<span class="ident">video_info</span>);
-    }
+    <span class="comment">// if let Some(ref video_info) = boot_info.video_info {</span>
+    <span class="comment">//     create_framebuffer(video_info);</span>
+    <span class="comment">// }</span>
 
     <span class="comment">/*
      * Load all the images as initial tasks, and add them to the scheduler&#39;s ready list.
      */</span>
-    <span class="kw">let</span> <span class="ident">scheduler</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">unsafe</span> { <span class="ident">per_cpu_data_mut</span>() }.<span class="ident">common_mut</span>().<span class="ident">scheduler</span>;
-    <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Adding {} initial tasks to the ready queue&quot;</span>, <span class="ident">boot_info</span>.<span class="ident">num_images</span>);
-    <span class="kw">for</span> <span class="ident">image</span> <span class="kw">in</span> <span class="ident">boot_info</span>.<span class="ident">images</span>() {
-        <span class="ident">load_task</span>(<span class="kw-2">&amp;</span><span class="ident">ARCH</span>.<span class="ident">get</span>(), <span class="ident">scheduler</span>, <span class="ident">image</span>);
-    }
+    <span class="comment">// let scheduler = &amp;mut unsafe { per_cpu_data_mut() }.common_mut().scheduler;</span>
+    <span class="comment">// info!(&quot;Adding {} initial tasks to the ready queue&quot;, boot_info.num_images);</span>
+    <span class="comment">// for image in boot_info.images() {</span>
+    <span class="comment">//     load_task(&amp;ARCH.get(), scheduler, image);</span>
+    <span class="comment">// }</span>
 
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Dropping to usermode&quot;</span>);
-    <span class="ident">scheduler</span>.<span class="ident">drop_to_userspace</span>(<span class="kw-2">&amp;</span><span class="ident">ARCH</span>.<span class="ident">get</span>())
+    <span class="comment">// scheduler.drop_to_userspace(&amp;ARCH.get())</span>
+    <span class="kw">loop</span> {}
 }
 
 <span class="kw">fn</span> <span class="ident">create_framebuffer</span>(<span class="ident">video_info</span>: <span class="kw-2">&amp;</span><span class="ident">x86_64</span>::<span class="ident">boot</span>::<span class="ident">VideoInfo</span>) {
@@ -566,7 +557,7 @@
     <span class="kw-2">*</span><span class="kw">crate</span>::<span class="ident">COMMON</span>.<span class="ident">get</span>().<span class="ident">backup_framebuffer</span>.<span class="ident">lock</span>() <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="ident">memory_object</span>.<span class="ident">id</span>, <span class="ident">info</span>));
 }
 
-<span class="kw">fn</span> <span class="ident">load_task</span>(<span class="ident">arch</span>: <span class="kw-2">&amp;</span><span class="ident">Arch</span>, <span class="ident">scheduler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Scheduler</span>, <span class="ident">image</span>: <span class="kw-2">&amp;</span><span class="ident">ImageInfo</span>) {
+<span class="kw">fn</span> <span class="ident">load_task</span>(<span class="ident">arch</span>: <span class="kw-2">&amp;</span><span class="ident">Arch</span>, <span class="ident">scheduler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Scheduler</span>, <span class="ident">image</span>: <span class="kw-2">&amp;</span><span class="ident">LoadedImage</span>) {
     <span class="kw">let</span> <span class="ident">object_map</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">crate</span>::<span class="ident">COMMON</span>.<span class="ident">get</span>().<span class="ident">object_map</span>.<span class="ident">write</span>();
 
     <span class="comment">// Make an AddressSpace for the image</span>
@@ -587,9 +578,10 @@
     }
 
     <span class="comment">// Create a Task for the image and add it to the scheduler&#39;s ready queue</span>
-    <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span>
-        <span class="ident">KernelObject</span>::<span class="ident">Task</span>(<span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="kw">box</span> <span class="ident">Task</span>::<span class="ident">from_image_info</span>(<span class="kw-2">&amp;</span><span class="ident">arch</span>, <span class="ident">address_space</span>.<span class="ident">clone</span>(), <span class="ident">image</span>).<span class="ident">unwrap</span>()))
-            .<span class="ident">add_to_map</span>(<span class="ident">object_map</span>);
+    <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="ident">KernelObject</span>::<span class="ident">Task</span>(<span class="ident">RwLock</span>::<span class="ident">new</span>(
+        <span class="kw">box</span> <span class="ident">Task</span>::<span class="ident">from_boot_info_image</span>(<span class="kw-2">&amp;</span><span class="ident">arch</span>, <span class="ident">address_space</span>.<span class="ident">clone</span>(), <span class="ident">image</span>).<span class="ident">unwrap</span>(),
+    ))
+    .<span class="ident">add_to_map</span>(<span class="ident">object_map</span>);
     <span class="ident">scheduler</span>.<span class="ident">add_task</span>(<span class="ident">task</span>).<span class="ident">unwrap</span>();
 }
 

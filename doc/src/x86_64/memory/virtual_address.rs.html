@@ -225,6 +225,11 @@
 <span id="225">225</span>
 <span id="226">226</span>
 <span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">FrameSize</span>;
 <span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
@@ -242,29 +247,34 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VirtualAddress</span>(<span class="ident">usize</span>);
 
 <span class="kw">impl</span> <span class="ident">VirtualAddress</span> {
-    <span class="doccomment">/// Create a new `VirtualAddress` from the given address. If the given address is not a valid</span>
-    <span class="doccomment">/// canonical address, this returns `None`.</span>
-    <span class="comment">/*
-     * TODO: this should be made `const` when CTFE supports matches, then we should use it for
-     * all the constants that currently use `new_unchecked`
-     */</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">address</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">VirtualAddress</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">address</span> {
-            <span class="number">0x0000_0000_0000_0000</span>..<span class="op">=</span><span class="number">0x0000_7fff_ffff_ffff</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">VirtualAddress</span>(<span class="ident">address</span>)),
-            <span class="number">0xffff_8000_0000_0000</span>..<span class="op">=</span><span class="number">0xffff_ffff_ffff_ffff</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">VirtualAddress</span>(<span class="ident">address</span>)),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-        }
-    }
+    <span class="comment">// /// Create a new `VirtualAddress` from the given address. If the given address is not a valid</span>
+    <span class="comment">// /// canonical address, this returns `None`.</span>
+    <span class="comment">// /*</span>
+    <span class="comment">//  * TODO: this should be made `const` when CTFE supports matches, then we should use it for</span>
+    <span class="comment">//  * all the constants that currently use `new_unchecked`</span>
+    <span class="comment">//  */</span>
+    <span class="comment">// pub fn new(address: usize) -&gt; Option&lt;VirtualAddress&gt; {</span>
+    <span class="comment">//     match address {</span>
+    <span class="comment">//         0x0000_0000_0000_0000..=0x0000_7fff_ffff_ffff =&gt; Some(VirtualAddress(address)),</span>
+    <span class="comment">//         0xffff_8000_0000_0000..=0xffff_ffff_ffff_ffff =&gt; Some(VirtualAddress(address)),</span>
+    <span class="comment">//         _ =&gt; None,</span>
+    <span class="comment">//     }</span>
+    <span class="comment">// }</span>
 
-    <span class="doccomment">/// Create a new `VirtualAddress` from the given address, which is assumed to be canonical.</span>
-    <span class="doccomment">/// Unsafe because using a non-canonical address can cause General Protection faults.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new_unchecked</span>(<span class="ident">address</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VirtualAddress</span> {
-        <span class="ident">VirtualAddress</span>(<span class="ident">address</span>)
-    }
+    <span class="comment">// /// Create a new `VirtualAddress` from the given address, which is assumed to be canonical.</span>
+    <span class="comment">// /// Unsafe because using a non-canonical address can cause General Protection faults.</span>
+    <span class="comment">// pub const unsafe fn new_unchecked(address: usize) -&gt; VirtualAddress {</span>
+    <span class="comment">//     VirtualAddress(address)</span>
+    <span class="comment">// }</span>
 
-    <span class="doccomment">/// Create a new `VirtualAddress` from the given address, canonicalising it if it is not</span>
-    <span class="doccomment">/// already canonical, by the logic in the `VirtualAddress::canonicalise` method.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new_canonicalise</span>(<span class="ident">address</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VirtualAddress</span> {
+    <span class="comment">// /// Create a new `VirtualAddress` from the given address, canonicalising it if it is not</span>
+    <span class="comment">// /// already canonical, by the logic in the `VirtualAddress::canonicalise` method.</span>
+    <span class="comment">// pub const fn new_canonicalise(address: usize) -&gt; VirtualAddress {</span>
+    <span class="comment">//     VirtualAddress(address).canonicalise()</span>
+    <span class="comment">// }</span>
+
+    <span class="doccomment">/// Creates a `VirtualAddress` from a `usize`, canonicalising if needed.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">address</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VirtualAddress</span> {
         <span class="ident">VirtualAddress</span>(<span class="ident">address</span>).<span class="ident">canonicalise</span>()
     }
 
@@ -318,7 +328,7 @@
              *                               ^^^ Masks the address to the address below it with
              *                                   the correct alignment
              */</span>
-            <span class="ident">VirtualAddress</span>::<span class="ident">new_canonicalise</span>(<span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="op">!</span>(<span class="ident">align</span> <span class="op">-</span> <span class="number">1</span>))
+            <span class="ident">VirtualAddress</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="op">!</span>(<span class="ident">align</span> <span class="op">-</span> <span class="number">1</span>))
         }
     }
 
@@ -381,13 +391,13 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">VirtualAddress</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VirtualAddress</span> {
-        <span class="ident">VirtualAddress</span>::<span class="ident">new</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">expect</span>(<span class="string">&quot;Pointer is non-canonical!&quot;</span>)
+        <span class="ident">VirtualAddress</span>::<span class="ident">new</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="ident">usize</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">VirtualAddress</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VirtualAddress</span> {
-        <span class="ident">VirtualAddress</span>::<span class="ident">new</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">expect</span>(<span class="string">&quot;Pointer is non-canonical!&quot;</span>)
+        <span class="ident">VirtualAddress</span>::<span class="ident">new</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="ident">usize</span>)
     }
 }
 
@@ -401,7 +411,7 @@
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">VirtualAddress</span>;
 
     <span class="kw">fn</span> <span class="ident">add</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
-        <span class="ident">VirtualAddress</span>::<span class="ident">new_canonicalise</span>(<span class="self">self</span>.<span class="number">0</span> <span class="op">+</span> <span class="ident">rhs</span>)
+        <span class="ident">VirtualAddress</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="number">0</span> <span class="op">+</span> <span class="ident">rhs</span>)
     }
 }
 
@@ -409,7 +419,7 @@
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">VirtualAddress</span>;
 
     <span class="kw">fn</span> <span class="ident">sub</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Output</span> {
-        <span class="ident">VirtualAddress</span>::<span class="ident">new_canonicalise</span>(<span class="self">self</span>.<span class="number">0</span> <span class="op">-</span> <span class="ident">rhs</span>)
+        <span class="ident">VirtualAddress</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="number">0</span> <span class="op">-</span> <span class="ident">rhs</span>)
     }
 }
 
