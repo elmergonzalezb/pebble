@@ -198,6 +198,22 @@
 <span id="198">198</span>
 <span id="199">199</span>
 <span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">no_std</span>]</span>
 
@@ -317,6 +333,22 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LoadedImages</span> {
     <span class="kw">pub</span> <span class="ident">num_images</span>: <span class="ident">u8</span>,
     <span class="kw">pub</span> <span class="ident">images</span>: [<span class="ident">LoadedImage</span>; <span class="ident">MAX_LOADED_IMAGES</span>],
+}
+
+<span class="kw">impl</span> <span class="ident">LoadedImages</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">images</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">LoadedImage</span>] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">images</span>[<span class="number">0</span>..<span class="self">self</span>.<span class="ident">num_images</span> <span class="kw">as</span> <span class="ident">usize</span>]
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_image</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">image</span>: <span class="ident">LoadedImage</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">num_images</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">MAX_LOADED_IMAGES</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(());
+        }
+
+        <span class="self">self</span>.<span class="ident">images</span>[<span class="self">self</span>.<span class="ident">num_images</span> <span class="kw">as</span> <span class="ident">usize</span>] <span class="op">=</span> <span class="ident">image</span>;
+        <span class="self">self</span>.<span class="ident">num_images</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="prelude-val">Ok</span>(())
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">LoadedImages</span> {

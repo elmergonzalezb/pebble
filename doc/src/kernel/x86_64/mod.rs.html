@@ -298,7 +298,6 @@
 <span id="298">298</span>
 <span id="299">299</span>
 <span id="300">300</span>
-<span id="301">301</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module defines the kernel entry-point on x86_64.</span>
 
@@ -509,15 +508,14 @@
     <span class="comment">/*
      * Load all the images as initial tasks, and add them to the scheduler&#39;s ready list.
      */</span>
-    <span class="comment">// let scheduler = &amp;mut unsafe { per_cpu_data_mut() }.common_mut().scheduler;</span>
-    <span class="comment">// info!(&quot;Adding {} initial tasks to the ready queue&quot;, boot_info.num_images);</span>
-    <span class="comment">// for image in boot_info.images() {</span>
-    <span class="comment">//     load_task(&amp;ARCH.get(), scheduler, image);</span>
-    <span class="comment">// }</span>
+    <span class="kw">let</span> <span class="ident">scheduler</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">unsafe</span> { <span class="ident">per_cpu_data_mut</span>() }.<span class="ident">common_mut</span>().<span class="ident">scheduler</span>;
+    <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Adding {} initial tasks to the ready queue&quot;</span>, <span class="ident">boot_info</span>.<span class="ident">loaded_images</span>.<span class="ident">num_images</span>);
+    <span class="kw">for</span> <span class="ident">image</span> <span class="kw">in</span> <span class="ident">boot_info</span>.<span class="ident">loaded_images</span>.<span class="ident">images</span>() {
+        <span class="ident">load_task</span>(<span class="kw-2">&amp;</span><span class="ident">ARCH</span>.<span class="ident">get</span>(), <span class="ident">scheduler</span>, <span class="ident">image</span>);
+    }
 
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Dropping to usermode&quot;</span>);
-    <span class="comment">// scheduler.drop_to_userspace(&amp;ARCH.get())</span>
-    <span class="kw">loop</span> {}
+    <span class="ident">scheduler</span>.<span class="ident">drop_to_userspace</span>(<span class="kw-2">&amp;</span><span class="ident">ARCH</span>.<span class="ident">get</span>())
 }
 
 <span class="kw">fn</span> <span class="ident">create_framebuffer</span>(<span class="ident">video_info</span>: <span class="kw-2">&amp;</span><span class="ident">x86_64</span>::<span class="ident">boot</span>::<span class="ident">VideoInfo</span>) {
