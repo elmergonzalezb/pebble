@@ -341,7 +341,7 @@
         <span class="ident">local_apic</span>::<span class="ident">LocalApic</span>,
         <span class="ident">registers</span>::<span class="ident">write_msr</span>,
     },
-    <span class="ident">memory</span>::{<span class="ident">EntryFlags</span>, <span class="ident">Frame</span>, <span class="ident">Page</span>, <span class="ident">PhysicalAddress</span>},
+    <span class="ident">memory</span>::<span class="ident">PhysicalAddress</span>,
 };
 
 <span class="macro">global_asm</span><span class="macro">!</span>(<span class="macro">include_str</span><span class="macro">!</span>(<span class="string">&quot;syscall.s&quot;</span>));

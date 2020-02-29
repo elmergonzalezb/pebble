@@ -499,6 +499,14 @@
 <span id="499">499</span>
 <span id="500">500</span>
 <span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Frame</span>, <span class="ident">FrameAllocator</span>, <span class="ident">FrameSize</span>, <span class="ident">Page</span>, <span class="ident">PhysicalAddress</span>, <span class="ident">Size2MiB</span>, <span class="ident">Size4KiB</span>, <span class="ident">VirtualAddress</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">hw</span>::{<span class="ident">registers</span>::<span class="ident">write_control_reg</span>, <span class="ident">tlb</span>};
@@ -921,52 +929,60 @@
     <span class="kw">where</span>
         <span class="ident">A</span>: <span class="ident">FrameAllocator</span>,
     {
-        <span class="comment">/*
-         * TODO: this will actually be a little bit harder than we thought - we need to split it into three
-         * areas in the general worst case:
-         *     - an area of 4KiB pages at the start up to a 2MiB boundary
-         *     - an area of 2MiB pages in the middle
-         *     - an area of 4KiB pages at the end to take it to the end
-         */</span>
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">virtual_start</span>.<span class="ident">is_page_aligned</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>());
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">physical_start</span>.<span class="ident">is_frame_aligned</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>());
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">size</span> <span class="op">%</span> <span class="ident">Size4KiB</span>::<span class="ident">SIZE</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
 
         <span class="comment">/*
-         * We consider two frame sizes - 2MiB and 4KiB. Firstly, we work out how much (if any) can be mapped
-         * with 2MiB frames.
+         * Firstly, if the entire mapping is smaller than 2MiB, we simply map the entire thing with 4KiB pages.
          */</span>
-        <span class="comment">// let size_of_huge_area = pebble_util::math::align_down(size, Size2MiB::SIZE);</span>
-        <span class="comment">// let remaining_bytes = size % Size2MiB::SIZE;</span>
-        <span class="comment">// assert!(remaining_bytes % Size4KiB::SIZE == 0);</span>
+        <span class="kw">if</span> <span class="ident">size</span> <span class="op">&lt;</span> <span class="ident">Size2MiB</span>::<span class="ident">SIZE</span> {
+            <span class="kw">let</span> <span class="ident">pages</span> <span class="op">=</span>
+                <span class="ident">Page</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">virtual_start</span>)..<span class="ident">Page</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">virtual_start</span> <span class="op">+</span> <span class="ident">size</span>);
+            <span class="kw">let</span> <span class="ident">frames</span> <span class="op">=</span> <span class="ident">Frame</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">physical_start</span>)
+                ..<span class="ident">Frame</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">physical_start</span> <span class="op">+</span> <span class="ident">size</span>);
+            <span class="self">self</span>.<span class="ident">map_range_to</span>(<span class="ident">pages</span>, <span class="ident">frames</span>, <span class="ident">flags</span>, <span class="ident">allocator</span>)
+        } <span class="kw">else</span> {
+            <span class="comment">/*
+             * If it&#39;s larger, we split into three areas: a prefix, a middle, and a suffix. The prefix and
+             * suffix are not aligned to 2MiB boundaries, and so must be mapped with 4KiB pages. The
+             * middle is, and so can be mapped with larger 2MiB pages.
+             */</span>
+            <span class="kw">let</span> <span class="ident">virtual_prefix_start</span> <span class="op">=</span> <span class="ident">virtual_start</span>;
+            <span class="kw">let</span> <span class="ident">virtual_middle_start</span> <span class="op">=</span> <span class="ident">virtual_start</span>.<span class="ident">align_up</span>(<span class="ident">Size2MiB</span>::<span class="ident">SIZE</span>);
+            <span class="kw">let</span> <span class="ident">virtual_middle_end</span> <span class="op">=</span> (<span class="ident">virtual_start</span> <span class="op">+</span> <span class="ident">size</span>).<span class="ident">align_down</span>(<span class="ident">Size2MiB</span>::<span class="ident">SIZE</span>);
+            <span class="kw">let</span> <span class="ident">virtual_suffix_end</span> <span class="op">=</span> <span class="ident">virtual_start</span> <span class="op">+</span> <span class="ident">size</span>;
 
-        <span class="comment">/*
-         * Map the part we can with 2MiB frames.
-         */</span>
-        <span class="comment">// if size_of_huge_area &gt; 0 {</span>
-        <span class="comment">//     log::info!(&quot;Mapping {} bytes using large pages&quot;, size_of_huge_area);</span>
-        <span class="comment">//     let pages = Page::&lt;Size2MiB&gt;::starts_with(virtual_start)</span>
-        <span class="comment">//         ..Page::&lt;Size2MiB&gt;::starts_with(virtual_start + size_of_huge_area);</span>
-        <span class="comment">//     let frames = Frame::&lt;Size2MiB&gt;::starts_with(physical_start)</span>
-        <span class="comment">//         ..Frame::&lt;Size2MiB&gt;::starts_with(physical_start + size_of_huge_area);</span>
-        <span class="comment">//     self.map_range_to(pages, frames, flags, allocator)?;</span>
-        <span class="comment">// }</span>
+            <span class="kw">let</span> <span class="ident">physical_prefix_start</span> <span class="op">=</span> <span class="ident">physical_start</span>;
+            <span class="kw">let</span> <span class="ident">physical_middle_start</span> <span class="op">=</span>
+                <span class="ident">physical_prefix_start</span> <span class="op">+</span> (<span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">virtual_middle_start</span>) <span class="op">-</span> <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">virtual_prefix_start</span>));
+            <span class="kw">let</span> <span class="ident">physical_middle_end</span> <span class="op">=</span>
+                <span class="ident">physical_prefix_start</span> <span class="op">+</span> (<span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">virtual_middle_end</span>) <span class="op">-</span> <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">virtual_prefix_start</span>));
+            <span class="kw">let</span> <span class="ident">physical_suffix_end</span> <span class="op">=</span> <span class="ident">physical_start</span> <span class="op">+</span> <span class="ident">size</span>;
 
-        <span class="comment">/*
-         * And now the rest with 4KiB frames.
-         */</span>
-        <span class="kw">let</span> <span class="ident">size_of_huge_area</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="ident">remaining_bytes</span> <span class="op">=</span> <span class="ident">size</span>;
-        <span class="kw">if</span> <span class="ident">remaining_bytes</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Mapping {} remaining bytes using 4KiB pages&quot;</span>, <span class="ident">remaining_bytes</span>);
-            <span class="kw">let</span> <span class="ident">start_page</span> <span class="op">=</span> <span class="ident">Page</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">virtual_start</span> <span class="op">+</span> <span class="ident">size_of_huge_area</span>);
-            <span class="kw">let</span> <span class="ident">end_page</span> <span class="op">=</span> <span class="ident">Page</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">start_page</span>.<span class="ident">start_address</span> <span class="op">+</span> <span class="ident">remaining_bytes</span>);
-            <span class="kw">let</span> <span class="ident">start_frame</span> <span class="op">=</span> <span class="ident">Frame</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">physical_start</span> <span class="op">+</span> <span class="ident">size_of_huge_area</span>);
-            <span class="kw">let</span> <span class="ident">end_frame</span> <span class="op">=</span> <span class="ident">Frame</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">start_frame</span>.<span class="ident">start_address</span> <span class="op">+</span> <span class="ident">remaining_bytes</span>);
-            <span class="self">self</span>.<span class="ident">map_range_to</span>(<span class="ident">start_page</span>..<span class="ident">end_page</span>, <span class="ident">start_frame</span>..<span class="ident">end_frame</span>, <span class="ident">flags</span>, <span class="ident">allocator</span>)<span class="question-mark">?</span>;
+            <span class="comment">// Map the prefix</span>
+            <span class="kw">let</span> <span class="ident">prefix_pages</span> <span class="op">=</span> <span class="ident">Page</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">virtual_prefix_start</span>)
+                ..<span class="ident">Page</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">virtual_middle_start</span>);
+            <span class="kw">let</span> <span class="ident">prefix_frames</span> <span class="op">=</span> <span class="ident">Frame</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">physical_prefix_start</span>)
+                ..<span class="ident">Frame</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">physical_middle_start</span>);
+            <span class="self">self</span>.<span class="ident">map_range_to</span>(<span class="ident">prefix_pages</span>, <span class="ident">prefix_frames</span>, <span class="ident">flags</span>, <span class="ident">allocator</span>)<span class="question-mark">?</span>;
+
+            <span class="comment">// Map the middle</span>
+            <span class="kw">let</span> <span class="ident">middle_pages</span> <span class="op">=</span> <span class="ident">Page</span>::<span class="op">&lt;</span><span class="ident">Size2MiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">virtual_middle_start</span>)
+                ..<span class="ident">Page</span>::<span class="op">&lt;</span><span class="ident">Size2MiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">virtual_middle_end</span>);
+            <span class="kw">let</span> <span class="ident">middle_frames</span> <span class="op">=</span> <span class="ident">Frame</span>::<span class="op">&lt;</span><span class="ident">Size2MiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">physical_middle_start</span>)
+                ..<span class="ident">Frame</span>::<span class="op">&lt;</span><span class="ident">Size2MiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">physical_middle_end</span>);
+            <span class="self">self</span>.<span class="ident">map_range_to</span>(<span class="ident">middle_pages</span>, <span class="ident">middle_frames</span>, <span class="ident">flags</span>, <span class="ident">allocator</span>)<span class="question-mark">?</span>;
+
+            <span class="comment">// Map the suffix</span>
+            <span class="kw">let</span> <span class="ident">suffix_pages</span> <span class="op">=</span> <span class="ident">Page</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">virtual_middle_end</span>)
+                ..<span class="ident">Page</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">virtual_suffix_end</span>);
+            <span class="kw">let</span> <span class="ident">suffix_frames</span> <span class="op">=</span> <span class="ident">Frame</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">physical_middle_end</span>)
+                ..<span class="ident">Frame</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">physical_suffix_end</span>);
+            <span class="self">self</span>.<span class="ident">map_range_to</span>(<span class="ident">suffix_pages</span>, <span class="ident">suffix_frames</span>, <span class="ident">flags</span>, <span class="ident">allocator</span>)<span class="question-mark">?</span>;
+
+            <span class="prelude-val">Ok</span>(())
         }
-
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Unmap the given page, returning the `Frame` it was mapped to so the caller can choose to</span>
