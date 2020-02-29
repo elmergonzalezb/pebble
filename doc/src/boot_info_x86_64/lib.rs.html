@@ -191,13 +191,20 @@
 <span id="191">191</span>
 <span id="192">192</span>
 <span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">no_std</span>]</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">kernel_map</span>;
 
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">Range</span>;
-<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::{<span class="ident">PhysicalAddress</span>, <span class="ident">VirtualAddress</span>};
+<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::{<span class="ident">Frame</span>, <span class="ident">PhysicalAddress</span>, <span class="ident">VirtualAddress</span>};
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BOOT_INFO_MAGIC</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0xcafebabe</span>;
 
@@ -213,6 +220,9 @@
     <span class="kw">pub</span> <span class="ident">video_mode</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">VideoModeInfo</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">heap_address</span>: <span class="ident">VirtualAddress</span>,
     <span class="kw">pub</span> <span class="ident">heap_size</span>: <span class="ident">usize</span>,
+
+    <span class="doccomment">/// The physical address of the RSDP, the first ACPI table.</span>
+    <span class="kw">pub</span> <span class="ident">rsdp_address</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PhysicalAddress</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAX_MEMORY_MAP_ENTRIES</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span>;
@@ -246,7 +256,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MemoryType</span> {
     <span class="doccomment">/// Memory that can be used freely by the OS.</span>
@@ -284,6 +294,10 @@
 <span class="kw">impl</span> <span class="ident">MemoryMapEntry</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">address_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">PhysicalAddress</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">start</span>..(<span class="self">self</span>.<span class="ident">start</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">size</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">frame_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&gt;</span> {
+        <span class="ident">Frame</span>::<span class="ident">starts_with</span>(<span class="self">self</span>.<span class="ident">start</span>)..<span class="ident">Frame</span>::<span class="ident">starts_with</span>(<span class="self">self</span>.<span class="ident">start</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">size</span>)
     }
 }
 

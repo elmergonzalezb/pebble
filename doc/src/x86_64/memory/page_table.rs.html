@@ -464,6 +464,41 @@
 <span id="464">464</span>
 <span id="465">465</span>
 <span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Frame</span>, <span class="ident">FrameAllocator</span>, <span class="ident">FrameSize</span>, <span class="ident">Page</span>, <span class="ident">PhysicalAddress</span>, <span class="ident">Size2MiB</span>, <span class="ident">Size4KiB</span>, <span class="ident">VirtualAddress</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">hw</span>::{<span class="ident">registers</span>::<span class="ident">write_control_reg</span>, <span class="ident">tlb</span>};
@@ -792,66 +827,61 @@
         <span class="prelude-val">Ok</span>(<span class="ident">frame</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_to</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_to</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">page</span>: <span class="ident">Page</span><span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>,
-        <span class="ident">frame</span>: <span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>,
+        <span class="ident">page</span>: <span class="ident">Page</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
+        <span class="ident">frame</span>: <span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
         <span class="ident">flags</span>: <span class="ident">EntryFlags</span>,
         <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MapError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">A</span>: <span class="ident">FrameAllocator</span>,
+        <span class="ident">S</span>: <span class="ident">FrameSize</span>,
     {
         <span class="comment">/*
          * If a page should be accessible from userspace, all the parent paging structures for
          * that page must also be marked user-accessible.
          */</span>
         <span class="kw">let</span> <span class="ident">user_accessible</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">EntryFlags</span>::<span class="ident">USER_ACCESSIBLE</span>);
-        <span class="kw">let</span> <span class="ident">p1</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">p4</span>
-            .<span class="ident">next_table_create</span>(<span class="ident">page</span>.<span class="ident">start_address</span>.<span class="ident">p4_index</span>(), <span class="ident">user_accessible</span>, <span class="ident">allocator</span>, <span class="self">self</span>.<span class="ident">physical_base</span>)<span class="question-mark">?</span>
-            .<span class="ident">next_table_create</span>(<span class="ident">page</span>.<span class="ident">start_address</span>.<span class="ident">p3_index</span>(), <span class="ident">user_accessible</span>, <span class="ident">allocator</span>, <span class="self">self</span>.<span class="ident">physical_base</span>)<span class="question-mark">?</span>
-            .<span class="ident">next_table_create</span>(<span class="ident">page</span>.<span class="ident">start_address</span>.<span class="ident">p2_index</span>(), <span class="ident">user_accessible</span>, <span class="ident">allocator</span>, <span class="self">self</span>.<span class="ident">physical_base</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="ident">S</span>::<span class="ident">SIZE</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Size4KiB</span>::<span class="ident">SIZE</span> {
+            <span class="kw">let</span> <span class="ident">p1</span> <span class="op">=</span> <span class="self">self</span>
+                .<span class="ident">p4</span>
+                .<span class="ident">next_table_create</span>(<span class="ident">page</span>.<span class="ident">start_address</span>.<span class="ident">p4_index</span>(), <span class="ident">user_accessible</span>, <span class="ident">allocator</span>, <span class="self">self</span>.<span class="ident">physical_base</span>)<span class="question-mark">?</span>
+                .<span class="ident">next_table_create</span>(<span class="ident">page</span>.<span class="ident">start_address</span>.<span class="ident">p3_index</span>(), <span class="ident">user_accessible</span>, <span class="ident">allocator</span>, <span class="self">self</span>.<span class="ident">physical_base</span>)<span class="question-mark">?</span>
+                .<span class="ident">next_table_create</span>(
+                    <span class="ident">page</span>.<span class="ident">start_address</span>.<span class="ident">p2_index</span>(),
+                    <span class="ident">user_accessible</span>,
+                    <span class="ident">allocator</span>,
+                    <span class="self">self</span>.<span class="ident">physical_base</span>,
+                )<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">p1</span>[<span class="ident">page</span>.<span class="ident">start_address</span>.<span class="ident">p1_index</span>()].<span class="ident">is_unused</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MapError</span>::<span class="ident">AlreadyMapped</span>);
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">p1</span>[<span class="ident">page</span>.<span class="ident">start_address</span>.<span class="ident">p1_index</span>()].<span class="ident">is_unused</span>() {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MapError</span>::<span class="ident">AlreadyMapped</span>);
+            }
+
+            <span class="ident">p1</span>[<span class="ident">page</span>.<span class="ident">start_address</span>.<span class="ident">p1_index</span>()].<span class="ident">set</span>(<span class="ident">frame</span>.<span class="ident">start_address</span>, <span class="ident">flags</span> <span class="op">|</span> <span class="ident">EntryFlags</span>::<span class="ident">default</span>());
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">S</span>::<span class="ident">SIZE</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Size2MiB</span>::<span class="ident">SIZE</span> {
+            <span class="kw">let</span> <span class="ident">p2</span> <span class="op">=</span> <span class="self">self</span>
+                .<span class="ident">p4</span>
+                .<span class="ident">next_table_create</span>(<span class="ident">page</span>.<span class="ident">start_address</span>.<span class="ident">p4_index</span>(), <span class="ident">user_accessible</span>, <span class="ident">allocator</span>, <span class="self">self</span>.<span class="ident">physical_base</span>)<span class="question-mark">?</span>
+                .<span class="ident">next_table_create</span>(
+                    <span class="ident">page</span>.<span class="ident">start_address</span>.<span class="ident">p3_index</span>(),
+                    <span class="ident">user_accessible</span>,
+                    <span class="ident">allocator</span>,
+                    <span class="self">self</span>.<span class="ident">physical_base</span>,
+                )<span class="question-mark">?</span>;
+
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">p2</span>[<span class="ident">page</span>.<span class="ident">start_address</span>.<span class="ident">p2_index</span>()].<span class="ident">is_unused</span>() {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MapError</span>::<span class="ident">AlreadyMapped</span>);
+            }
+
+            <span class="ident">p2</span>[<span class="ident">page</span>.<span class="ident">start_address</span>.<span class="ident">p2_index</span>()]
+                .<span class="ident">set</span>(<span class="ident">frame</span>.<span class="ident">start_address</span>, <span class="ident">flags</span> <span class="op">|</span> <span class="ident">EntryFlags</span>::<span class="ident">HUGE_PAGE</span> <span class="op">|</span> <span class="ident">EntryFlags</span>::<span class="ident">default</span>());
+        } <span class="kw">else</span> {
+            <span class="comment">// XXX: this needs to be implemented for any future implemented page sizes (e.g. 1GiB)</span>
+            <span class="macro">unimplemented</span><span class="macro">!</span>()
         }
 
-        <span class="ident">p1</span>[<span class="ident">page</span>.<span class="ident">start_address</span>.<span class="ident">p1_index</span>()].<span class="ident">set</span>(<span class="ident">frame</span>.<span class="ident">start_address</span>, <span class="ident">flags</span> <span class="op">|</span> <span class="ident">EntryFlags</span>::<span class="ident">default</span>());
-        <span class="comment">// TODO: we could return a marker that the TLB must be flushed to avoid doing it in certain</span>
-        <span class="comment">// instances when we e.g know we&#39;re going to change CR3 before accessing the new mappings.</span>
-        <span class="comment">// This is fine for now though</span>
-        <span class="ident">tlb</span>::<span class="ident">invalidate_page</span>(<span class="ident">page</span>.<span class="ident">start_address</span>);
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_to_2MiB</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">page</span>: <span class="ident">Page</span><span class="op">&lt;</span><span class="ident">Size2MiB</span><span class="op">&gt;</span>,
-        <span class="ident">frame</span>: <span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">Size2MiB</span><span class="op">&gt;</span>,
-        <span class="ident">flags</span>: <span class="ident">EntryFlags</span>,
-        <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MapError</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">A</span>: <span class="ident">FrameAllocator</span>,
-    {
-        <span class="comment">/*
-         * If a page should be accessible from userspace, all the parent paging structures for
-         * that page must also be marked user-accessible.
-         */</span>
-        <span class="kw">let</span> <span class="ident">user_accessible</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">EntryFlags</span>::<span class="ident">USER_ACCESSIBLE</span>);
-        <span class="kw">let</span> <span class="ident">p2</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">p4</span>
-            .<span class="ident">next_table_create</span>(<span class="ident">page</span>.<span class="ident">start_address</span>.<span class="ident">p4_index</span>(), <span class="ident">user_accessible</span>, <span class="ident">allocator</span>, <span class="self">self</span>.<span class="ident">physical_base</span>)<span class="question-mark">?</span>
-            .<span class="ident">next_table_create</span>(<span class="ident">page</span>.<span class="ident">start_address</span>.<span class="ident">p3_index</span>(), <span class="ident">user_accessible</span>, <span class="ident">allocator</span>, <span class="self">self</span>.<span class="ident">physical_base</span>)<span class="question-mark">?</span>;
-
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">p2</span>[<span class="ident">page</span>.<span class="ident">start_address</span>.<span class="ident">p2_index</span>()].<span class="ident">is_unused</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MapError</span>::<span class="ident">AlreadyMapped</span>);
-        }
-
-        <span class="ident">p2</span>[<span class="ident">page</span>.<span class="ident">start_address</span>.<span class="ident">p2_index</span>()]
-            .<span class="ident">set</span>(<span class="ident">frame</span>.<span class="ident">start_address</span>, <span class="ident">flags</span> <span class="op">|</span> <span class="ident">EntryFlags</span>::<span class="ident">HUGE_PAGE</span> <span class="op">|</span> <span class="ident">EntryFlags</span>::<span class="ident">default</span>());
         <span class="comment">// TODO: we could return a marker that the TLB must be flushed to avoid doing it in certain</span>
         <span class="comment">// instances when we e.g know we&#39;re going to change CR3 before accessing the new mappings.</span>
         <span class="comment">// This is fine for now though</span>
@@ -860,15 +890,16 @@
     }
 
     <span class="doccomment">/// Map a range of pages to a range of frames, all with the same flags.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_range_to</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_range_to</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">pages</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&gt;</span>,
-        <span class="ident">frames</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&gt;</span>,
+        <span class="ident">pages</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">frames</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">flags</span>: <span class="ident">EntryFlags</span>,
         <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MapError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">A</span>: <span class="ident">FrameAllocator</span>,
+        <span class="ident">S</span>: <span class="ident">FrameSize</span>,
     {
         <span class="kw">for</span> (<span class="ident">page</span>, <span class="ident">frame</span>) <span class="kw">in</span> <span class="ident">pages</span>.<span class="ident">zip</span>(<span class="ident">frames</span>) {
             <span class="self">self</span>.<span class="ident">map_to</span>(<span class="ident">page</span>, <span class="ident">frame</span>, <span class="ident">flags</span>, <span class="ident">allocator</span>)<span class="question-mark">?</span>;
@@ -878,7 +909,7 @@
     }
 
     <span class="doccomment">/// Map `size` bytes at `virtual_start` to `physical_start` with the given set of flags. `size` must be a</span>
-    <span class="doccomment">/// multiple of the smallest frame size.</span>
+    <span class="doccomment">/// multiple of the smallest frame size, but as much of it will be mapped with larger frames as possible.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map_area_to</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">virtual_start</span>: <span class="ident">VirtualAddress</span>,
@@ -890,13 +921,52 @@
     <span class="kw">where</span>
         <span class="ident">A</span>: <span class="ident">FrameAllocator</span>,
     {
+        <span class="comment">/*
+         * TODO: this will actually be a little bit harder than we thought - we need to split it into three
+         * areas in the general worst case:
+         *     - an area of 4KiB pages at the start up to a 2MiB boundary
+         *     - an area of 2MiB pages in the middle
+         *     - an area of 4KiB pages at the end to take it to the end
+         */</span>
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">virtual_start</span>.<span class="ident">is_page_aligned</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>());
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">physical_start</span>.<span class="ident">is_frame_aligned</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>());
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">size</span> <span class="op">%</span> <span class="ident">Size4KiB</span>::<span class="ident">SIZE</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="ident">pages</span> <span class="op">=</span> <span class="ident">Page</span>::<span class="ident">starts_with</span>(<span class="ident">virtual_start</span>)..<span class="ident">Page</span>::<span class="ident">starts_with</span>(<span class="ident">virtual_start</span> <span class="op">+</span> <span class="ident">size</span>);
-        <span class="kw">let</span> <span class="ident">frames</span> <span class="op">=</span> <span class="ident">Frame</span>::<span class="ident">starts_with</span>(<span class="ident">physical_start</span>)..<span class="ident">Frame</span>::<span class="ident">starts_with</span>(<span class="ident">physical_start</span> <span class="op">+</span> <span class="ident">size</span>);
-        <span class="self">self</span>.<span class="ident">map_range_to</span>(<span class="ident">pages</span>, <span class="ident">frames</span>, <span class="ident">flags</span>, <span class="ident">allocator</span>)
+        <span class="comment">/*
+         * We consider two frame sizes - 2MiB and 4KiB. Firstly, we work out how much (if any) can be mapped
+         * with 2MiB frames.
+         */</span>
+        <span class="comment">// let size_of_huge_area = pebble_util::math::align_down(size, Size2MiB::SIZE);</span>
+        <span class="comment">// let remaining_bytes = size % Size2MiB::SIZE;</span>
+        <span class="comment">// assert!(remaining_bytes % Size4KiB::SIZE == 0);</span>
+
+        <span class="comment">/*
+         * Map the part we can with 2MiB frames.
+         */</span>
+        <span class="comment">// if size_of_huge_area &gt; 0 {</span>
+        <span class="comment">//     log::info!(&quot;Mapping {} bytes using large pages&quot;, size_of_huge_area);</span>
+        <span class="comment">//     let pages = Page::&lt;Size2MiB&gt;::starts_with(virtual_start)</span>
+        <span class="comment">//         ..Page::&lt;Size2MiB&gt;::starts_with(virtual_start + size_of_huge_area);</span>
+        <span class="comment">//     let frames = Frame::&lt;Size2MiB&gt;::starts_with(physical_start)</span>
+        <span class="comment">//         ..Frame::&lt;Size2MiB&gt;::starts_with(physical_start + size_of_huge_area);</span>
+        <span class="comment">//     self.map_range_to(pages, frames, flags, allocator)?;</span>
+        <span class="comment">// }</span>
+
+        <span class="comment">/*
+         * And now the rest with 4KiB frames.
+         */</span>
+        <span class="kw">let</span> <span class="ident">size_of_huge_area</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">let</span> <span class="ident">remaining_bytes</span> <span class="op">=</span> <span class="ident">size</span>;
+        <span class="kw">if</span> <span class="ident">remaining_bytes</span> <span class="op">&gt;</span> <span class="number">0</span> {
+            <span class="ident">log</span>::<span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Mapping {} remaining bytes using 4KiB pages&quot;</span>, <span class="ident">remaining_bytes</span>);
+            <span class="kw">let</span> <span class="ident">start_page</span> <span class="op">=</span> <span class="ident">Page</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">virtual_start</span> <span class="op">+</span> <span class="ident">size_of_huge_area</span>);
+            <span class="kw">let</span> <span class="ident">end_page</span> <span class="op">=</span> <span class="ident">Page</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">start_page</span>.<span class="ident">start_address</span> <span class="op">+</span> <span class="ident">remaining_bytes</span>);
+            <span class="kw">let</span> <span class="ident">start_frame</span> <span class="op">=</span> <span class="ident">Frame</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">physical_start</span> <span class="op">+</span> <span class="ident">size_of_huge_area</span>);
+            <span class="kw">let</span> <span class="ident">end_frame</span> <span class="op">=</span> <span class="ident">Frame</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">start_frame</span>.<span class="ident">start_address</span> <span class="op">+</span> <span class="ident">remaining_bytes</span>);
+            <span class="self">self</span>.<span class="ident">map_range_to</span>(<span class="ident">start_page</span>..<span class="ident">end_page</span>, <span class="ident">start_frame</span>..<span class="ident">end_frame</span>, <span class="ident">flags</span>, <span class="ident">allocator</span>)<span class="question-mark">?</span>;
+        }
+
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Unmap the given page, returning the `Frame` it was mapped to so the caller can choose to</span>
