@@ -45,6 +45,44 @@
 <span id="45">45</span>
 <span id="46">46</span>
 <span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module contains the physical memory manager Pebble uses on x86_64.</span>
 
@@ -52,19 +90,31 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">userspace_map</span>;
 
 <span class="kw">use</span> <span class="self">self</span>::<span class="ident">buddy_allocator</span>::<span class="ident">BuddyAllocator</span>;
-<span class="kw">use</span> <span class="ident">boot_info_x86_64</span>::<span class="ident">BootInfo</span>;
+<span class="kw">use</span> <span class="ident">boot_info_x86_64</span>::{<span class="ident">kernel_map</span>, <span class="ident">BootInfo</span>};
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">Range</span>;
-<span class="kw">use</span> <span class="ident">spin</span>::{<span class="ident">Mutex</span>, <span class="ident">MutexGuard</span>};
-<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::{<span class="ident">Frame</span>, <span class="ident">FrameAllocator</span>};
+<span class="kw">use</span> <span class="ident">pebble_util</span>::<span class="ident">bitmap</span>::<span class="ident">BitmapArray</span>;
+<span class="kw">use</span> <span class="ident">spin</span>::<span class="ident">Mutex</span>;
+<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::{<span class="ident">EntryFlags</span>, <span class="ident">Frame</span>, <span class="ident">FrameAllocator</span>, <span class="ident">Mapper</span>, <span class="ident">Page</span>, <span class="ident">VirtualAddress</span>};
 
 <span class="kw">const</span> <span class="ident">BUDDY_ALLOCATOR_MAX_ORDER</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">10</span>;
 
 <span class="doccomment">/// The main physical memory manager. It tracks all conventional physical memory and is used by the</span>
 <span class="doccomment">/// rest of the kernel to allocate physical memory.</span>
-<span class="kw">struct</span> <span class="ident">PhysicalMemoryManager</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PhysicalMemoryManager</span> {
     <span class="doccomment">/// A buddy allocator used to track all conventional memory. In the future, other allocators</span>
     <span class="doccomment">/// may be used to manage a subset of memory, such as memory for DMA.</span>
     <span class="kw">pub</span> <span class="ident">buddy_allocator</span>: <span class="ident">BuddyAllocator</span>,
+    <span class="kw">pub</span> <span class="ident">kernel_stack_bitmap</span>: [<span class="ident">u8</span>; <span class="ident">kernel_map</span>::<span class="ident">MAX_TASKS</span> <span class="op">/</span> <span class="number">8</span>],
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">KernelStack</span> {
+    <span class="kw">pub</span> <span class="ident">index</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span> <span class="ident">top</span>: <span class="ident">VirtualAddress</span>,
+    <span class="kw">pub</span> <span class="ident">slot_bottom</span>: <span class="ident">VirtualAddress</span>,
+    <span class="doccomment">/// Depending on the initial size passed, not all of the slot may actually be mapped. This is the bottom of</span>
+    <span class="doccomment">/// the actual mapped stack.</span>
+    <span class="kw">pub</span> <span class="ident">stack_bottom</span>: <span class="ident">VirtualAddress</span>,
 }
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LockedPhysicalMemoryManager</span>(<span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">PhysicalMemoryManager</span><span class="op">&gt;</span>);
@@ -79,7 +129,33 @@
             }
         }
 
-        <span class="ident">LockedPhysicalMemoryManager</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">PhysicalMemoryManager</span> { <span class="ident">buddy_allocator</span> }))
+        <span class="ident">LockedPhysicalMemoryManager</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">PhysicalMemoryManager</span> {
+            <span class="ident">buddy_allocator</span>,
+            <span class="ident">kernel_stack_bitmap</span>: [<span class="number">0</span>; <span class="ident">kernel_map</span>::<span class="ident">MAX_TASKS</span> <span class="op">/</span> <span class="number">8</span>],
+        }))
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_kernel_stack</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">initial_size</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">KernelStack</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">initial_size</span> <span class="op">&gt;</span> <span class="ident">kernel_map</span>::<span class="ident">STACK_SLOT_SIZE</span> {
+            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Tried to make kernel stack that&#39;s larger than a kernel stack slot!&quot;</span>);
+        }
+
+        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">lock</span>().<span class="ident">kernel_stack_bitmap</span>.<span class="ident">alloc</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">slot_bottom</span> <span class="op">=</span> <span class="ident">kernel_map</span>::<span class="ident">KERNEL_STACKS_BASE</span> <span class="op">+</span> <span class="ident">index</span> <span class="op">*</span> <span class="ident">kernel_map</span>::<span class="ident">STACK_SLOT_SIZE</span>;
+        <span class="kw">let</span> <span class="ident">top</span> <span class="op">=</span> <span class="ident">slot_bottom</span> <span class="op">+</span> <span class="ident">kernel_map</span>::<span class="ident">STACK_SLOT_SIZE</span> <span class="op">-</span> <span class="number">1</span>;
+        <span class="kw">let</span> <span class="ident">stack_bottom</span> <span class="op">=</span> <span class="ident">top</span> <span class="op">-</span> <span class="ident">initial_size</span>;
+
+        <span class="kw">for</span> <span class="ident">page</span> <span class="kw">in</span> <span class="ident">Page</span>::<span class="ident">contains</span>(<span class="ident">stack_bottom</span>)..<span class="op">=</span><span class="ident">Page</span>::<span class="ident">contains</span>(<span class="ident">top</span>) {
+            <span class="kw">crate</span>::<span class="ident">x86_64</span>::<span class="ident">ARCH</span>
+                .<span class="ident">get</span>()
+                .<span class="ident">kernel_page_table</span>
+                .<span class="ident">lock</span>()
+                .<span class="ident">mapper</span>()
+                .<span class="ident">map</span>(<span class="ident">page</span>, <span class="ident">EntryFlags</span>::<span class="ident">WRITABLE</span>, <span class="self">self</span>)
+                .<span class="ident">unwrap</span>();
+        }
+
+        <span class="prelude-val">Some</span>(<span class="ident">KernelStack</span> { <span class="ident">index</span>, <span class="ident">top</span>, <span class="ident">slot_bottom</span>, <span class="ident">stack_bottom</span> })
     }
 }
 

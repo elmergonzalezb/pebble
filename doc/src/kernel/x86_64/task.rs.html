@@ -318,9 +318,8 @@
 <span id="318">318</span>
 <span id="319">319</span>
 <span id="320">320</span>
-<span id="321">321</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">memory</span>::<span class="ident">userspace_map</span>, <span class="ident">per_cpu</span>::<span class="ident">per_cpu_data_mut</span>, <span class="ident">Arch</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">address_space</span>::<span class="ident">TaskUserStack</span>, <span class="ident">memory</span>::<span class="ident">KernelStack</span>, <span class="ident">per_cpu</span>::<span class="ident">per_cpu_data_mut</span>, <span class="ident">Arch</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">object</span>::{
     <span class="ident">common</span>::{<span class="ident">CommonTask</span>, <span class="ident">TaskState</span>},
     <span class="ident">WrappedKernelObject</span>,
@@ -328,7 +327,8 @@
 <span class="kw">use</span> <span class="ident">alloc</span>::{<span class="ident">string</span>::<span class="ident">String</span>, <span class="ident">vec</span>::<span class="ident">Vec</span>};
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">mem</span>, <span class="ident">pin</span>::<span class="ident">Pin</span>, <span class="ident">str</span>};
 <span class="kw">use</span> <span class="ident">libpebble</span>::<span class="ident">caps</span>::<span class="ident">Capability</span>;
-<span class="kw">use</span> <span class="ident">x86_64</span>::{<span class="ident">boot</span>::<span class="ident">ImageInfo</span>, <span class="ident">memory</span>::<span class="ident">VirtualAddress</span>};
+<span class="kw">use</span> <span class="ident">log</span>::<span class="ident">info</span>;
+<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::<span class="ident">VirtualAddress</span>;
 
 <span class="macro">global_asm</span><span class="macro">!</span>(<span class="macro">include_str</span><span class="macro">!</span>(<span class="string">&quot;task.s&quot;</span>));
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
@@ -394,9 +394,8 @@
     <span class="kw">pub</span> <span class="ident">state</span>: <span class="ident">TaskState</span>,
     <span class="kw">pub</span> <span class="ident">capabilities</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Capability</span><span class="op">&gt;</span>,
 
-    <span class="kw">pub</span> <span class="ident">user_stack_top</span>: <span class="ident">VirtualAddress</span>,
-    <span class="kw">pub</span> <span class="ident">kernel_stack_top</span>: <span class="ident">VirtualAddress</span>,
-    <span class="kw">pub</span> <span class="ident">stack_size</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span> <span class="ident">user_stack</span>: <span class="ident">TaskUserStack</span>,
+    <span class="kw">pub</span> <span class="ident">kernel_stack</span>: <span class="ident">KernelStack</span>,
 
     <span class="comment">/*
      * We only keep track of the kernel stack pointer. The user stack pointer is saved on the
@@ -418,34 +417,33 @@
         <span class="ident">address_space</span>: <span class="ident">WrappedKernelObject</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span>,
         <span class="ident">image</span>: <span class="kw-2">&amp;</span><span class="ident">boot_info_x86_64</span>::<span class="ident">LoadedImage</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Task</span>, <span class="ident">TaskCreationError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">stack_set</span> <span class="op">=</span> <span class="ident">address_space</span>
+        <span class="kw">const</span> <span class="ident">KERNEL_STACK_INITIAL_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4</span> <span class="op">*</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::<span class="ident">KIBIBYTES_TO_BYTES</span>;
+
+        <span class="kw">let</span> <span class="ident">user_stack</span> <span class="op">=</span> <span class="ident">address_space</span>
             .<span class="ident">object</span>
             .<span class="ident">address_space</span>()
             .<span class="ident">ok_or</span>(<span class="ident">TaskCreationError</span>::<span class="ident">NotAnAddressSpace</span>)<span class="question-mark">?</span>
             .<span class="ident">write</span>()
-            .<span class="ident">add_stack_set</span>(<span class="ident">userspace_map</span>::<span class="ident">INITIAL_STACK_SIZE</span>, <span class="kw-2">&amp;</span><span class="ident">arch</span>.<span class="ident">physical_memory_manager</span>)
+            .<span class="ident">add_stack</span>(<span class="kw-2">&amp;</span><span class="ident">arch</span>.<span class="ident">physical_memory_manager</span>)
             .<span class="ident">ok_or</span>(<span class="ident">TaskCreationError</span>::<span class="ident">NotEnoughStackSlots</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">image</span>.<span class="ident">name_length</span> <span class="op">&gt;</span> <span class="number">32</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">TaskCreationError</span>::<span class="ident">InitialNameTooLong</span>);
-        }
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from</span>(
-            <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">image</span>.<span class="ident">name</span>[<span class="number">0</span>..<span class="ident">image</span>.<span class="ident">name_length</span> <span class="kw">as</span> <span class="ident">usize</span>])
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">TaskCreationError</span>::<span class="ident">InvalidName</span>)<span class="question-mark">?</span>,
-        );
+        <span class="kw">let</span> <span class="ident">kernel_stack</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">x86_64</span>::<span class="ident">ARCH</span>
+            .<span class="ident">get</span>()
+            .<span class="ident">physical_memory_manager</span>
+            .<span class="ident">get_kernel_stack</span>(<span class="ident">KERNEL_STACK_INITIAL_SIZE</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;We&#39;ve run out of kernel stack slots!&quot;</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">task</span> <span class="op">=</span> <span class="ident">Task</span> {
-            <span class="ident">name</span>,
+            <span class="ident">name</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="ident">image</span>.<span class="ident">name</span>()),
             <span class="ident">address_space</span>,
             <span class="ident">state</span>: <span class="ident">TaskState</span>::<span class="ident">Ready</span>,
             <span class="ident">capabilities</span>: <span class="ident">decode_capabilities</span>(<span class="kw-2">&amp;</span><span class="ident">image</span>.<span class="ident">capability_stream</span>)<span class="question-mark">?</span>,
-            <span class="ident">user_stack_top</span>: <span class="ident">stack_set</span>.<span class="ident">user_slot_top</span>,
-            <span class="ident">kernel_stack_top</span>: <span class="ident">stack_set</span>.<span class="ident">kernel_slot_top</span>,
-            <span class="ident">stack_size</span>: <span class="ident">userspace_map</span>::<span class="ident">INITIAL_STACK_SIZE</span>,
-            <span class="ident">kernel_stack_pointer</span>: <span class="ident">stack_set</span>.<span class="ident">kernel_slot_top</span>,
+            <span class="ident">user_stack</span>,
+            <span class="ident">kernel_stack</span>,
+            <span class="ident">kernel_stack_pointer</span>: <span class="ident">kernel_stack</span>.<span class="ident">top</span>,
         };
 
-        <span class="ident">task</span>.<span class="ident">initialize_kernel_stack</span>(<span class="ident">image</span>.<span class="ident">entry_point</span>, <span class="ident">stack_set</span>.<span class="ident">user_slot_top</span>);
+        <span class="ident">task</span>.<span class="ident">initialize_kernel_stack</span>(<span class="ident">image</span>.<span class="ident">entry_point</span>, <span class="ident">user_stack</span>.<span class="ident">top</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">task</span>)
     }
 
