@@ -319,6 +319,7 @@
 <span id="319">319</span>
 <span id="320">320</span>
 <span id="321">321</span>
+<span id="322">322</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module defines the kernel entry-point on x86_64.</span>
 
@@ -522,9 +523,9 @@
     <span class="comment">/*
      * Create the backup framebuffer if the bootloader switched to a graphics mode.
      */</span>
-    <span class="comment">// if let Some(ref video_info) = boot_info.video_info {</span>
-    <span class="comment">//     create_framebuffer(video_info);</span>
-    <span class="comment">// }</span>
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">mode</span>) <span class="op">=</span> <span class="ident">boot_info</span>.<span class="ident">video_mode</span> {
+        <span class="ident">create_framebuffer</span>(<span class="ident">mode</span>);
+    }
 
     <span class="comment">/*
      * Load all the images as initial tasks, and add them to the scheduler&#39;s ready list.
@@ -539,7 +540,8 @@
     <span class="ident">scheduler</span>.<span class="ident">drop_to_userspace</span>(<span class="kw-2">&amp;</span><span class="ident">ARCH</span>.<span class="ident">get</span>())
 }
 
-<span class="kw">fn</span> <span class="ident">create_framebuffer</span>(<span class="ident">video_info</span>: <span class="kw-2">&amp;</span><span class="ident">x86_64</span>::<span class="ident">boot</span>::<span class="ident">VideoInfo</span>) {
+<span class="kw">fn</span> <span class="ident">create_framebuffer</span>(<span class="ident">video_info</span>: <span class="kw-2">&amp;</span><span class="ident">boot_info_x86_64</span>::<span class="ident">VideoModeInfo</span>) {
+    <span class="kw">use</span> <span class="ident">boot_info_x86_64</span>::<span class="ident">PixelFormat</span>;
     <span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::{<span class="ident">EntryFlags</span>, <span class="ident">FrameSize</span>, <span class="ident">Size4KiB</span>, <span class="ident">VirtualAddress</span>};
 
     <span class="comment">/*
@@ -550,9 +552,9 @@
     <span class="comment">/*
      * We only support RGB32 and BGR32 pixel formats, so there will always be 4 bytes per pixel.
      */</span>
-    <span class="kw">const</span> <span class="ident">BPP</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">4</span>;
+    <span class="kw">const</span> <span class="ident">BPP</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4</span>;
 
-    <span class="kw">let</span> <span class="ident">size_in_bytes</span> <span class="op">=</span> (<span class="ident">video_info</span>.<span class="ident">stride</span> <span class="op">*</span> <span class="ident">video_info</span>.<span class="ident">height</span> <span class="op">*</span> <span class="ident">BPP</span>) <span class="kw">as</span> <span class="ident">usize</span>;
+    <span class="kw">let</span> <span class="ident">size_in_bytes</span> <span class="op">=</span> <span class="ident">video_info</span>.<span class="ident">stride</span> <span class="op">*</span> <span class="ident">video_info</span>.<span class="ident">height</span> <span class="op">*</span> <span class="ident">BPP</span>;
     <span class="kw">let</span> <span class="ident">memory_object</span> <span class="op">=</span> <span class="ident">KernelObject</span>::<span class="ident">MemoryObject</span>(<span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="kw">box</span> <span class="ident">MemoryObject</span>::<span class="ident">new</span>(
         <span class="ident">VIRTUAL_ADDRESS</span>,
         <span class="ident">video_info</span>.<span class="ident">framebuffer_address</span>,
@@ -568,8 +570,8 @@
         <span class="ident">height</span>: <span class="ident">video_info</span>.<span class="ident">height</span> <span class="kw">as</span> <span class="ident">u16</span>,
         <span class="ident">pixel_format</span>: <span class="kw">match</span> <span class="ident">video_info</span>.<span class="ident">pixel_format</span> {
             <span class="comment">// TODO: maybe define these constants in libpebble and use both here and in userspace</span>
-            <span class="ident">x86_64</span>::<span class="ident">boot</span>::<span class="ident">PixelFormat</span>::<span class="ident">RGB32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
-            <span class="ident">x86_64</span>::<span class="ident">boot</span>::<span class="ident">PixelFormat</span>::<span class="ident">BGR32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
+            <span class="ident">PixelFormat</span>::<span class="ident">RGB32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">PixelFormat</span>::<span class="ident">BGR32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">1</span>,
         },
     };
 
