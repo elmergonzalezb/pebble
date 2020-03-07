@@ -33,15 +33,9 @@
 <span id="33">33</span>
 <span id="34">34</span>
 <span id="35">35</span>
-<span id="36">36</span>
-<span id="37">37</span>
-<span id="38">38</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">boot_info_x86_64</span>::<span class="ident">Segment</span>;
-<span class="kw">use</span> <span class="ident">x86_64</span>::{
-    <span class="ident">boot</span>::<span class="ident">MemoryObjectInfo</span>,
-    <span class="ident">memory</span>::{<span class="ident">EntryFlags</span>, <span class="ident">PhysicalAddress</span>, <span class="ident">VirtualAddress</span>},
-};
+<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::{<span class="ident">EntryFlags</span>, <span class="ident">PhysicalAddress</span>, <span class="ident">VirtualAddress</span>};
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MemoryObject</span> {
     <span class="kw">pub</span> <span class="ident">virtual_address</span>: <span class="ident">VirtualAddress</span>,

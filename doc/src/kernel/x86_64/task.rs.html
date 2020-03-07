@@ -317,7 +317,6 @@
 <span id="317">317</span>
 <span id="318">318</span>
 <span id="319">319</span>
-<span id="320">320</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">address_space</span>::<span class="ident">TaskUserStack</span>, <span class="ident">memory</span>::<span class="ident">KernelStack</span>, <span class="ident">per_cpu</span>::<span class="ident">per_cpu_data_mut</span>, <span class="ident">Arch</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">object</span>::{
@@ -327,7 +326,6 @@
 <span class="kw">use</span> <span class="ident">alloc</span>::{<span class="ident">string</span>::<span class="ident">String</span>, <span class="ident">vec</span>::<span class="ident">Vec</span>};
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">mem</span>, <span class="ident">pin</span>::<span class="ident">Pin</span>, <span class="ident">str</span>};
 <span class="kw">use</span> <span class="ident">libpebble</span>::<span class="ident">caps</span>::<span class="ident">Capability</span>;
-<span class="kw">use</span> <span class="ident">log</span>::<span class="ident">info</span>;
 <span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::<span class="ident">VirtualAddress</span>;
 
 <span class="macro">global_asm</span><span class="macro">!</span>(<span class="macro">include_str</span><span class="macro">!</span>(<span class="string">&quot;task.s&quot;</span>));
