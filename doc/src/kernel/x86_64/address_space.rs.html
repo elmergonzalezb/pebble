@@ -119,12 +119,6 @@
 <span id="119">119</span>
 <span id="120">120</span>
 <span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
-<span id="127">127</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">memory</span>::<span class="ident">userspace_map</span>, <span class="ident">Arch</span>, <span class="ident">ARCH</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">object</span>::<span class="ident">WrappedKernelObject</span>;
@@ -192,29 +186,23 @@
         <span class="ident">memory_object</span>: <span class="ident">WrappedKernelObject</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MemoryObjectError</span><span class="op">&gt;</span> {
         {
+            <span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::<span class="ident">MapError</span>;
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mapper</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">table</span>.<span class="ident">mapper</span>();
             <span class="kw">let</span> <span class="ident">memory_obj_info</span> <span class="op">=</span> <span class="ident">memory_object</span>.<span class="ident">object</span>.<span class="ident">memory_object</span>().<span class="ident">expect</span>(<span class="string">&quot;Not a MemoryObject&quot;</span>).<span class="ident">read</span>();
 
-            <span class="kw">let</span> <span class="ident">start_page</span> <span class="op">=</span> <span class="ident">Page</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">memory_obj_info</span>.<span class="ident">virtual_address</span>);
-            <span class="kw">let</span> <span class="ident">pages</span> <span class="op">=</span> <span class="ident">start_page</span>..(<span class="ident">start_page</span> <span class="op">+</span> (<span class="ident">memory_obj_info</span>.<span class="ident">size</span> <span class="op">/</span> <span class="ident">Size4KiB</span>::<span class="ident">SIZE</span>));
-
-            <span class="kw">let</span> <span class="ident">start_frame</span> <span class="op">=</span> <span class="ident">Frame</span>::<span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>::<span class="ident">starts_with</span>(<span class="ident">memory_obj_info</span>.<span class="ident">physical_address</span>);
-            <span class="kw">let</span> <span class="ident">frames</span> <span class="op">=</span> <span class="ident">start_frame</span>..(<span class="ident">start_frame</span> <span class="op">+</span> (<span class="ident">memory_obj_info</span>.<span class="ident">size</span> <span class="op">/</span> <span class="ident">Size4KiB</span>::<span class="ident">SIZE</span>));
-
-            <span class="comment">/*
-             * Check that the entire range of pages we&#39;ll be mapping into is currently free.
-             */</span>
-            <span class="kw">for</span> <span class="ident">page</span> <span class="kw">in</span> <span class="ident">pages</span>.<span class="ident">clone</span>() {
-                <span class="kw">match</span> <span class="ident">mapper</span>.<span class="ident">translate</span>(<span class="ident">page</span>.<span class="ident">start_address</span>) {
-                    <span class="ident">TranslationResult</span>::<span class="ident">NotMapped</span> <span class="op">=</span><span class="op">&gt;</span> (),
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectError</span>::<span class="ident">AddressRangeNotFree</span>),
-                }
-            }
-
-            <span class="comment">// TODO: move to map_area_to to use better mapping algorithm</span>
-            <span class="kw">for</span> (<span class="ident">page</span>, <span class="ident">frame</span>) <span class="kw">in</span> <span class="ident">pages</span>.<span class="ident">zip</span>(<span class="ident">frames</span>) {
-                <span class="ident">mapper</span>.<span class="ident">map_to</span>(<span class="ident">page</span>, <span class="ident">frame</span>, <span class="ident">memory_obj_info</span>.<span class="ident">flags</span>, <span class="kw-2">&amp;</span><span class="ident">ARCH</span>.<span class="ident">get</span>().<span class="ident">physical_memory_manager</span>).<span class="ident">unwrap</span>();
-            }
+            <span class="ident">mapper</span>
+                .<span class="ident">map_area_to</span>(
+                    <span class="ident">memory_obj_info</span>.<span class="ident">virtual_address</span>,
+                    <span class="ident">memory_obj_info</span>.<span class="ident">physical_address</span>,
+                    <span class="ident">memory_obj_info</span>.<span class="ident">size</span>,
+                    <span class="ident">memory_obj_info</span>.<span class="ident">flags</span>,
+                    <span class="kw-2">&amp;</span><span class="ident">ARCH</span>.<span class="ident">get</span>().<span class="ident">physical_memory_manager</span>,
+                )
+                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">err</span> {
+                    <span class="ident">MapError</span>::<span class="ident">AlreadyMapped</span> <span class="op">|</span> <span class="ident">MapError</span>::<span class="ident">AlreadyMappedHugePage</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">MemoryObjectError</span>::<span class="ident">AddressRangeNotFree</span>
+                    }
+                })<span class="question-mark">?</span>;
         }
 
         <span class="self">self</span>.<span class="ident">memory_objects</span>.<span class="ident">push</span>(<span class="ident">memory_object</span>);
