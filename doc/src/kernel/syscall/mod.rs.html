@@ -230,6 +230,10 @@
 <span id="230">230</span>
 <span id="231">231</span>
 <span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">arch_impl</span>::{<span class="ident">common_per_cpu_data</span>, <span class="ident">common_per_cpu_data_mut</span>},
@@ -455,6 +459,10 @@
     <span class="comment">/*
      * If there wasn&#39;t any mail waiting, ask the scheduler to block us until some mail arrives on this mailbox,
      * then fill it in when this task is switched back to.
+     *
+     * TODO: as written, the scheduler might actually return to this task before any more mail is received if
+     * it&#39;s the only task in the queue (because atm we just return to the current one). In the future, we
+     * shouldn&#39;t do this so I don&#39;t think this needs to be changed.
      */</span>
     <span class="kw">unsafe</span> {
         <span class="ident">common_per_cpu_data_mut</span>().<span class="ident">scheduler</span>.<span class="ident">switch_to_next</span>(<span class="ident">TaskState</span>::<span class="ident">Blocked</span>(<span class="ident">TaskBlock</span>::<span class="ident">WaitForMail</span>(<span class="ident">mailbox_id</span>)));
