@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["memory",""]]});
+initSidebarItems({"macro":[["frame_size",""]],"mod":[["memory","The HAL memory API tries to model an abstract version of a sensible architecture's virtual memory model. It should be suitable for implementations for x86_64, AArch64, and paged RISC-V."]]});

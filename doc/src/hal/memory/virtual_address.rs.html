@@ -114,6 +114,35 @@
 <span id="114">114</span>
 <span id="115">115</span>
 <span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">cfg_if</span>::<span class="ident">cfg_if</span>;
 <span class="kw">use</span> <span class="ident">core</span>::{
@@ -165,6 +194,35 @@
                 <span class="self">self</span>
             }
         }
+    }
+
+    <span class="doccomment">/// Align this address to the given alignment, moving downwards if this is not already aligned.  `align` must</span>
+    <span class="doccomment">/// be `0` or a power-of-two.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">align_down</span>(<span class="self">self</span>, <span class="ident">align</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VirtualAddress</span> {
+        <span class="kw">if</span> <span class="ident">align</span>.<span class="ident">is_power_of_two</span>() {
+            <span class="comment">/*
+             * E.g.
+             *      align       =   0b00001000
+             *      align-1     =   0b00000111
+             *      !(align-1)  =   0b11111000
+             *                             ^^^ Masks the address to the value below it with the
+             *                                 correct alignment
+             */</span>
+            <span class="ident">VirtualAddress</span>(<span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="op">!</span>(<span class="ident">align</span> <span class="op">-</span> <span class="number">1</span>))
+        } <span class="kw">else</span> {
+            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">align</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+            <span class="self">self</span>
+        }
+    }
+
+    <span class="doccomment">/// Align this address to the given alignment, moving upwards if this is not already aligned. `align` must be</span>
+    <span class="doccomment">/// `0` or a power-of-two.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">align_up</span>(<span class="self">self</span>, <span class="ident">align</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VirtualAddress</span> {
+        <span class="ident">VirtualAddress</span>(<span class="self">self</span>.<span class="number">0</span> <span class="op">+</span> <span class="ident">align</span> <span class="op">-</span> <span class="number">1</span>).<span class="ident">align_down</span>(<span class="ident">align</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_aligned</span>(<span class="self">self</span>, <span class="ident">align</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">%</span> <span class="ident">align</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>
     }
 }
 
