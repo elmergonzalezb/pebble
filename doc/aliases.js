@@ -6,6 +6,7 @@ ALIASES["bitflags"] = {};
 ALIASES["boot_info_x86_64"] = {};
 ALIASES["byteorder"] = {};
 ALIASES["cfg_if"] = {};
+ALIASES["hal"] = {};
 ALIASES["kernel"] = {};
 ALIASES["libpebble"] = {};
 ALIASES["log"] = {};
