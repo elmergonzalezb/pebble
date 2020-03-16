@@ -78,9 +78,9 @@
 <span class="doccomment">//! panics.</span>
 
 <span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
+<span class="kw">use</span> <span class="ident">hal_x86_64</span>::<span class="ident">hw</span>::{<span class="ident">idt</span>::<span class="ident">InterruptStackFrame</span>, <span class="ident">registers</span>::<span class="ident">read_control_reg</span>};
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">error</span>, <span class="ident">info</span>};
 <span class="kw">use</span> <span class="ident">pebble_util</span>::<span class="ident">BinaryPrettyPrint</span>;
-<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">hw</span>::{<span class="ident">idt</span>::<span class="ident">InterruptStackFrame</span>, <span class="ident">registers</span>::<span class="ident">read_control_reg</span>};
 
 <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">nmi_handler</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">InterruptStackFrame</span>) {
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;NMI occured!&quot;</span>);

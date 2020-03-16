@@ -320,6 +320,12 @@
 <span id="320">320</span>
 <span id="321">321</span>
 <span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module defines the kernel entry-point on x86_64.</span>
 
@@ -358,15 +364,19 @@
 };
 <span class="kw">use</span> <span class="ident">acpi</span>::<span class="ident">Acpi</span>;
 <span class="kw">use</span> <span class="ident">aml</span>::<span class="ident">AmlContext</span>;
-<span class="kw">use</span> <span class="ident">boot_info_x86_64</span>::{<span class="ident">kernel_map</span>, <span class="ident">BootInfo</span>, <span class="ident">LoadedImage</span>};
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
+<span class="kw">use</span> <span class="ident">hal</span>::{
+    <span class="ident">boot_info</span>::{<span class="ident">BootInfo</span>, <span class="ident">LoadedImage</span>},
+    <span class="ident">memory</span>::{<span class="ident">Frame</span>, <span class="ident">PhysicalAddress</span>},
+};
+<span class="kw">use</span> <span class="ident">hal_x86_64</span>::{
+    <span class="ident">hw</span>::{<span class="ident">cpu</span>::<span class="ident">CpuInfo</span>, <span class="ident">gdt</span>::<span class="ident">Gdt</span>, <span class="ident">registers</span>::<span class="ident">read_control_reg</span>},
+    <span class="ident">kernel_map</span>,
+    <span class="ident">paging</span>::<span class="ident">PageTable</span>,
+};
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">error</span>, <span class="ident">info</span>, <span class="ident">warn</span>};
 <span class="kw">use</span> <span class="ident">pebble_util</span>::<span class="ident">InitGuard</span>;
 <span class="kw">use</span> <span class="ident">spin</span>::{<span class="ident">Mutex</span>, <span class="ident">RwLock</span>};
-<span class="kw">use</span> <span class="ident">x86_64</span>::{
-    <span class="ident">hw</span>::{<span class="ident">cpu</span>::<span class="ident">CpuInfo</span>, <span class="ident">gdt</span>::<span class="ident">Gdt</span>, <span class="ident">registers</span>::<span class="ident">read_control_reg</span>},
-    <span class="ident">memory</span>::{<span class="ident">Frame</span>, <span class="ident">PageTable</span>, <span class="ident">PhysicalAddress</span>},
-};
 
 <span class="kw">pub</span>(<span class="self">self</span>) <span class="kw">static</span> <span class="ident">GDT</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Gdt</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">Gdt</span>::<span class="ident">new</span>());
 <span class="kw">pub</span> <span class="kw">static</span> <span class="ident">ARCH</span>: <span class="ident">InitGuard</span><span class="op">&lt;</span><span class="ident">Arch</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">InitGuard</span>::<span class="ident">uninit</span>();
@@ -412,7 +422,7 @@
     <span class="ident">log</span>::<span class="ident">set_max_level</span>(<span class="ident">log</span>::<span class="ident">LevelFilter</span>::<span class="ident">Trace</span>);
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;The Pebble kernel is running&quot;</span>);
 
-    <span class="kw">if</span> <span class="ident">boot_info</span>.<span class="ident">magic</span> <span class="op">!</span><span class="op">=</span> <span class="ident">boot_info_x86_64</span>::<span class="ident">BOOT_INFO_MAGIC</span> {
+    <span class="kw">if</span> <span class="ident">boot_info</span>.<span class="ident">magic</span> <span class="op">!</span><span class="op">=</span> <span class="ident">hal</span>::<span class="ident">boot_info</span>::<span class="ident">BOOT_INFO_MAGIC</span> {
         <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Boot info magic is not correct!&quot;</span>);
     }
 
@@ -540,9 +550,11 @@
     <span class="ident">scheduler</span>.<span class="ident">drop_to_userspace</span>(<span class="kw-2">&amp;</span><span class="ident">ARCH</span>.<span class="ident">get</span>())
 }
 
-<span class="kw">fn</span> <span class="ident">create_framebuffer</span>(<span class="ident">video_info</span>: <span class="kw-2">&amp;</span><span class="ident">boot_info_x86_64</span>::<span class="ident">VideoModeInfo</span>) {
-    <span class="kw">use</span> <span class="ident">boot_info_x86_64</span>::<span class="ident">PixelFormat</span>;
-    <span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::{<span class="ident">EntryFlags</span>, <span class="ident">FrameSize</span>, <span class="ident">Size4KiB</span>, <span class="ident">VirtualAddress</span>};
+<span class="kw">fn</span> <span class="ident">create_framebuffer</span>(<span class="ident">video_info</span>: <span class="kw-2">&amp;</span><span class="ident">hal</span>::<span class="ident">boot_info</span>::<span class="ident">VideoModeInfo</span>) {
+    <span class="kw">use</span> <span class="ident">hal</span>::{
+        <span class="ident">boot_info</span>::<span class="ident">PixelFormat</span>,
+        <span class="ident">memory</span>::{<span class="ident">Flags</span>, <span class="ident">FrameSize</span>, <span class="ident">Size4KiB</span>, <span class="ident">VirtualAddress</span>},
+    };
 
     <span class="comment">/*
      * For now, we just put the framebuffer at the start of the region where we map MemoryObjects
@@ -559,7 +571,7 @@
         <span class="ident">VIRTUAL_ADDRESS</span>,
         <span class="ident">video_info</span>.<span class="ident">framebuffer_address</span>,
         <span class="ident">pebble_util</span>::<span class="ident">math</span>::<span class="ident">align_up</span>(<span class="ident">size_in_bytes</span>, <span class="ident">Size4KiB</span>::<span class="ident">SIZE</span>),
-        <span class="ident">EntryFlags</span>::<span class="ident">PRESENT</span> <span class="op">|</span> <span class="ident">EntryFlags</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">EntryFlags</span>::<span class="ident">USER_ACCESSIBLE</span> <span class="op">|</span> <span class="ident">EntryFlags</span>::<span class="ident">NO_CACHE</span>,
+        <span class="ident">Flags</span> { <span class="ident">writable</span>: <span class="bool-val">true</span>, <span class="ident">executable</span>: <span class="bool-val">false</span>, <span class="ident">user_accessible</span>: <span class="bool-val">true</span>, <span class="ident">cached</span>: <span class="bool-val">false</span> },
     )))
     .<span class="ident">add_to_map</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">crate</span>::<span class="ident">COMMON</span>.<span class="ident">get</span>().<span class="ident">object_map</span>.<span class="ident">write</span>());
 
@@ -611,7 +623,7 @@
 <span class="doccomment">/// function checks that we support everything we need to, and enable features that we need.</span>
 <span class="kw">fn</span> <span class="ident">check_support_and_enable_features</span>(<span class="ident">cpu_info</span>: <span class="kw-2">&amp;</span><span class="ident">CpuInfo</span>) {
     <span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
-    <span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">hw</span>::<span class="ident">registers</span>::{
+    <span class="kw">use</span> <span class="ident">hal_x86_64</span>::<span class="ident">hw</span>::<span class="ident">registers</span>::{
         <span class="ident">read_control_reg</span>,
         <span class="ident">read_msr</span>,
         <span class="ident">write_control_reg</span>,

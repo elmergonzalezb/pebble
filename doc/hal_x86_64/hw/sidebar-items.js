@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["cpu",""],["gdt",""],["i8259_pic",""],["idt",""],["io_apic",""],["local_apic",""],["port",""],["registers",""],["serial",""],["tlb",""],["tss",""]],"struct":[["DescriptorTablePointer",""]]});

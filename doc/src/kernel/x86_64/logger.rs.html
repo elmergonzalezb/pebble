@@ -29,14 +29,14 @@
 <span id="29">29</span>
 <span id="30">30</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="kw">use</span> <span class="ident">hal_x86_64</span>::<span class="ident">hw</span>::<span class="ident">serial</span>::<span class="ident">SerialPort</span>;
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">Log</span>, <span class="ident">Metadata</span>, <span class="ident">Record</span>};
 <span class="kw">use</span> <span class="ident">spin</span>::<span class="ident">Mutex</span>;
-<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">hw</span>::<span class="ident">serial</span>::<span class="ident">SerialPort</span>;
 
 <span class="doccomment">/// The COM1 serial port, accessed through the UART 16550 controller found in many old platforms,</span>
 <span class="doccomment">/// and emulated by most emulators. There is no need to initialise it in the kernel, as the</span>
 <span class="doccomment">/// bootloader has already done that for us.</span>
-<span class="kw">static</span> <span class="ident">COM1</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">SerialPort</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="kw">unsafe</span> { <span class="ident">SerialPort</span>::<span class="ident">new</span>(<span class="number">0x3f8</span>) });
+<span class="kw">static</span> <span class="ident">COM1</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">SerialPort</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="kw">unsafe</span> { <span class="ident">SerialPort</span>::<span class="ident">new</span>(<span class="ident">hal_x86_64</span>::<span class="ident">hw</span>::<span class="ident">serial</span>::<span class="ident">COM1</span>) });
 
 <span class="doccomment">/// This handles calls to the log macros throughout the kernel, and writes logging to the COM1</span>
 <span class="doccomment">/// serial port.</span>

@@ -321,9 +321,9 @@
     <span class="ident">mem</span>::{<span class="self">self</span>, <span class="ident">size_of</span>},
     <span class="ident">ops</span>::<span class="ident">Deref</span>,
 };
+<span class="kw">use</span> <span class="ident">hal</span>::<span class="ident">memory</span>::<span class="ident">VirtualAddress</span>;
 <span class="kw">use</span> <span class="ident">pebble_util</span>::<span class="ident">math</span>::<span class="ident">align_up</span>;
 <span class="kw">use</span> <span class="ident">spin</span>::<span class="ident">Mutex</span>;
-<span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">memory</span>::<span class="ident">VirtualAddress</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HoleAllocator</span> {
     <span class="ident">heap_bottom</span>: <span class="ident">VirtualAddress</span>,

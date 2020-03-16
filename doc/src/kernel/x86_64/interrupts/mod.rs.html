@@ -328,12 +328,9 @@
 <span class="kw">use</span> <span class="ident">acpi</span>::<span class="ident">interrupt</span>::<span class="ident">InterruptModel</span>;
 <span class="kw">use</span> <span class="ident">aml</span>::{<span class="ident">value</span>::<span class="ident">Args</span> <span class="kw">as</span> <span class="ident">AmlArgs</span>, <span class="ident">AmlName</span>, <span class="ident">AmlValue</span>};
 <span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
-<span class="kw">use</span> <span class="ident">boot_info_x86_64</span>::<span class="ident">kernel_map</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
-<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">info</span>, <span class="ident">warn</span>};
-<span class="kw">use</span> <span class="ident">pci</span>::<span class="ident">PciResolver</span>;
-<span class="kw">use</span> <span class="ident">pebble_util</span>::<span class="ident">InitGuard</span>;
-<span class="kw">use</span> <span class="ident">x86_64</span>::{
+<span class="kw">use</span> <span class="ident">hal</span>::<span class="ident">memory</span>::<span class="ident">PhysicalAddress</span>;
+<span class="kw">use</span> <span class="ident">hal_x86_64</span>::{
     <span class="ident">hw</span>::{
         <span class="ident">gdt</span>::<span class="ident">KERNEL_CODE_SELECTOR</span>,
         <span class="ident">i8259_pic</span>::<span class="ident">Pic</span>,
@@ -341,8 +338,11 @@
         <span class="ident">local_apic</span>::<span class="ident">LocalApic</span>,
         <span class="ident">registers</span>::<span class="ident">write_msr</span>,
     },
-    <span class="ident">memory</span>::<span class="ident">PhysicalAddress</span>,
+    <span class="ident">kernel_map</span>,
 };
+<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">info</span>, <span class="ident">warn</span>};
+<span class="kw">use</span> <span class="ident">pci</span>::<span class="ident">PciResolver</span>;
+<span class="kw">use</span> <span class="ident">pebble_util</span>::<span class="ident">InitGuard</span>;
 
 <span class="macro">global_asm</span><span class="macro">!</span>(<span class="macro">include_str</span><span class="macro">!</span>(<span class="string">&quot;syscall.s&quot;</span>));
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
@@ -499,7 +499,7 @@
          *
          * Refer to the documentation comments of each MSR to understand what this code is doing.
          */</span>
-        <span class="kw">use</span> <span class="ident">x86_64</span>::<span class="ident">hw</span>::{
+        <span class="kw">use</span> <span class="ident">hal_x86_64</span>::<span class="ident">hw</span>::{
             <span class="ident">gdt</span>::<span class="ident">USER_COMPAT_CODE_SELECTOR</span>,
             <span class="ident">registers</span>::{<span class="ident">IA32_FMASK</span>, <span class="ident">IA32_LSTAR</span>, <span class="ident">IA32_STAR</span>},
         };

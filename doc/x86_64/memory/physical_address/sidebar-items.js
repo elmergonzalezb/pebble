@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["PhysicalAddress","Represents an address in the physical memory space. A valid physical address is smaller than 2^52"]]});
