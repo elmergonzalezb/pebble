@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["hal_x86_64"] = [{"text":"impl <a class=\"trait\" href=\"hal/memory/paging/trait.PageTable.html\" title=\"trait hal::memory::paging::PageTable\">PageTable</a>&lt;<a class=\"enum\" href=\"hal/memory/enum.Size4KiB.html\" title=\"enum hal::memory::Size4KiB\">Size4KiB</a>&gt; for <a class=\"struct\" href=\"hal_x86_64/paging/struct.PageTableImpl.html\" title=\"struct hal_x86_64::paging::PageTableImpl\">PageTableImpl</a>","synthetic":false,"types":["hal_x86_64::paging::PageTableImpl"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

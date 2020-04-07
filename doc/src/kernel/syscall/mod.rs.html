@@ -161,103 +161,20 @@
 <span id="161">161</span>
 <span id="162">162</span>
 <span id="163">163</span>
-<span id="164">164</span>
-<span id="165">165</span>
-<span id="166">166</span>
-<span id="167">167</span>
-<span id="168">168</span>
-<span id="169">169</span>
-<span id="170">170</span>
-<span id="171">171</span>
-<span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
-<span id="201">201</span>
-<span id="202">202</span>
-<span id="203">203</span>
-<span id="204">204</span>
-<span id="205">205</span>
-<span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
-<span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
-<span id="217">217</span>
-<span id="218">218</span>
-<span id="219">219</span>
-<span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
-<span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
-<span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">arch_impl</span>::{<span class="ident">common_per_cpu_data</span>, <span class="ident">common_per_cpu_data_mut</span>},
-    <span class="ident">mailbox</span>::<span class="ident">Mailbox</span>,
-    <span class="ident">object</span>::{
-        <span class="ident">common</span>::{<span class="ident">CommonTask</span>, <span class="ident">TaskBlock</span>, <span class="ident">TaskState</span>},
-        <span class="ident">KernelObject</span>,
-    },
-    <span class="ident">COMMON</span>,
-};
-<span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">object</span>::<span class="ident">task</span>::<span class="ident">TaskState</span>, <span class="ident">HalImpl</span>};
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">slice</span>, <span class="ident">str</span>};
+<span class="kw">use</span> <span class="ident">hal</span>::<span class="ident">Hal</span>;
 <span class="kw">use</span> <span class="ident">libpebble</span>::{
     <span class="ident">caps</span>::<span class="ident">Capability</span>,
     <span class="ident">syscall</span>,
     <span class="ident">syscall</span>::{
-        <span class="ident">mailbox</span>::<span class="ident">MailboxError</span>,
-        <span class="ident">result</span>::{<span class="ident">result_to_syscall_repr</span>, <span class="ident">status_to_syscall_repr</span>},
+        <span class="ident">result</span>::{<span class="ident">handle_to_syscall_repr</span>, <span class="ident">status_to_syscall_repr</span>},
+        <span class="ident">EarlyLogError</span>,
         <span class="ident">MemoryObjectError</span>,
     },
-    <span class="ident">KernelObjectId</span>,
 };
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">info</span>, <span class="ident">trace</span>, <span class="ident">warn</span>};
-<span class="kw">use</span> <span class="ident">spin</span>::<span class="ident">RwLock</span>;
 
 <span class="doccomment">/// This is the architecture-independent syscall handler. It should be called by the handler that</span>
 <span class="doccomment">/// receives the syscall (each architecture is free to do this however it wishes). The only</span>
@@ -268,18 +185,16 @@
 <span class="doccomment">/// wants to.</span>
 <span class="attribute">#[<span class="ident">no_mangle</span>]</span>
 <span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">rust_syscall_handler</span>(<span class="ident">number</span>: <span class="ident">usize</span>, <span class="ident">a</span>: <span class="ident">usize</span>, <span class="ident">b</span>: <span class="ident">usize</span>, <span class="ident">c</span>: <span class="ident">usize</span>, <span class="ident">d</span>: <span class="ident">usize</span>, <span class="ident">e</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-    <span class="comment">// info!(&quot;Syscall! number = {}, a = {}, b = {}, c = {}, d = {}, e = {}&quot;, number, a, b, c, d, e);</span>
+    <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Syscall! number = {}, a = {}, b = {}, c = {}, d = {}, e = {}&quot;</span>, <span class="ident">number</span>, <span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">c</span>, <span class="ident">d</span>, <span class="ident">e</span>);
 
     <span class="kw">match</span> <span class="ident">number</span> {
         <span class="ident">syscall</span>::<span class="ident">SYSCALL_YIELD</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">yield_syscall</span>(),
-        <span class="ident">syscall</span>::<span class="ident">SYSCALL_EARLY_LOG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">early_log</span>(<span class="ident">a</span>, <span class="ident">b</span>),
-        <span class="ident">syscall</span>::<span class="ident">SYSCALL_REQUEST_SYSTEM_OBJECT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">request_system_object</span>(<span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">c</span>, <span class="ident">d</span>, <span class="ident">e</span>),
-        <span class="ident">syscall</span>::<span class="ident">SYSCALL_MY_ADDRESS_SPACE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">my_address_space</span>(),
-        <span class="ident">syscall</span>::<span class="ident">SYSCALL_CREATE_MEMORY_OBJECT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">result_to_syscall_repr</span>(<span class="ident">create_memory_object</span>(<span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">c</span>)),
-        <span class="ident">syscall</span>::<span class="ident">SYSCALL_MAP_MEMORY_OBJECT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">status_to_syscall_repr</span>(<span class="ident">map_memory_object</span>(<span class="ident">a</span>, <span class="ident">b</span>)),
-        <span class="ident">syscall</span>::<span class="ident">SYSCALL_CREATE_MAILBOX</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">result_to_syscall_repr</span>(<span class="ident">create_mailbox</span>()),
-        <span class="ident">syscall</span>::<span class="ident">SYSCALL_WAIT_FOR_MAIL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">status_to_syscall_repr</span>(<span class="ident">wait_for_mail</span>(<span class="ident">a</span>, <span class="ident">b</span>)),
-
+        <span class="ident">syscall</span>::<span class="ident">SYSCALL_EARLY_LOG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">status_to_syscall_repr</span>(<span class="ident">early_log</span>(<span class="ident">a</span>, <span class="ident">b</span>)),
+        <span class="comment">// TODO: I think we can replace this with a one-off syscall just for the framebuffer?</span>
+        <span class="comment">// syscall::SYSCALL_REQUEST_SYSTEM_OBJECT =&gt; request_system_object(a, b, c, d, e),</span>
+        <span class="comment">// syscall::SYSCALL_MY_ADDRESS_SPACE =&gt; my_address_space(),</span>
+        <span class="comment">// syscall::SYSCALL_CREATE_MEMORY_OBJECT =&gt; result_to_syscall_repr(create_memory_object(a, b, c)),</span>
+        <span class="comment">// syscall::SYSCALL_MAP_MEMORY_OBJECT =&gt; status_to_syscall_repr(map_memory_object(a, b)),</span>
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// TODO: unsupported system call number, kill process or something?</span>
             <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;Process made system call with invalid syscall number: {}&quot;</span>, <span class="ident">number</span>);
@@ -290,186 +205,125 @@
 
 <span class="kw">fn</span> <span class="ident">yield_syscall</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
     <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;Process yielded!&quot;</span>);
-    <span class="kw">unsafe</span> {
-        <span class="ident">common_per_cpu_data_mut</span>().<span class="ident">scheduler</span>.<span class="ident">switch_to_next</span>(<span class="ident">TaskState</span>::<span class="ident">Ready</span>);
-    }
-
+    <span class="kw">unsafe</span> { <span class="ident">HalImpl</span>::<span class="ident">per_cpu</span>() }.<span class="ident">kernel_data</span>().<span class="ident">scheduler</span>().<span class="ident">switch_to_next</span>(<span class="ident">TaskState</span>::<span class="ident">Ready</span>);
     <span class="number">0</span>
 }
 
-<span class="kw">fn</span> <span class="ident">early_log</span>(<span class="ident">str_length</span>: <span class="ident">usize</span>, <span class="ident">str_address</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+<span class="kw">fn</span> <span class="ident">early_log</span>(<span class="ident">str_length</span>: <span class="ident">usize</span>, <span class="ident">str_address</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">EarlyLogError</span><span class="op">&gt;</span> {
     <span class="comment">/*
-     * Returns:
-     *      0 =&gt; message was successfully logged
-     *      1 =&gt; message was too long
-     *      2 =&gt; string was not valid UTF-8
-     *      3 =&gt; task doesn&#39;t have `EarlyLogging` capability
-     *
      * TODO: check that b is a valid userspace pointer and that it&#39;s mapped to physical
      * memory
      */</span>
-    <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">common_per_cpu_data</span>().<span class="ident">running_task</span>().<span class="ident">object</span>.<span class="ident">task</span>().<span class="ident">unwrap</span>().<span class="ident">read</span>() };
+    <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">HalImpl</span>::<span class="ident">per_cpu</span>() }.<span class="ident">kernel_data</span>().<span class="ident">scheduler</span>().<span class="ident">running_task</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
 
     <span class="comment">// Check the current task has the `EarlyLogging` capability</span>
     <span class="kw">if</span> <span class="op">!</span><span class="ident">task</span>.<span class="ident">capabilities</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">Capability</span>::<span class="ident">EarlyLogging</span>) {
-        <span class="kw">return</span> <span class="number">3</span>;
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">EarlyLogError</span>::<span class="ident">TaskDoesNotHaveCorrectCapability</span>);
     }
 
     <span class="comment">// Check if the message is too long</span>
     <span class="kw">if</span> <span class="ident">str_length</span> <span class="op">&gt;</span> <span class="number">1024</span> {
-        <span class="kw">return</span> <span class="number">1</span>;
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">EarlyLogError</span>::<span class="ident">MessageTooLong</span>);
     }
 
     <span class="comment">// Check the message is valid UTF-8</span>
-    <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw">unsafe</span> { <span class="ident">slice</span>::<span class="ident">from_raw_parts</span>(<span class="ident">str_address</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">str_length</span>) }) {
-        <span class="prelude-val">Ok</span>(<span class="ident">message</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">message</span>,
-        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="number">2</span>,
-    };
+    <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw">unsafe</span> { <span class="ident">slice</span>::<span class="ident">from_raw_parts</span>(<span class="ident">str_address</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">str_length</span>) })
+        .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">EarlyLogError</span>::<span class="ident">MessageNotValidUtf8</span>)<span class="question-mark">?</span>;
 
-    <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Early log message from {}: {}&quot;</span>, <span class="ident">task</span>.<span class="ident">name</span>(), <span class="ident">message</span>);
-    <span class="number">0</span>
-}
-
-<span class="kw">fn</span> <span class="ident">request_system_object</span>(<span class="ident">id</span>: <span class="ident">usize</span>, <span class="ident">b</span>: <span class="ident">usize</span>, <span class="ident">c</span>: <span class="ident">usize</span>, <span class="ident">d</span>: <span class="ident">usize</span>, <span class="ident">e</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-    <span class="kw">use</span> <span class="ident">libpebble</span>::<span class="ident">syscall</span>::<span class="ident">system_object</span>::<span class="kw-2">*</span>;
-
-    <span class="ident">result_to_syscall_repr</span>(<span class="kw">match</span> <span class="ident">id</span> {
-        <span class="ident">SYSTEM_OBJECT_BACKUP_FRAMEBUFFER_ID</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="comment">/*
-             * Check that the task has the correct capability. It&#39;s important to do this first, so we don&#39;t leak
-             * the fact that a system object doesn&#39;t exist to an unprivileged task.
-             */</span>
-            <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">common_per_cpu_data</span>() }
-                .<span class="ident">running_task</span>()
-                .<span class="ident">object</span>
-                .<span class="ident">task</span>()
-                .<span class="ident">unwrap</span>()
-                .<span class="ident">read</span>()
-                .<span class="ident">capabilities</span>
-                .<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">Capability</span>::<span class="ident">AccessBackupFramebuffer</span>)
-            {
-                <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">COMMON</span>.<span class="ident">get</span>().<span class="ident">backup_framebuffer</span>.<span class="ident">lock</span>() {
-                    <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="ident">info</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="comment">/*
-                         * `b` contains a userspace address that we write the framebuffer info back into.
-                         */</span>
-                        <span class="kw">unsafe</span> {
-                            <span class="comment">// TODO: at the moment, userspace can trivially crash the kernel by passing an address</span>
-                            <span class="comment">// in here that is either not mapped, or does not point into userspace (potentially</span>
-                            <span class="comment">// overwriting important kernel info). We should validate that the address passed is</span>
-                            <span class="comment">// both mapped and points into userspace, and provide some helpers for doing so.</span>
-                            <span class="kw-2">*</span>(<span class="ident">b</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FramebufferSystemObjectInfo</span>) <span class="op">=</span> <span class="ident">info</span>;
-                        }
-
-                        <span class="prelude-val">Ok</span>(<span class="ident">id</span>)
-                    }
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">RequestSystemObjectError</span>::<span class="ident">ObjectDoesNotExist</span>),
-                }
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">RequestSystemObjectError</span>::<span class="ident">AccessDenied</span>)
-            }
-        }
-
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">RequestSystemObjectError</span>::<span class="ident">NotAValidId</span>),
-    })
-}
-
-<span class="kw">fn</span> <span class="ident">my_address_space</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-    <span class="kw">unsafe</span> { <span class="ident">common_per_cpu_data</span>() }
-        .<span class="ident">running_task</span>()
-        .<span class="ident">object</span>
-        .<span class="ident">task</span>()
-        .<span class="ident">unwrap</span>()
-        .<span class="ident">read</span>()
-        .<span class="ident">address_space</span>
-        .<span class="ident">id</span>
-        .<span class="ident">to_syscall_repr</span>()
-}
-
-<span class="kw">fn</span> <span class="ident">create_memory_object</span>(
-    <span class="ident">virtual_address</span>: <span class="ident">usize</span>,
-    <span class="ident">size</span>: <span class="ident">usize</span>,
-    <span class="ident">flags</span>: <span class="ident">usize</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">KernelObjectId</span>, <span class="ident">MemoryObjectError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">writable</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">get_bit</span>(<span class="number">0</span>);
-    <span class="kw">let</span> <span class="ident">executable</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">get_bit</span>(<span class="number">1</span>);
-
-    <span class="macro">unimplemented</span><span class="macro">!</span>()
-}
-
-<span class="kw">fn</span> <span class="ident">map_memory_object</span>(<span class="ident">memory_object_id</span>: <span class="ident">usize</span>, <span class="ident">address_space_id</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MemoryObjectError</span><span class="op">&gt;</span> {
-    <span class="comment">/*
-     * TODO: enforce that the calling task must have access to the AddressSpace and MemoryObject
-     * for this to work (we need to build the owning / access system first).
-     */</span>
-    <span class="kw">let</span> <span class="ident">memory_object</span> <span class="op">=</span>
-        <span class="kw">match</span> <span class="ident">COMMON</span>.<span class="ident">get</span>().<span class="ident">object_map</span>.<span class="ident">read</span>().<span class="ident">get</span>(<span class="ident">KernelObjectId</span>::<span class="ident">from_syscall_repr</span>(<span class="ident">memory_object_id</span>)) {
-            <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">object</span>.<span class="ident">clone</span>(),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectError</span>::<span class="ident">NotAMemoryObject</span>),
-        };
-
-    <span class="comment">// Check it&#39;s a MemoryObject</span>
-    <span class="kw">if</span> <span class="ident">memory_object</span>.<span class="ident">object</span>.<span class="ident">memory_object</span>().<span class="ident">is_none</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectError</span>::<span class="ident">NotAMemoryObject</span>);
-    }
-
-    <span class="kw">match</span> <span class="ident">COMMON</span>.<span class="ident">get</span>().<span class="ident">object_map</span>.<span class="ident">read</span>().<span class="ident">get</span>(<span class="ident">KernelObjectId</span>::<span class="ident">from_syscall_repr</span>(<span class="ident">address_space_id</span>)) {
-        <span class="prelude-val">Some</span>(<span class="ident">address_space</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">address_space</span>.<span class="ident">object</span>.<span class="ident">address_space</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">address_space</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">address_space</span>.<span class="ident">write</span>().<span class="ident">map_memory_object</span>(<span class="ident">memory_object</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectError</span>::<span class="ident">NotAnAddressSpace</span>),
-        },
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">MemoryObjectError</span>::<span class="ident">NotAnAddressSpace</span>),
-    }
-}
-
-<span class="kw">fn</span> <span class="ident">create_mailbox</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">KernelObjectId</span>, <span class="ident">MailboxError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">object_map</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw">crate</span>::<span class="ident">COMMON</span>.<span class="ident">get</span>().<span class="ident">object_map</span>.<span class="ident">write</span>();
-    <span class="kw">let</span> <span class="ident">mailbox</span> <span class="op">=</span> <span class="ident">KernelObject</span>::<span class="ident">Mailbox</span>(<span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="kw">box</span> <span class="ident">Mailbox</span>::<span class="ident">new</span>())).<span class="ident">add_to_map</span>(<span class="ident">object_map</span>);
-    <span class="prelude-val">Ok</span>(<span class="ident">mailbox</span>.<span class="ident">id</span>)
-}
-
-<span class="kw">fn</span> <span class="ident">wait_for_mail</span>(<span class="ident">mailbox_id</span>: <span class="ident">usize</span>, <span class="ident">output_buffer_address</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MailboxError</span><span class="op">&gt;</span> {
-    <span class="kw">use</span> <span class="ident">libpebble</span>::<span class="ident">syscall</span>::<span class="ident">mailbox</span>::<span class="ident">MailRepr</span>;
-    <span class="kw">let</span> <span class="ident">mailbox_id</span> <span class="op">=</span> <span class="ident">KernelObjectId</span>::<span class="ident">from_syscall_repr</span>(<span class="ident">mailbox_id</span>);
-
-    <span class="kw">let</span> <span class="ident">mailbox</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">COMMON</span>.<span class="ident">get</span>().<span class="ident">object_map</span>.<span class="ident">read</span>().<span class="ident">get</span>(<span class="ident">mailbox_id</span>) {
-        <span class="prelude-val">Some</span>(<span class="ident">mailbox</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mailbox</span>.<span class="ident">clone</span>(),
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MailboxError</span>::<span class="ident">NotAMailbox</span>),
-    };
-
-    <span class="comment">// Check it&#39;s actually a mailbox</span>
-    <span class="kw">if</span> <span class="ident">mailbox</span>.<span class="ident">object</span>.<span class="ident">mailbox</span>().<span class="ident">is_none</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MailboxError</span>::<span class="ident">NotAMailbox</span>);
-    }
-
-    <span class="comment">/*
-     * If there&#39;s mail waiting to be handled, pass it back to userspace and return immediately.
-     */</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">mail</span>) <span class="op">=</span> <span class="ident">mailbox</span>.<span class="ident">object</span>.<span class="ident">mailbox</span>().<span class="ident">unwrap</span>().<span class="ident">write</span>().<span class="ident">get_next</span>() {
-        <span class="macro">info</span><span class="macro">!</span>(<span class="string">&quot;You&#39;ve got mail! Mail: {:?}&quot;</span>, <span class="ident">mail</span>);
-        <span class="comment">// TODO: validate this address as a mapped, correctly-sized, writable virtual address</span>
-        <span class="comment">// in userspace (with a helper struct or something (I&#39;m thinking UserAddress)?)</span>
-        <span class="kw">unsafe</span> {
-            <span class="kw-2">*</span>(<span class="ident">output_buffer_address</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">MailRepr</span>) <span class="op">=</span> <span class="ident">mail</span>.<span class="ident">to_syscall_repr</span>();
-        }
-
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
-    }
-
-    <span class="comment">/*
-     * If there wasn&#39;t any mail waiting, ask the scheduler to block us until some mail arrives on this mailbox,
-     * then fill it in when this task is switched back to.
-     *
-     * TODO: as written, the scheduler might actually return to this task before any more mail is received if
-     * it&#39;s the only task in the queue (because atm we just return to the current one). In the future, we
-     * shouldn&#39;t do this so I don&#39;t think this needs to be changed.
-     */</span>
-    <span class="kw">unsafe</span> {
-        <span class="ident">common_per_cpu_data_mut</span>().<span class="ident">scheduler</span>.<span class="ident">switch_to_next</span>(<span class="ident">TaskState</span>::<span class="ident">Blocked</span>(<span class="ident">TaskBlock</span>::<span class="ident">WaitForMail</span>(<span class="ident">mailbox_id</span>)));
-        <span class="kw-2">*</span>(<span class="ident">output_buffer_address</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">MailRepr</span>) <span class="op">=</span>
-            <span class="ident">mailbox</span>.<span class="ident">object</span>.<span class="ident">mailbox</span>().<span class="ident">unwrap</span>().<span class="ident">write</span>().<span class="ident">get_next</span>().<span class="ident">unwrap</span>().<span class="ident">to_syscall_repr</span>();
-    }
+    <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Early log message from {}: {}&quot;</span>, <span class="ident">task</span>.<span class="ident">name</span>, <span class="ident">message</span>);
     <span class="prelude-val">Ok</span>(())
 }
+
+<span class="comment">// fn request_system_object(id: usize, b: usize, c: usize, d: usize, e: usize) -&gt; usize {</span>
+<span class="comment">//     use libpebble::syscall::system_object::*;</span>
+
+<span class="comment">//     result_to_syscall_repr(match id {</span>
+<span class="comment">//         SYSTEM_OBJECT_BACKUP_FRAMEBUFFER_ID =&gt; {</span>
+<span class="comment">//             /*</span>
+<span class="comment">//              * Check that the task has the correct capability. It&#39;s important to do this first, so we don&#39;t leak</span>
+<span class="comment">//              * the fact that a system object doesn&#39;t exist to an unprivileged task.</span>
+<span class="comment">//              */</span>
+<span class="comment">//             if unsafe { common_per_cpu_data() }</span>
+<span class="comment">//                 .running_task()</span>
+<span class="comment">//                 .object</span>
+<span class="comment">//                 .task()</span>
+<span class="comment">//                 .unwrap()</span>
+<span class="comment">//                 .read()</span>
+<span class="comment">//                 .capabilities</span>
+<span class="comment">//                 .contains(&amp;Capability::AccessBackupFramebuffer)</span>
+<span class="comment">//             {</span>
+<span class="comment">//                 match *COMMON.get().backup_framebuffer.lock() {</span>
+<span class="comment">//                     Some((id, info)) =&gt; {</span>
+<span class="comment">//                         /*</span>
+<span class="comment">//                          * `b` contains a userspace address that we write the framebuffer info back into.</span>
+<span class="comment">//                          */</span>
+<span class="comment">//                         unsafe {</span>
+<span class="comment">//                             // TODO: at the moment, userspace can trivially crash the kernel by passing an</span>
+<span class="comment">// address                             // in here that is either not mapped, or does not point into userspace</span>
+<span class="comment">// (potentially                             // overwriting important kernel info). We should validate that the</span>
+<span class="comment">// address passed is                             // both mapped and points into userspace, and provide some helpers</span>
+<span class="comment">// for doing so.                             *(b as *mut FramebufferSystemObjectInfo) = info;</span>
+<span class="comment">//                         }</span>
+
+<span class="comment">//                         Ok(id)</span>
+<span class="comment">//                     }</span>
+<span class="comment">//                     None =&gt; Err(RequestSystemObjectError::ObjectDoesNotExist),</span>
+<span class="comment">//                 }</span>
+<span class="comment">//             } else {</span>
+<span class="comment">//                 Err(RequestSystemObjectError::AccessDenied)</span>
+<span class="comment">//             }</span>
+<span class="comment">//         }</span>
+
+<span class="comment">//         _ =&gt; Err(RequestSystemObjectError::NotAValidId),</span>
+<span class="comment">//     })</span>
+<span class="comment">// }</span>
+
+<span class="comment">// fn my_address_space() -&gt; usize {</span>
+<span class="comment">//     unsafe { common_per_cpu_data() }</span>
+<span class="comment">//         .running_task()</span>
+<span class="comment">//         .object</span>
+<span class="comment">//         .task()</span>
+<span class="comment">//         .unwrap()</span>
+<span class="comment">//         .read()</span>
+<span class="comment">//         .address_space</span>
+<span class="comment">//         .id</span>
+<span class="comment">//         .to_syscall_repr()</span>
+<span class="comment">// }</span>
+
+<span class="comment">// fn create_memory_object(</span>
+<span class="comment">//     virtual_address: usize,</span>
+<span class="comment">//     size: usize,</span>
+<span class="comment">//     flags: usize,</span>
+<span class="comment">// ) -&gt; Result&lt;KernelObjectId, MemoryObjectError&gt; {</span>
+<span class="comment">//     let writable = flags.get_bit(0);</span>
+<span class="comment">//     let executable = flags.get_bit(1);</span>
+
+<span class="comment">//     unimplemented!()</span>
+<span class="comment">// }</span>
+
+<span class="comment">// fn map_memory_object(memory_object_id: usize, address_space_id: usize) -&gt; Result&lt;(), MemoryObjectError&gt; {</span>
+<span class="comment">//     /*</span>
+<span class="comment">//      * TODO: enforce that the calling task must have access to the AddressSpace and MemoryObject</span>
+<span class="comment">//      * for this to work (we need to build the owning / access system first).</span>
+<span class="comment">//      */</span>
+<span class="comment">//     let memory_object =</span>
+<span class="comment">//         match COMMON.get().object_map.read().get(KernelObjectId::from_syscall_repr(memory_object_id)) {</span>
+<span class="comment">//             Some(object) =&gt; object.clone(),</span>
+<span class="comment">//             None =&gt; return Err(MemoryObjectError::NotAMemoryObject),</span>
+<span class="comment">//         };</span>
+
+<span class="comment">//     // Check it&#39;s a MemoryObject</span>
+<span class="comment">//     if memory_object.object.memory_object().is_none() {</span>
+<span class="comment">//         return Err(MemoryObjectError::NotAMemoryObject);</span>
+<span class="comment">//     }</span>
+
+<span class="comment">//     match COMMON.get().object_map.read().get(KernelObjectId::from_syscall_repr(address_space_id)) {</span>
+<span class="comment">//         Some(address_space) =&gt; match address_space.object.address_space() {</span>
+<span class="comment">//             Some(address_space) =&gt; address_space.write().map_memory_object(memory_object),</span>
+<span class="comment">//             None =&gt; Err(MemoryObjectError::NotAnAddressSpace),</span>
+<span class="comment">//         },</span>
+<span class="comment">//         None =&gt; Err(MemoryObjectError::NotAnAddressSpace),</span>
+<span class="comment">//     }</span>
+<span class="comment">// }</span>
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "kernel";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

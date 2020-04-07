@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["hal_x86_64"] = [{"text":"impl <a class=\"trait\" href=\"hal/trait.TaskHelper.html\" title=\"trait hal::TaskHelper\">TaskHelper</a> for <a class=\"struct\" href=\"hal_x86_64/task/struct.TaskHelperImpl.html\" title=\"struct hal_x86_64::task::TaskHelperImpl\">TaskHelperImpl</a>","synthetic":false,"types":["hal_x86_64::task::TaskHelperImpl"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

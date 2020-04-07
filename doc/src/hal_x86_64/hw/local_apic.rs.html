@@ -109,11 +109,6 @@
 <span id="109">109</span>
 <span id="110">110</span>
 <span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ptr</span>;
 <span class="kw">use</span> <span class="ident">hal</span>::<span class="ident">memory</span>::<span class="ident">VirtualAddress</span>;
@@ -139,11 +134,6 @@
     }
 }
 
-<span class="doccomment">/// Methods on this type operate on the local APIC of the **current core**. Because we need to</span>
-<span class="doccomment">/// access it from interrupt handlers, this type does not borrow `self`, and the mapping for the</span>
-<span class="doccomment">/// local APIC&#39;s configuration space (mapped to the virtual address</span>
-<span class="doccomment">/// `kernel_map::LOCAL_APIC_CONFIG`) is managed by the `InterruptController`. None of the methods</span>
-<span class="doccomment">/// on this type are safe to use until that mapping has been constructed.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LocalApic</span>(<span class="ident">VirtualAddress</span>);
 
 <span class="kw">impl</span> <span class="ident">LocalApic</span> {

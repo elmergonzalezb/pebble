@@ -73,6 +73,18 @@
 <span id="73">73</span>
 <span id="74">74</span>
 <span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">vec</span>::<span class="ident">Vec</span>;
 
@@ -84,9 +96,21 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NmiLine</span> {
+    <span class="kw">pub</span> <span class="ident">processor</span>: <span class="ident">NmiProcessor</span>,
+    <span class="kw">pub</span> <span class="ident">line</span>: <span class="ident">LocalInterruptLine</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LocalInterruptLine</span> {
     <span class="ident">Lint0</span>,
     <span class="ident">Lint1</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">NmiProcessor</span> {
+    <span class="ident">All</span>,
+    <span class="ident">ProcessorUid</span>(<span class="ident">u8</span>),
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -128,7 +152,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Apic</span> {
     <span class="kw">pub</span> <span class="ident">local_apic_address</span>: <span class="ident">u64</span>,
     <span class="kw">pub</span> <span class="ident">io_apics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">IoApic</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">local_apic_nmi_line</span>: <span class="ident">LocalInterruptLine</span>,
+    <span class="kw">pub</span> <span class="ident">local_apic_nmi_lines</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NmiLine</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">interrupt_source_overrides</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">InterruptSourceOverride</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">nmi_sources</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NmiSource</span><span class="op">&gt;</span>,
 

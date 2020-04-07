@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["CommonPerCpu","Per-cpu data that needs to be accessed from the arch-independent parts of the kernel. This structure should be contained within an arch-specific structure defined in each arch module that is installed as the actual per-cpu data structure. It should then be exposed by two functions, `common_per_cpu` and `common_per_cpu_mut`, from each arch module for the rest of the kernel to use."]]});
+initSidebarItems({"struct":[["KernelPerCpu",""]]});

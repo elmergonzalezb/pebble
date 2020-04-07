@@ -77,6 +77,19 @@
 <span id="77">77</span>
 <span id="78">78</span>
 <span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Frame</span>, <span class="ident">FrameAllocator</span>, <span class="ident">FrameSize</span>, <span class="ident">Page</span>, <span class="ident">PhysicalAddress</span>, <span class="ident">VirtualAddress</span>};
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">Range</span>;
@@ -96,43 +109,54 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MapperError</span> {
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PagingError</span> {
     <span class="doccomment">/// The virtual memory that is being mapped is already mapped to another part of physical memory.</span>
     <span class="ident">AlreadyMapped</span>,
 }
 
-<span class="doccomment">/// A `Mapper` allows the manipulation of a set of page-tables.</span>
+<span class="doccomment">/// A `PageTable` allows the manipulation of a set of page-tables.</span>
 <span class="comment">// TODO: think about how we can do versatile unmapping (maybe return a `Map` type that is returned to unmap - this</span>
 <span class="comment">// could store information needed to unmap an artitrarily-mapped area).</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Mapper</span><span class="op">&lt;</span><span class="ident">TableSize</span>, <span class="ident">TableAllocator</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PageTable</span><span class="op">&lt;</span><span class="ident">TableSize</span><span class="op">&gt;</span>: <span class="ident">Sized</span>
 <span class="kw">where</span>
     <span class="ident">TableSize</span>: <span class="ident">FrameSize</span>,
-    <span class="ident">TableAllocator</span>: <span class="ident">FrameAllocator</span><span class="op">&lt;</span><span class="ident">TableSize</span><span class="op">&gt;</span>,
 {
+    <span class="doccomment">/// Construct a new set of page tables that are suitable for an `AddressSpace` kernel object - one that can</span>
+    <span class="doccomment">/// hold userspace tasks. This generally needs the kernel mapped into it somehow, so we pass in the kernel&#39;s</span>
+    <span class="doccomment">/// set of page tables.</span>
+    <span class="kw">fn</span> <span class="ident">new_for_address_space</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">kernel_page_table</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">A</span>: <span class="ident">FrameAllocator</span><span class="op">&lt;</span><span class="ident">TableSize</span><span class="op">&gt;</span>;
+
+    <span class="doccomment">/// Install these page tables as the current set.</span>
+    <span class="kw">fn</span> <span class="ident">switch_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>);
+
     <span class="doccomment">/// Get the physical address that a given virtual address is mapped to, if it&#39;s mapped. Returns `None` if the</span>
     <span class="doccomment">/// address is not mapped into physical memory.</span>
     <span class="kw">fn</span> <span class="ident">translate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">VirtualAddress</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PhysicalAddress</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Map a `Page` to a `Frame` with the given flags.</span>
-    <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(
+    <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">page</span>: <span class="ident">Page</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
         <span class="ident">frame</span>: <span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
         <span class="ident">flags</span>: <span class="ident">Flags</span>,
-        <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">TableAllocator</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MapperError</span><span class="op">&gt;</span>
+        <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">PagingError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
+        <span class="ident">A</span>: <span class="ident">FrameAllocator</span><span class="op">&lt;</span><span class="ident">TableSize</span><span class="op">&gt;</span>,
         <span class="ident">S</span>: <span class="ident">FrameSize</span>;
 
     <span class="doccomment">/// Map each `Page` in a range to a corresponding `Frame` with the given flags.</span>
-    <span class="kw">fn</span> <span class="ident">map_range</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(
+    <span class="kw">fn</span> <span class="ident">map_range</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">pages</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Page</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">frames</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">flags</span>: <span class="ident">Flags</span>,
-        <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">TableAllocator</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MapperError</span><span class="op">&gt;</span>
+        <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">PagingError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
+        <span class="ident">A</span>: <span class="ident">FrameAllocator</span><span class="op">&lt;</span><span class="ident">TableSize</span><span class="op">&gt;</span>,
         <span class="ident">S</span>: <span class="ident">FrameSize</span>,
     {
         <span class="kw">for</span> (<span class="ident">page</span>, <span class="ident">frame</span>) <span class="kw">in</span> <span class="ident">pages</span>.<span class="ident">zip</span>(<span class="ident">frames</span>) {
@@ -144,14 +168,16 @@
 
     <span class="doccomment">/// Map an area of `size` bytes starting at the given address pair with the given flags. Implementations are</span>
     <span class="doccomment">/// free to map this area however they desire, and may do so with a range of page sizes.</span>
-    <span class="kw">fn</span> <span class="ident">map_area</span>(
+    <span class="kw">fn</span> <span class="ident">map_area</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">virtual_start</span>: <span class="ident">VirtualAddress</span>,
         <span class="ident">physical_start</span>: <span class="ident">PhysicalAddress</span>,
         <span class="ident">size</span>: <span class="ident">usize</span>,
         <span class="ident">flags</span>: <span class="ident">Flags</span>,
-        <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">TableAllocator</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MapperError</span><span class="op">&gt;</span>;
+        <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">PagingError</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">A</span>: <span class="ident">FrameAllocator</span><span class="op">&lt;</span><span class="ident">TableSize</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">unmap</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">page</span>: <span class="ident">Page</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>

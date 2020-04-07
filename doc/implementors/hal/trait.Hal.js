@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["hal_x86_64"] = [{"text":"impl&lt;T&gt; <a class=\"trait\" href=\"hal/trait.Hal.html\" title=\"trait hal::Hal\">Hal</a>&lt;T&gt; for <a class=\"struct\" href=\"hal_x86_64/struct.HalImpl.html\" title=\"struct hal_x86_64::HalImpl\">HalImpl</a>&lt;T&gt;","synthetic":false,"types":["hal_x86_64::HalImpl"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

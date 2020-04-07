@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["KernelLogger","This handles calls to the log macros throughout the kernel, and writes logging to the COM1 serial port."]]});

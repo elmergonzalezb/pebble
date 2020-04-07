@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["buddy_allocator","This module implements a buddy allocator, an efficient scheme for managing physical memory. In this allocator, memory is broken up into a number of blocks, each of which is a power-of-2 frames in size. A block of size `2^^n` frames is said to be of order `n`:"]],"struct":[["PhysicalMemoryManager",""]]});

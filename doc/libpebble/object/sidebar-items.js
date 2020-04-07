@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["KernelObjectId",""]],"type":[["Generation",""],["Index",""]]});

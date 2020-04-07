@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Capability",""]]});
+initSidebarItems({"constant":[["CAP_ACCESS_BACKUP_FRAMEBUFFER",""],["CAP_BASE_X86_64",""],["CAP_CREATE_ADDRESS_SPACE",""],["CAP_CREATE_MEMORY_OBJECT",""],["CAP_CREATE_TASK",""],["CAP_EARLY_LOGGING",""],["CAP_PADDING",""]],"enum":[["Capability",""]],"struct":[["CapabilitiesRepr","`N` must be a multiple of 4, and padded with zeros, so the whole descriptor is aligned to a 4-byte boundary."]]});

@@ -461,11 +461,45 @@
 <span id="461">461</span>
 <span id="462">462</span>
 <span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">hw</span>::{<span class="ident">registers</span>::<span class="ident">write_control_reg</span>, <span class="ident">tlb</span>},
-    <span class="ident">VirtualAddressEx</span>,
-};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">hw</span>::{<span class="ident">registers</span>::<span class="ident">write_control_reg</span>, <span class="ident">tlb</span>};
+<span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
 <span class="kw">use</span> <span class="ident">bitflags</span>::<span class="ident">bitflags</span>;
 <span class="kw">use</span> <span class="ident">core</span>::{
     <span class="ident">fmt</span>,
@@ -477,9 +511,9 @@
     <span class="ident">Frame</span>,
     <span class="ident">FrameAllocator</span>,
     <span class="ident">FrameSize</span>,
-    <span class="ident">Mapper</span>,
-    <span class="ident">MapperError</span>,
     <span class="ident">Page</span>,
+    <span class="ident">PageTable</span>,
+    <span class="ident">PagingError</span>,
     <span class="ident">PhysicalAddress</span>,
     <span class="ident">Size1GiB</span>,
     <span class="ident">Size2MiB</span>,
@@ -675,7 +709,7 @@
         <span class="ident">user_accessible</span>: <span class="ident">bool</span>,
         <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>,
         <span class="ident">physical_base</span>: <span class="ident">VirtualAddress</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Table</span><span class="op">&lt;</span><span class="ident">L</span>::<span class="ident">NextLevel</span><span class="op">&gt;</span>, <span class="ident">MapperError</span><span class="op">&gt;</span>
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Table</span><span class="op">&lt;</span><span class="ident">L</span>::<span class="ident">NextLevel</span><span class="op">&gt;</span>, <span class="ident">PagingError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">A</span>: <span class="ident">FrameAllocator</span><span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>,
     {
@@ -708,7 +742,7 @@
                  * The entry is present, but is actually a huge page. It is **NOT** type-safe to
                  * call `next_table` on it. Instead, we return an error.
                  */</span>
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MapperError</span>::<span class="ident">AlreadyMapped</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PagingError</span>::<span class="ident">AlreadyMapped</span>);
             }
 
             <span class="comment">// TODO: find a set of flags suitable for both the existing entries and the new ones.</span>
@@ -725,7 +759,7 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PageTable</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PageTableImpl</span> {
     <span class="ident">p4_frame</span>: <span class="ident">Frame</span>,
     <span class="doccomment">/// The virtual address at which physical memory is mapped in the environment that these page</span>
     <span class="doccomment">/// tables are being constructed in. This is **not** a property of the set of page tables being</span>
@@ -737,49 +771,61 @@
     <span class="ident">physical_base</span>: <span class="ident">VirtualAddress</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">PageTable</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">frame</span>: <span class="ident">Frame</span>, <span class="ident">physical_base</span>: <span class="ident">VirtualAddress</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PageTable</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">table</span> <span class="op">=</span> <span class="ident">PageTable</span> { <span class="ident">p4_frame</span>: <span class="ident">frame</span>, <span class="ident">physical_base</span> };
-        <span class="ident">table</span>.<span class="ident">p4</span>().<span class="ident">zero</span>();
+<span class="kw">impl</span> <span class="ident">PageTableImpl</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">p4_frame</span>: <span class="ident">Frame</span>, <span class="ident">physical_base</span>: <span class="ident">VirtualAddress</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PageTableImpl</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">table</span> <span class="op">=</span> <span class="ident">PageTableImpl</span> { <span class="ident">p4_frame</span>, <span class="ident">physical_base</span> };
+        <span class="self">Self</span>::<span class="ident">p4_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">table</span>.<span class="ident">p4_frame</span>, <span class="ident">table</span>.<span class="ident">physical_base</span>).<span class="ident">zero</span>();
         <span class="ident">table</span>
     }
 
-    <span class="doccomment">/// Create a `PageTable` from a `Frame` that already contains a P4. This is very unsafe because</span>
-    <span class="doccomment">/// it assumes that the frame contains a valid page table, and that no other `PageTable`s</span>
+    <span class="doccomment">/// Create a `PageTableImpl` from a `Frame` that already contains a P4. This is very unsafe because</span>
+    <span class="doccomment">/// it assumes that the frame contains a valid page table, and that no other `PageTableImpl`s</span>
     <span class="doccomment">/// currently exist that use this same backing frame (as calling `mapper` on both could lead to</span>
     <span class="doccomment">/// two mutable references aliasing the same data to exist, which is UB).</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_frame</span>(<span class="ident">p4_frame</span>: <span class="ident">Frame</span>, <span class="ident">physical_base</span>: <span class="ident">VirtualAddress</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PageTable</span> {
-        <span class="ident">PageTable</span> { <span class="ident">p4_frame</span>, <span class="ident">physical_base</span> }
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_frame</span>(<span class="ident">p4_frame</span>: <span class="ident">Frame</span>, <span class="ident">physical_base</span>: <span class="ident">VirtualAddress</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PageTableImpl</span> {
+        <span class="ident">PageTableImpl</span> { <span class="ident">p4_frame</span>, <span class="ident">physical_base</span> }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">MapperImpl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="comment">// XXX: this is explicitely enumerated to avoid an error if more errors are added in the future</span>
-        <span class="ident">MapperImpl</span> { <span class="ident">physical_base</span>: <span class="self">self</span>.<span class="ident">physical_base</span>, <span class="ident">p4</span>: <span class="self">self</span>.<span class="ident">p4</span>() }
+    <span class="kw">fn</span> <span class="ident">p4</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Table</span><span class="op">&lt;</span><span class="ident">Level4</span><span class="op">&gt;</span> {
+        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span>((<span class="self">self</span>.<span class="ident">physical_base</span> <span class="op">+</span> <span class="ident">usize</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">p4_frame</span>.<span class="ident">start</span>)).<span class="ident">mut_ptr</span>()) }
     }
 
-    <span class="kw">fn</span> <span class="ident">p4</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Table</span><span class="op">&lt;</span><span class="ident">Level4</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>((<span class="self">self</span>.<span class="ident">physical_base</span> <span class="op">+</span> <span class="ident">usize</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">p4_frame</span>.<span class="ident">start</span>)).<span class="ident">mut_ptr</span>()) }
+    <span class="doccomment">/// Get a mutable reference to the P4 table of this set of page tables. This can&#39;t take a `&amp;mut self` like</span>
+    <span class="doccomment">/// you&#39;d normally write this, because then we borrow the entire struct and so can&#39;t access `physical_base`</span>
+    <span class="doccomment">/// nicely. Instead, we mutably borrow the P4 frame to &quot;represent&quot; the borrow.</span>
+    <span class="kw">fn</span> <span class="ident">p4_mut</span>(<span class="ident">frame</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Frame</span>, <span class="ident">physical_base</span>: <span class="ident">VirtualAddress</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Table</span><span class="op">&lt;</span><span class="ident">Level4</span><span class="op">&gt;</span> {
+        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>((<span class="ident">physical_base</span> <span class="op">+</span> <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">frame</span>.<span class="ident">start</span>)).<span class="ident">mut_ptr</span>()) }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">PageTable</span><span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PageTableImpl</span> {
+    <span class="kw">fn</span> <span class="ident">new_for_address_space</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">kernel_page_table</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">A</span>: <span class="ident">FrameAllocator</span><span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">page_table</span> <span class="op">=</span> <span class="ident">PageTableImpl</span>::<span class="ident">new</span>(<span class="ident">allocator</span>.<span class="ident">allocate</span>(), <span class="kw">crate</span>::<span class="ident">kernel_map</span>::<span class="ident">PHYSICAL_MAPPING_BASE</span>);
+
+        <span class="comment">/*
+         * Install the address of the kernel&#39;s P3 in every address space, so that the kernel is always mapped.
+         * It&#39;s safe to unwrap the kernel P3 address, as we wouldn&#39;t be able to fetch these instructions
+         * if it wasn&#39;t there.
+         */</span>
+        <span class="kw">let</span> <span class="ident">kernel_p3_address</span> <span class="op">=</span> <span class="ident">kernel_page_table</span>.<span class="ident">p4</span>()[<span class="kw">crate</span>::<span class="ident">kernel_map</span>::<span class="ident">KERNEL_P4_ENTRY</span>].<span class="ident">address</span>().<span class="ident">unwrap</span>();
+        <span class="self">Self</span>::<span class="ident">p4_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">page_table</span>.<span class="ident">p4_frame</span>, <span class="ident">page_table</span>.<span class="ident">physical_base</span>)[<span class="kw">crate</span>::<span class="ident">kernel_map</span>::<span class="ident">KERNEL_P4_ENTRY</span>]
+            .<span class="ident">set</span>(<span class="ident">kernel_p3_address</span>, <span class="ident">EntryFlags</span>::<span class="ident">WRITABLE</span>);
+
+        <span class="ident">page_table</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">switch_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="kw">fn</span> <span class="ident">switch_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">unsafe</span> {
             <span class="macro">write_control_reg</span><span class="macro">!</span>(<span class="ident">cr3</span>, <span class="ident">usize</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">p4_frame</span>.<span class="ident">start</span>) <span class="kw">as</span> <span class="ident">u64</span>);
         }
     }
-}
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MapperImpl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">physical_base</span>: <span class="ident">VirtualAddress</span>,
-    <span class="kw">pub</span> <span class="ident">p4</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Table</span><span class="op">&lt;</span><span class="ident">Level4</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span><span class="op">&gt;</span> <span class="ident">Mapper</span><span class="op">&lt;</span><span class="ident">Size4KiB</span>, <span class="ident">A</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MapperImpl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">A</span>: <span class="ident">FrameAllocator</span><span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>,
-{
     <span class="kw">fn</span> <span class="ident">translate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">VirtualAddress</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PhysicalAddress</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">p2</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">p4</span>
+            .<span class="ident">p4</span>()
             .<span class="ident">next_table</span>(<span class="ident">address</span>.<span class="ident">p4_index</span>(), <span class="self">self</span>.<span class="ident">physical_base</span>)
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">p3</span><span class="op">|</span> <span class="ident">p3</span>.<span class="ident">next_table</span>(<span class="ident">address</span>.<span class="ident">p3_index</span>(), <span class="self">self</span>.<span class="ident">physical_base</span>))<span class="question-mark">?</span>;
 
@@ -792,8 +838,9 @@
         <span class="prelude-val">Some</span>(<span class="ident">p1</span>[<span class="ident">address</span>.<span class="ident">p1_index</span>()].<span class="ident">address</span>()<span class="question-mark">?</span> <span class="op">+</span> (<span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">address</span>) <span class="op">%</span> <span class="ident">Size4KiB</span>::<span class="ident">SIZE</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">page</span>: <span class="ident">Page</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">frame</span>: <span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">flags</span>: <span class="ident">Flags</span>, <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MapperError</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">page</span>: <span class="ident">Page</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">frame</span>: <span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">flags</span>: <span class="ident">Flags</span>, <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">PagingError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
+        <span class="ident">A</span>: <span class="ident">FrameAllocator</span><span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>,
         <span class="ident">S</span>: <span class="ident">FrameSize</span>,
     {
         <span class="comment">/*
@@ -803,25 +850,23 @@
         <span class="comment">// TODO: I think we should just pass all the flags upwards and amalgamalte them in `Flags` itself.</span>
         <span class="kw">let</span> <span class="ident">user_accessible</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">user_accessible</span>;
         <span class="kw">if</span> <span class="ident">S</span>::<span class="ident">SIZE</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Size4KiB</span>::<span class="ident">SIZE</span> {
-            <span class="kw">let</span> <span class="ident">p1</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">p4</span>
+            <span class="kw">let</span> <span class="ident">p1</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">p4_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">p4_frame</span>, <span class="self">self</span>.<span class="ident">physical_base</span>)
                 .<span class="ident">next_table_create</span>(<span class="ident">page</span>.<span class="ident">start</span>.<span class="ident">p4_index</span>(), <span class="ident">user_accessible</span>, <span class="ident">allocator</span>, <span class="self">self</span>.<span class="ident">physical_base</span>)<span class="question-mark">?</span>
                 .<span class="ident">next_table_create</span>(<span class="ident">page</span>.<span class="ident">start</span>.<span class="ident">p3_index</span>(), <span class="ident">user_accessible</span>, <span class="ident">allocator</span>, <span class="self">self</span>.<span class="ident">physical_base</span>)<span class="question-mark">?</span>
                 .<span class="ident">next_table_create</span>(<span class="ident">page</span>.<span class="ident">start</span>.<span class="ident">p2_index</span>(), <span class="ident">user_accessible</span>, <span class="ident">allocator</span>, <span class="self">self</span>.<span class="ident">physical_base</span>)<span class="question-mark">?</span>;
 
             <span class="kw">if</span> <span class="op">!</span><span class="ident">p1</span>[<span class="ident">page</span>.<span class="ident">start</span>.<span class="ident">p1_index</span>()].<span class="ident">is_unused</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MapperError</span>::<span class="ident">AlreadyMapped</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PagingError</span>::<span class="ident">AlreadyMapped</span>);
             }
 
             <span class="ident">p1</span>[<span class="ident">page</span>.<span class="ident">start</span>.<span class="ident">p1_index</span>()].<span class="ident">set</span>(<span class="ident">frame</span>.<span class="ident">start</span>, <span class="ident">EntryFlags</span>::<span class="ident">from</span>(<span class="ident">flags</span>));
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">S</span>::<span class="ident">SIZE</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Size2MiB</span>::<span class="ident">SIZE</span> {
-            <span class="kw">let</span> <span class="ident">p2</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">p4</span>
+            <span class="kw">let</span> <span class="ident">p2</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">p4_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">p4_frame</span>, <span class="self">self</span>.<span class="ident">physical_base</span>)
                 .<span class="ident">next_table_create</span>(<span class="ident">page</span>.<span class="ident">start</span>.<span class="ident">p4_index</span>(), <span class="ident">user_accessible</span>, <span class="ident">allocator</span>, <span class="self">self</span>.<span class="ident">physical_base</span>)<span class="question-mark">?</span>
                 .<span class="ident">next_table_create</span>(<span class="ident">page</span>.<span class="ident">start</span>.<span class="ident">p3_index</span>(), <span class="ident">user_accessible</span>, <span class="ident">allocator</span>, <span class="self">self</span>.<span class="ident">physical_base</span>)<span class="question-mark">?</span>;
 
             <span class="kw">if</span> <span class="op">!</span><span class="ident">p2</span>[<span class="ident">page</span>.<span class="ident">start</span>.<span class="ident">p2_index</span>()].<span class="ident">is_unused</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">MapperError</span>::<span class="ident">AlreadyMapped</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PagingError</span>::<span class="ident">AlreadyMapped</span>);
             }
 
             <span class="ident">p2</span>[<span class="ident">page</span>.<span class="ident">start</span>.<span class="ident">p2_index</span>()].<span class="ident">set</span>(<span class="ident">frame</span>.<span class="ident">start</span>, <span class="ident">EntryFlags</span>::<span class="ident">from</span>(<span class="ident">flags</span>) <span class="op">|</span> <span class="ident">EntryFlags</span>::<span class="ident">HUGE_PAGE</span>);
@@ -837,14 +882,17 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">map_area</span>(
+    <span class="kw">fn</span> <span class="ident">map_area</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">virtual_start</span>: <span class="ident">VirtualAddress</span>,
         <span class="ident">physical_start</span>: <span class="ident">PhysicalAddress</span>,
         <span class="ident">size</span>: <span class="ident">usize</span>,
         <span class="ident">flags</span>: <span class="ident">Flags</span>,
         <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MapperError</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">PagingError</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">A</span>: <span class="ident">FrameAllocator</span><span class="op">&lt;</span><span class="ident">Size4KiB</span><span class="op">&gt;</span>,
+    {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">virtual_start</span>.<span class="ident">is_aligned</span>(<span class="ident">Size4KiB</span>::<span class="ident">SIZE</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">physical_start</span>.<span class="ident">is_aligned</span>(<span class="ident">Size4KiB</span>::<span class="ident">SIZE</span>));
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">size</span> <span class="op">%</span> <span class="ident">Size4KiB</span>::<span class="ident">SIZE</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
@@ -907,8 +955,7 @@
     {
         <span class="kw">match</span> <span class="ident">S</span>::<span class="ident">SIZE</span> {
             <span class="ident">Size4KiB</span>::<span class="ident">SIZE</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">p1</span> <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">p4</span>
+                <span class="kw">let</span> <span class="ident">p1</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">p4_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">p4_frame</span>, <span class="self">self</span>.<span class="ident">physical_base</span>)
                     .<span class="ident">next_table_mut</span>(<span class="ident">page</span>.<span class="ident">start</span>.<span class="ident">p4_index</span>(), <span class="self">self</span>.<span class="ident">physical_base</span>)<span class="question-mark">?</span>
                     .<span class="ident">next_table_mut</span>(<span class="ident">page</span>.<span class="ident">start</span>.<span class="ident">p3_index</span>(), <span class="self">self</span>.<span class="ident">physical_base</span>)<span class="question-mark">?</span>
                     .<span class="ident">next_table_mut</span>(<span class="ident">page</span>.<span class="ident">start</span>.<span class="ident">p2_index</span>(), <span class="self">self</span>.<span class="ident">physical_base</span>)<span class="question-mark">?</span>;
@@ -923,6 +970,31 @@
 
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Unimplemented page size!&quot;</span>),
         }
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">VirtualAddressEx</span> {
+    <span class="kw">fn</span> <span class="ident">p4_index</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
+    <span class="kw">fn</span> <span class="ident">p3_index</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
+    <span class="kw">fn</span> <span class="ident">p2_index</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
+    <span class="kw">fn</span> <span class="ident">p1_index</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
+}
+
+<span class="kw">impl</span> <span class="ident">VirtualAddressEx</span> <span class="kw">for</span> <span class="ident">VirtualAddress</span> {
+    <span class="kw">fn</span> <span class="ident">p4_index</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+        <span class="ident">usize</span>::<span class="ident">from</span>(<span class="self">self</span>).<span class="ident">get_bits</span>(<span class="number">39</span>..<span class="number">48</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">p3_index</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+        <span class="ident">usize</span>::<span class="ident">from</span>(<span class="self">self</span>).<span class="ident">get_bits</span>(<span class="number">30</span>..<span class="number">39</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">p2_index</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+        <span class="ident">usize</span>::<span class="ident">from</span>(<span class="self">self</span>).<span class="ident">get_bits</span>(<span class="number">21</span>..<span class="number">30</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">p1_index</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+        <span class="ident">usize</span>::<span class="ident">from</span>(<span class="self">self</span>).<span class="ident">get_bits</span>(<span class="number">12</span>..<span class="number">21</span>)
     }
 }
 </pre></div>

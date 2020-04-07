@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["ContextSwitchFrame","This is the layout of the stack that we expect to be present when we switch to a task. It is created both in preparation for initial task entry, and when we're switching away from a task. We use the C ABI here because we access this structure from assembly."],["TaskHelperImpl",""]]});

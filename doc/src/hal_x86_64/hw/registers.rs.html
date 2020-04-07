@@ -138,6 +138,12 @@
 <span id="138">138</span>
 <span id="139">139</span>
 <span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
@@ -203,6 +209,12 @@
 <span class="doccomment">/// `CR1`, `CR2`, `CR3`, `CR4`, `CR8`.</span>
 <span class="kw">pub</span> <span class="kw">macro</span> <span class="ident">read_control_reg</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">reg</span>: <span class="ident">ident</span>) {{
     <span class="kw">let</span> <span class="ident">result</span>: <span class="ident">u64</span>;
+
+    <span class="comment">/*
+     * If this macro is used inside an unsafe block, this causes a warning, which can be unexpected and is noisy,
+     * so we suppress it here.
+     */</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_unsafe</span>)]</span>
     <span class="kw">unsafe</span> {
         <span class="macro">asm</span><span class="macro">!</span>(<span class="macro">concat</span><span class="macro">!</span>(<span class="string">&quot;mov %&quot;</span>, <span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">reg</span>), <span class="string">&quot;, $0&quot;</span>)
              : <span class="string">&quot;=r&quot;</span>(<span class="ident">result</span>)

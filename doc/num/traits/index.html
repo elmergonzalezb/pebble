@@ -4,7 +4,7 @@
 <table><tr class='module-item'><td><a class="enum" href="enum.FloatErrorKind.html" title='num::traits::FloatErrorKind enum'>FloatErrorKind</a></td><td class='docblock-short'></td></tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
 <table><tr class='module-item'><td><a class="trait" href="trait.AsPrimitive.html" title='num::traits::AsPrimitive trait'>AsPrimitive</a></td><td class='docblock-short'><p>A generic interface for casting between machine scalars with the
 <code>as</code> operator, which admits narrowing and precision loss.
-Implementers of this trait AsPrimitive should behave like a primitive
+Implementers of this trait <code>AsPrimitive</code> should behave like a primitive
 numeric type (e.g. a newtype around another primitive), and the
 intended conversion must never fail.</p>
 </td></tr><tr class='module-item'><td><a class="trait" href="trait.Bounded.html" title='num::traits::Bounded trait'>Bounded</a></td><td class='docblock-short'><p>Numbers which have upper and lower bounds</p>
@@ -17,8 +17,10 @@ overflow.</p>
 </td></tr><tr class='module-item'><td><a class="trait" href="trait.CheckedNeg.html" title='num::traits::CheckedNeg trait'>CheckedNeg</a></td><td class='docblock-short'><p>Performs negation that returns <code>None</code> if the result can't be represented.</p>
 </td></tr><tr class='module-item'><td><a class="trait" href="trait.CheckedRem.html" title='num::traits::CheckedRem trait'>CheckedRem</a></td><td class='docblock-short'><p>Performs an integral remainder that returns <code>None</code> instead of panicking on division by zero and
 instead of wrapping around on underflow and overflow.</p>
-</td></tr><tr class='module-item'><td><a class="trait" href="trait.CheckedShl.html" title='num::traits::CheckedShl trait'>CheckedShl</a></td><td class='docblock-short'><p>Performs a left shift that returns <code>None</code> on overflow.</p>
-</td></tr><tr class='module-item'><td><a class="trait" href="trait.CheckedShr.html" title='num::traits::CheckedShr trait'>CheckedShr</a></td><td class='docblock-short'><p>Performs a right shift that returns <code>None</code> on overflow.</p>
+</td></tr><tr class='module-item'><td><a class="trait" href="trait.CheckedShl.html" title='num::traits::CheckedShl trait'>CheckedShl</a></td><td class='docblock-short'><p>Performs a left shift that returns <code>None</code> on shifts larger than
+the type width.</p>
+</td></tr><tr class='module-item'><td><a class="trait" href="trait.CheckedShr.html" title='num::traits::CheckedShr trait'>CheckedShr</a></td><td class='docblock-short'><p>Performs a right shift that returns <code>None</code> on shifts larger than
+the type width.</p>
 </td></tr><tr class='module-item'><td><a class="trait" href="trait.CheckedSub.html" title='num::traits::CheckedSub trait'>CheckedSub</a></td><td class='docblock-short'><p>Performs subtraction that returns <code>None</code> instead of wrapping around on underflow.</p>
 </td></tr><tr class='module-item'><td><a class="trait" href="trait.FloatConst.html" title='num::traits::FloatConst trait'>FloatConst</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="trait" href="trait.FromPrimitive.html" title='num::traits::FromPrimitive trait'>FromPrimitive</a></td><td class='docblock-short'><p>A generic trait for converting a number to a value.</p>
 </td></tr><tr class='module-item'><td><a class="trait" href="trait.Inv.html" title='num::traits::Inv trait'>Inv</a></td><td class='docblock-short'><p>Unary operator for retrieving the multiplicative inverse, or reciprocal, of a value.</p>
@@ -37,7 +39,8 @@ taking the second operand by reference.</p>
 the second operand by reference.</p>
 </td></tr><tr class='module-item'><td><a class="trait" href="trait.One.html" title='num::traits::One trait'>One</a></td><td class='docblock-short'><p>Defines a multiplicative identity element for <code>Self</code>.</p>
 </td></tr><tr class='module-item'><td><a class="trait" href="trait.Pow.html" title='num::traits::Pow trait'>Pow</a></td><td class='docblock-short'><p>Binary operator for raising a value to a power.</p>
-</td></tr><tr class='module-item'><td><a class="trait" href="trait.PrimInt.html" title='num::traits::PrimInt trait'>PrimInt</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="trait" href="trait.RefNum.html" title='num::traits::RefNum trait'>RefNum</a></td><td class='docblock-short'><p>The trait for references which implement numeric operations, taking the
+</td></tr><tr class='module-item'><td><a class="trait" href="trait.PrimInt.html" title='num::traits::PrimInt trait'>PrimInt</a></td><td class='docblock-short'><p>Generic trait for primitive integers.</p>
+</td></tr><tr class='module-item'><td><a class="trait" href="trait.RefNum.html" title='num::traits::RefNum trait'>RefNum</a></td><td class='docblock-short'><p>The trait for references which implement numeric operations, taking the
 second operand either by value or by reference.</p>
 </td></tr><tr class='module-item'><td><a class="trait" href="trait.Saturating.html" title='num::traits::Saturating trait'>Saturating</a></td><td class='docblock-short'><p>Saturating math operations</p>
 </td></tr><tr class='module-item'><td><a class="trait" href="trait.Signed.html" title='num::traits::Signed trait'>Signed</a></td><td class='docblock-short'><p>Useful functions for signed numbers (i.e. numbers that can be negative).</p>
@@ -55,6 +58,8 @@ second operand either by value or by reference.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.cast.html" title='num::traits::cast fn'>cast</a></td><td class='docblock-short'><p>Cast from one machine scalar to another.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.checked_pow.html" title='num::traits::checked_pow fn'>checked_pow</a></td><td class='docblock-short'><p>Raises a value to the power of exp, returning <code>None</code> if an overflow occurred.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.clamp.html" title='num::traits::clamp fn'>clamp</a></td><td class='docblock-short'><p>A value bounded by a minimum and a maximum</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.clamp_max.html" title='num::traits::clamp_max fn'>clamp_max</a></td><td class='docblock-short'><p>A value bounded by a maximum value</p>
+</td></tr><tr class='module-item'><td><a class="fn" href="fn.clamp_min.html" title='num::traits::clamp_min fn'>clamp_min</a></td><td class='docblock-short'><p>A value bounded by a minimum value</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.one.html" title='num::traits::one fn'>one</a></td><td class='docblock-short'><p>Returns the multiplicative identity, <code>1</code>.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.pow.html" title='num::traits::pow fn'>pow</a></td><td class='docblock-short'><p>Raises a value to the power of exp, using exponentiation by squaring.</p>
 </td></tr><tr class='module-item'><td><a class="fn" href="fn.signum.html" title='num::traits::signum fn'>signum</a></td><td class='docblock-short'><p>Returns the sign of the number.</p>

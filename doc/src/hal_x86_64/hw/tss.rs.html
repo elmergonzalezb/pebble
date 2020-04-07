@@ -40,9 +40,14 @@
 <span id="40">40</span>
 <span id="41">41</span>
 <span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">marker</span>::<span class="ident">PhantomPinned</span>;
+<span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">marker</span>::<span class="ident">PhantomPinned</span>, <span class="ident">pin</span>::<span class="ident">Pin</span>};
 <span class="kw">use</span> <span class="ident">hal</span>::<span class="ident">memory</span>::<span class="ident">VirtualAddress</span>;
+<span class="kw">use</span> <span class="ident">pebble_util</span>::<span class="ident">unsafe_unpinned</span>;
 
 <span class="doccomment">/// Hardware task switching isn&#39;t supported on x86_64, so the TSS is just used as a vestigal place</span>
 <span class="doccomment">/// to stick stuff. It&#39;s used to store kernel-level stacks that should be used if interrupts occur</span>
@@ -66,6 +71,9 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Tss</span> {
+    <span class="macro">unsafe_unpinned</span><span class="macro">!</span>(<span class="ident">privilege_stack_table</span>: [<span class="ident">VirtualAddress</span>; <span class="number">3</span>]);
+    <span class="macro">unsafe_unpinned</span><span class="macro">!</span>(<span class="ident">interrupt_stack_table</span>: [<span class="ident">VirtualAddress</span>; <span class="number">7</span>]);
+
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Tss</span> {
         <span class="ident">Tss</span> {
             <span class="ident">_reserved_1</span>: <span class="number">0</span>,
@@ -79,8 +87,8 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_kernel_stack</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">address</span>: <span class="ident">VirtualAddress</span>) {
-        <span class="self">self</span>.<span class="ident">privilege_stack_table</span>[<span class="number">0</span>] <span class="op">=</span> <span class="ident">address</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_kernel_stack</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">address</span>: <span class="ident">VirtualAddress</span>) {
+        <span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">privilege_stack_table</span>()[<span class="number">0</span>] <span class="op">=</span> <span class="ident">address</span>;
     }
 }
 </pre></div>

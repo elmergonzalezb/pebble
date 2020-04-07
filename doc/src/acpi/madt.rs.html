@@ -521,9 +521,16 @@
 <span id="521">521</span>
 <span id="522">522</span>
 <span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">interrupt</span>::{<span class="ident">Apic</span>, <span class="ident">InterruptModel</span>, <span class="ident">InterruptSourceOverride</span>, <span class="ident">IoApic</span>, <span class="ident">NmiSource</span>, <span class="ident">Polarity</span>, <span class="ident">TriggerMode</span>},
+    <span class="ident">interrupt</span>::{<span class="ident">Apic</span>, <span class="ident">InterruptModel</span>, <span class="ident">InterruptSourceOverride</span>, <span class="ident">IoApic</span>, <span class="ident">NmiLine</span>, <span class="ident">NmiProcessor</span>, <span class="ident">NmiSource</span>, <span class="ident">Polarity</span>, <span class="ident">TriggerMode</span>},
     <span class="ident">sdt</span>::<span class="ident">SdtHeader</span>,
     <span class="ident">Acpi</span>,
     <span class="ident">AcpiError</span>,
@@ -541,7 +548,6 @@
     <span class="ident">UnexpectedEntry</span>,
     <span class="ident">InterruptOverrideEntryHasInvalidBus</span>,
     <span class="ident">InvalidLocalNmiLine</span>,
-    <span class="ident">NoLocalNmiLineSpecified</span>,
     <span class="ident">MpsIntiInvalidPolarity</span>,
     <span class="ident">MpsIntiInvalidTriggerMode</span>,
 }
@@ -918,10 +924,10 @@
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">interrupt</span>::<span class="ident">LocalInterruptLine</span>;
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">local_apic_address</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">mapping</span>).<span class="ident">local_apic_address</span> <span class="kw">as</span> <span class="ident">u64</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">local_apic_nmi_line</span> <span class="op">=</span> <span class="prelude-val">None</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_apic_count</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iso_count</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nmi_source_count</span> <span class="op">=</span> <span class="number">0</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">local_nmi_line_count</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">processor_count</span> <span class="op">=</span> <span class="number">0usize</span>;
 
     <span class="comment">// Do a pass over the entries so we know how much space we should reserve in the vectors</span>
@@ -930,6 +936,7 @@
             <span class="ident">MadtEntry</span>::<span class="ident">IoApic</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">io_apic_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>,
             <span class="ident">MadtEntry</span>::<span class="ident">InterruptSourceOverride</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">iso_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>,
             <span class="ident">MadtEntry</span>::<span class="ident">NmiSource</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">nmi_source_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>,
+            <span class="ident">MadtEntry</span>::<span class="ident">LocalApicNmi</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">local_nmi_line_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>,
             <span class="ident">MadtEntry</span>::<span class="ident">LocalApic</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">processor_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
         }
@@ -938,6 +945,7 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_apics</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">io_apic_count</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">interrupt_source_overrides</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">iso_count</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nmi_sources</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">nmi_source_count</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">local_apic_nmi_lines</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">local_nmi_line_count</span>);
     <span class="ident">acpi</span>.<span class="ident">application_processors</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">processor_count</span>.<span class="ident">saturating_sub</span>(<span class="number">1</span>)); <span class="comment">// Subtract one for the BSP</span>
 
     <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> (<span class="kw-2">*</span><span class="ident">mapping</span>).<span class="ident">entries</span>() {
@@ -1000,10 +1008,17 @@
             }
 
             <span class="ident">MadtEntry</span>::<span class="ident">LocalApicNmi</span>(<span class="kw-2">ref</span> <span class="ident">entry</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">local_apic_nmi_line</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw">match</span> <span class="ident">entry</span>.<span class="ident">nmi_line</span> {
-                    <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LocalInterruptLine</span>::<span class="ident">Lint0</span>,
-                    <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LocalInterruptLine</span>::<span class="ident">Lint1</span>,
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">AcpiError</span>::<span class="ident">InvalidMadt</span>(<span class="ident">MadtError</span>::<span class="ident">InvalidLocalNmiLine</span>)),
+                <span class="ident">local_apic_nmi_lines</span>.<span class="ident">push</span>(<span class="ident">NmiLine</span> {
+                    <span class="ident">processor</span>: <span class="kw">if</span> <span class="ident">entry</span>.<span class="ident">processor_id</span> <span class="op">=</span><span class="op">=</span> <span class="number">0xff</span> {
+                        <span class="ident">NmiProcessor</span>::<span class="ident">All</span>
+                    } <span class="kw">else</span> {
+                        <span class="ident">NmiProcessor</span>::<span class="ident">ProcessorUid</span>(<span class="ident">entry</span>.<span class="ident">processor_id</span>)
+                    },
+                    <span class="ident">line</span>: <span class="kw">match</span> <span class="ident">entry</span>.<span class="ident">nmi_line</span> {
+                        <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LocalInterruptLine</span>::<span class="ident">Lint0</span>,
+                        <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">LocalInterruptLine</span>::<span class="ident">Lint1</span>,
+                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">AcpiError</span>::<span class="ident">InvalidMadt</span>(<span class="ident">MadtError</span>::<span class="ident">InvalidLocalNmiLine</span>)),
+                    },
                 })
             }
 
@@ -1020,8 +1035,7 @@
     <span class="prelude-val">Ok</span>(<span class="ident">InterruptModel</span>::<span class="ident">Apic</span>(<span class="ident">Apic</span> {
         <span class="ident">local_apic_address</span>,
         <span class="ident">io_apics</span>,
-        <span class="ident">local_apic_nmi_line</span>: <span class="ident">local_apic_nmi_line</span>
-            .<span class="ident">ok_or</span>(<span class="ident">AcpiError</span>::<span class="ident">InvalidMadt</span>(<span class="ident">MadtError</span>::<span class="ident">NoLocalNmiLineSpecified</span>))<span class="question-mark">?</span>,
+        <span class="ident">local_apic_nmi_lines</span>,
         <span class="ident">interrupt_source_overrides</span>,
         <span class="ident">nmi_sources</span>,
         <span class="ident">also_has_legacy_pics</span>: (<span class="kw-2">*</span><span class="ident">mapping</span>).<span class="ident">supports_8259</span>(),

@@ -305,7 +305,6 @@
 <span id="305">305</span>
 <span id="306">306</span>
 <span id="307">307</span>
-<span id="308">308</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/// This module gets and decodes information about the CPU we&#39;re running on, using the `cpuid`</span>
 <span class="doccomment">/// instruction. If we&#39;re running under a hypervisor, we use the [Linux standard for</span>
@@ -350,6 +349,10 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">microarch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Microarch</span><span class="op">&gt;</span> {
+        <span class="comment">/*
+         * This information is strangely hard to come by, so this is by no way complete and does not include
+         * more recent microarchitectures :(
+         */</span>
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">vendor</span> {
             <span class="ident">Vendor</span>::<span class="ident">Intel</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">model_info</span>.<span class="ident">family</span> <span class="op">=</span><span class="op">=</span> <span class="number">0x6</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">model_info</span>.<span class="ident">extended_model</span> {
                 <span class="number">0x1a</span> <span class="op">|</span> <span class="number">0x1e</span> <span class="op">|</span> <span class="number">0x1f</span> <span class="op">|</span> <span class="number">0x2e</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Microarch</span>::<span class="ident">Nehalem</span>),
@@ -414,9 +417,8 @@
     <span class="ident">Amd</span>,
 }
 
-<span class="doccomment">/// Intel and AMD microarchitectures we can expect processors we&#39;re running on to be. This does not</span>
-<span class="doccomment">/// include microarchs that do not support x86_64, or die shrinks (they&#39;re considered their parent</span>
-<span class="doccomment">/// microarch).</span>
+<span class="doccomment">/// Intel and AMD microarchitectures we can expect processors we&#39;re running on to be. This doesn&#39;t include Intel</span>
+<span class="doccomment">/// Atom microarchs.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Microarch</span> {
     <span class="comment">/*
@@ -430,10 +432,6 @@
     <span class="ident">Broadwell</span>,
     <span class="ident">Skylake</span>,
     <span class="ident">KabyLake</span>,
-    <span class="ident">CoffeeLake</span>,
-    <span class="ident">CannonLake</span>,
-    <span class="ident">WhiskeyLake</span>,
-    <span class="ident">AmberLake</span>,
 
     <span class="comment">/*
      * AMD

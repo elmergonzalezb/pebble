@@ -196,11 +196,18 @@
 <span id="196">196</span>
 <span id="197">197</span>
 <span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">tss</span>::<span class="ident">Tss</span>, <span class="ident">DescriptorTablePointer</span>};
 <span class="kw">use</span> <span class="ident">bit_field</span>::<span class="ident">BitField</span>;
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">mem</span>, <span class="ident">ops</span>::<span class="ident">Deref</span>, <span class="ident">pin</span>::<span class="ident">Pin</span>};
 <span class="kw">use</span> <span class="ident">hal</span>::<span class="ident">memory</span>::<span class="ident">VirtualAddress</span>;
+<span class="kw">use</span> <span class="ident">spin</span>::<span class="ident">Mutex</span>;
+
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">GDT</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Gdt</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">Gdt</span>::<span class="ident">new</span>());
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
@@ -314,6 +321,7 @@
 
     <span class="doccomment">/// This field is not part of the actual GDT; we just use it to keep track of how many TSS</span>
     <span class="doccomment">/// entries have been used</span>
+    <span class="comment">// XXX: this shouldn&#39;t be included when calculating the limit!</span>
     <span class="ident">next_free_tss</span>: <span class="ident">usize</span>,
 }
 
