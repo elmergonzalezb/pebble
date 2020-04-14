@@ -186,13 +186,38 @@
 <span id="186">186</span>
 <span id="187">187</span>
 <span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">address_space</span>::<span class="ident">AddressSpace</span>, <span class="ident">alloc_kernel_object_id</span>, <span class="ident">KernelObject</span>, <span class="ident">KernelObjectId</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">memory</span>::<span class="ident">PhysicalMemoryManager</span>, <span class="ident">per_cpu</span>::<span class="ident">KernelPerCpu</span>, <span class="ident">slab_allocator</span>::<span class="ident">SlabAllocator</span>};
-<span class="kw">use</span> <span class="ident">alloc</span>::{<span class="ident">string</span>::<span class="ident">String</span>, <span class="ident">sync</span>::<span class="ident">Arc</span>, <span class="ident">vec</span>::<span class="ident">Vec</span>};
+<span class="kw">use</span> <span class="ident">alloc</span>::{<span class="ident">collections</span>::<span class="ident">BTreeMap</span>, <span class="ident">string</span>::<span class="ident">String</span>, <span class="ident">sync</span>::<span class="ident">Arc</span>, <span class="ident">vec</span>::<span class="ident">Vec</span>};
+<span class="kw">use</span> <span class="ident">core</span>::{
+    <span class="ident">marker</span>::<span class="ident">PhantomData</span>,
+    <span class="ident">sync</span>::<span class="ident">atomic</span>::{<span class="ident">AtomicU32</span>, <span class="ident">Ordering</span>},
+};
 <span class="kw">use</span> <span class="ident">hal</span>::{<span class="ident">memory</span>::<span class="ident">VirtualAddress</span>, <span class="ident">Hal</span>};
-<span class="kw">use</span> <span class="ident">libpebble</span>::<span class="ident">caps</span>::<span class="ident">Capability</span>;
-<span class="kw">use</span> <span class="ident">spin</span>::<span class="ident">Mutex</span>;
+<span class="kw">use</span> <span class="ident">libpebble</span>::{<span class="ident">caps</span>::<span class="ident">Capability</span>, <span class="ident">Handle</span>};
+<span class="kw">use</span> <span class="ident">spin</span>::{<span class="ident">Mutex</span>, <span class="ident">RwLock</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TaskBlock</span> {}
@@ -240,10 +265,13 @@
     <span class="kw">pub</span> <span class="ident">address_space</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AddressSpace</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">state</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">TaskState</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">capabilities</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Capability</span><span class="op">&gt;</span>,
+
     <span class="kw">pub</span> <span class="ident">user_stack</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">TaskStack</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">kernel_stack</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">TaskStack</span><span class="op">&gt;</span>,
-
     <span class="kw">pub</span> <span class="ident">kernel_stack_pointer</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">VirtualAddress</span><span class="op">&gt;</span>,
+
+    <span class="kw">pub</span> <span class="ident">handles</span>: <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">Handle</span>, <span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">KernelObject</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">next_handle</span>: <span class="ident">AtomicU32</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span> <span class="ident">Task</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>
@@ -254,9 +282,9 @@
         <span class="ident">owner</span>: <span class="ident">KernelObjectId</span>,
         <span class="ident">address_space</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AddressSpace</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">image</span>: <span class="kw-2">&amp;</span><span class="ident">hal</span>::<span class="ident">boot_info</span>::<span class="ident">LoadedImage</span>,
-        <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">PhysicalMemoryManager</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>,
+        <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">PhysicalMemoryManager</span>,
         <span class="ident">kernel_page_table</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>::<span class="ident">PageTable</span>,
-        <span class="ident">kernel_stack_allocator</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">KernelStackAllocator</span>,
+        <span class="ident">kernel_stack_allocator</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">KernelStackAllocator</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Task</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">TaskCreationError</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">hal</span>::<span class="ident">TaskHelper</span>;
 
@@ -282,13 +310,22 @@
             <span class="ident">user_stack</span>: <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">user_stack</span>),
             <span class="ident">kernel_stack</span>: <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">kernel_stack</span>),
             <span class="ident">kernel_stack_pointer</span>: <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">kernel_stack_pointer</span>),
+            <span class="ident">handles</span>: <span class="ident">RwLock</span>::<span class="ident">new</span>(<span class="ident">BTreeMap</span>::<span class="ident">new</span>()),
+            <span class="comment">// XXX: 0 is a special handle value, so start at 1</span>
+            <span class="ident">next_handle</span>: <span class="ident">AtomicU32</span>::<span class="ident">new</span>(<span class="number">1</span>),
         }))
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">object</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">KernelObject</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Handle</span> {
+        <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">Handle</span>(<span class="self">self</span>.<span class="ident">next_handle</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Ordering</span>::<span class="ident">Relaxed</span>));
+        <span class="self">self</span>.<span class="ident">handles</span>.<span class="ident">write</span>().<span class="ident">insert</span>(<span class="ident">handle</span>, <span class="ident">object</span>);
+        <span class="ident">handle</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span> <span class="ident">KernelObject</span> <span class="kw">for</span> <span class="ident">Task</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">H</span>: <span class="ident">Hal</span><span class="op">&lt;</span><span class="ident">KernelPerCpu</span><span class="op">&gt;</span>,
+    <span class="ident">H</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Hal</span><span class="op">&lt;</span><span class="ident">KernelPerCpu</span><span class="op">&gt;</span>,
 {
     <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">KernelObjectId</span> {
         <span class="self">self</span>.<span class="ident">id</span>
@@ -315,7 +352,7 @@
             <span class="number">0x02</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">one_byte_cap</span><span class="macro">!</span>(<span class="ident">Capability</span>::<span class="ident">CreateMemoryObject</span>),
             <span class="number">0x03</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">one_byte_cap</span><span class="macro">!</span>(<span class="ident">Capability</span>::<span class="ident">CreateTask</span>),
 
-            <span class="number">0x30</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">one_byte_cap</span><span class="macro">!</span>(<span class="ident">Capability</span>::<span class="ident">AccessBackupFramebuffer</span>),
+            <span class="number">0x30</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">one_byte_cap</span><span class="macro">!</span>(<span class="ident">Capability</span>::<span class="ident">GetFramebuffer</span>),
             <span class="number">0x31</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">one_byte_cap</span><span class="macro">!</span>(<span class="ident">Capability</span>::<span class="ident">EarlyLogging</span>),
 
             <span class="comment">// We skip `0x00` as the first byte of a capability, as it is just used to pad the</span>
@@ -329,32 +366,37 @@
     <span class="prelude-val">Ok</span>(<span class="ident">caps</span>)
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">KernelStackAllocator</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">KernelStackAllocator</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">H</span>: <span class="ident">Hal</span><span class="op">&lt;</span><span class="ident">KernelPerCpu</span><span class="op">&gt;</span>,
+{
     <span class="ident">kernel_stack_slots</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">SlabAllocator</span><span class="op">&gt;</span>,
     <span class="ident">slot_size</span>: <span class="ident">usize</span>,
+    <span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">KernelStackAllocator</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span> <span class="ident">KernelStackAllocator</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">H</span>: <span class="ident">Hal</span><span class="op">&lt;</span><span class="ident">KernelPerCpu</span><span class="op">&gt;</span>,
+{
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">stacks_bottom</span>: <span class="ident">VirtualAddress</span>,
         <span class="ident">stacks_top</span>: <span class="ident">VirtualAddress</span>,
         <span class="ident">slot_size</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">KernelStackAllocator</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">KernelStackAllocator</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span> {
         <span class="ident">KernelStackAllocator</span> {
             <span class="ident">kernel_stack_slots</span>: <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">SlabAllocator</span>::<span class="ident">new</span>(<span class="ident">stacks_bottom</span>, <span class="ident">stacks_top</span>, <span class="ident">slot_size</span>)),
             <span class="ident">slot_size</span>,
+            <span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alloc_kernel_task_stack</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alloc_kernel_task_stack</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">initial_size</span>: <span class="ident">usize</span>,
-        <span class="ident">physical_memory_manager</span>: <span class="kw-2">&amp;</span><span class="ident">PhysicalMemoryManager</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>,
+        <span class="ident">physical_memory_manager</span>: <span class="kw-2">&amp;</span><span class="ident">PhysicalMemoryManager</span>,
         <span class="ident">kernel_page_table</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>::<span class="ident">PageTable</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TaskStack</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">H</span>: <span class="ident">Hal</span><span class="op">&lt;</span><span class="ident">KernelPerCpu</span><span class="op">&gt;</span>,
-    {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TaskStack</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">hal</span>::<span class="ident">memory</span>::{<span class="ident">Flags</span>, <span class="ident">PageTable</span>};
 
         <span class="kw">let</span> <span class="ident">slot_bottom</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">kernel_stack_slots</span>.<span class="ident">lock</span>().<span class="ident">alloc</span>()<span class="question-mark">?</span>;

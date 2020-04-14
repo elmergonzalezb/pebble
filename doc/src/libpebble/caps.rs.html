@@ -78,7 +78,7 @@
     <span class="comment">/*
      * Capabilities that are owned by drivers / support services.
      */</span>
-    <span class="ident">AccessBackupFramebuffer</span>,
+    <span class="ident">GetFramebuffer</span>,
     <span class="ident">EarlyLogging</span>,
 }
 
@@ -89,7 +89,7 @@
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CAP_BASE_X86_64</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">0x20</span>;
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CAP_ACCESS_BACKUP_FRAMEBUFFER</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">0x30</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CAP_GET_FRAMEBUFFER</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">0x30</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CAP_EARLY_LOGGING</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">0x31</span>;
 
 <span class="doccomment">/// `N` must be a multiple of 4, and padded with zeros, so the whole descriptor is aligned to a</span>
@@ -101,7 +101,7 @@
 <span class="doccomment">/// #[used]</span>
 <span class="doccomment">/// #[link_section = &quot;.caps&quot;]</span>
 <span class="doccomment">/// pub static mut CAPS: CapabilitiesRepr&lt;4&gt; = CapabilitiesRepr::new([CAP_EARLY_LOGGING,</span>
-<span class="doccomment">/// CAP_ACCESS_BACKUP_FRAMEBUFFER, CAP_PADDING, CAP_PADDING]);</span>
+<span class="doccomment">/// CAP_GET_FRAMEBUFFER, CAP_PADDING, CAP_PADDING]);</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CapabilitiesRepr</span><span class="op">&lt;</span><span class="kw">const</span> <span class="ident">N</span>: <span class="ident">usize</span><span class="op">&gt;</span> {

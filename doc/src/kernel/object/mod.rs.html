@@ -52,12 +52,16 @@
 <span id="52">52</span>
 <span id="53">53</span>
 <span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">address_space</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">memory_object</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">task</span>;
 
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::{<span class="ident">AtomicU64</span>, <span class="ident">Ordering</span>};
+<span class="kw">use</span> <span class="ident">pebble_util</span>::{<span class="ident">downcast</span>::<span class="ident">DowncastSync</span>, <span class="ident">impl_downcast</span>};
 
 <span class="doccomment">/// Each kernel object is assigned a unique 64-bit ID, which is never reused. An ID of `0` is never allocated, and</span>
 <span class="doccomment">/// is used as a sentinel value.</span>
@@ -72,9 +76,8 @@
 <span class="kw">static</span> <span class="ident">KERNEL_OBJECT_ID_COUNTER</span>: <span class="ident">AtomicU64</span> <span class="op">=</span> <span class="ident">AtomicU64</span>::<span class="ident">new</span>(<span class="number">1</span>);
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alloc_kernel_object_id</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">KernelObjectId</span> {
-    <span class="comment">// TODO: I think this can be Ordering::Relaxed?</span>
     <span class="comment">// TODO: this wraps, so we should manually detect when it wraps around and panic to prevent ID reuse</span>
-    <span class="ident">KernelObjectId</span>(<span class="ident">KERNEL_OBJECT_ID_COUNTER</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Ordering</span>::<span class="ident">SeqCst</span>))
+    <span class="ident">KernelObjectId</span>(<span class="ident">KERNEL_OBJECT_ID_COUNTER</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Ordering</span>::<span class="ident">Relaxed</span>))
 }
 
 <span class="comment">// TODO: we could use the `downcast` crate to downcast trait objects into their real types (I think)?</span>
@@ -82,9 +85,12 @@
 <span class="doccomment">/// be generic over all kernel objects. Kernel objects are generally handled as `Arc&lt;T&gt;` where `T` is the type</span>
 <span class="doccomment">/// implementing `KernelObject`, and so interior mutability should be used for data that needs to be mutable within</span>
 <span class="doccomment">/// the kernel object.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">KernelObject</span> {
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">KernelObject</span>: <span class="ident">DowncastSync</span> {
     <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">KernelObjectId</span>;
+    <span class="comment">// fn owner(&amp;self) -&gt; KernelObjectId;</span>
 }
+
+<span class="macro">impl_downcast</span><span class="macro">!</span>(<span class="ident">sync</span> <span class="ident">KernelObject</span>);
 
 <span class="comment">// This doesn&#39;t really work because hygiene opt-out (needed for the fields) still isn&#39;t implemented :(</span>
 <span class="comment">// macro kernel_object {</span>

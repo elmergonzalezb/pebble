@@ -156,23 +156,26 @@
 <span id="156">156</span>
 <span id="157">157</span>
 <span id="158">158</span>
-<span id="159">159</span>
-<span id="160">160</span>
-<span id="161">161</span>
-<span id="162">162</span>
-<span id="163">163</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">object</span>::<span class="ident">task</span>::<span class="ident">TaskState</span>, <span class="ident">HalImpl</span>};
-<span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">slice</span>, <span class="ident">str</span>};
-<span class="kw">use</span> <span class="ident">hal</span>::<span class="ident">Hal</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">object</span>::{<span class="ident">address_space</span>::<span class="ident">AddressSpace</span>, <span class="ident">memory_object</span>::<span class="ident">MemoryObject</span>, <span class="ident">task</span>::<span class="ident">TaskState</span>},
+    <span class="ident">HalImpl</span>,
+};
+<span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">convert</span>::<span class="ident">TryFrom</span>, <span class="ident">slice</span>, <span class="ident">str</span>};
+<span class="kw">use</span> <span class="ident">hal</span>::{<span class="ident">memory</span>::<span class="ident">VirtualAddress</span>, <span class="ident">Hal</span>};
 <span class="kw">use</span> <span class="ident">libpebble</span>::{
     <span class="ident">caps</span>::<span class="ident">Capability</span>,
-    <span class="ident">syscall</span>,
     <span class="ident">syscall</span>::{
+        <span class="self">self</span>,
         <span class="ident">result</span>::{<span class="ident">handle_to_syscall_repr</span>, <span class="ident">status_to_syscall_repr</span>},
+        <span class="ident">CreateMemoryObjectError</span>,
         <span class="ident">EarlyLogError</span>,
-        <span class="ident">MemoryObjectError</span>,
+        <span class="ident">FramebufferInfo</span>,
+        <span class="ident">GetFramebufferError</span>,
+        <span class="ident">MapMemoryObjectError</span>,
     },
+    <span class="ident">Handle</span>,
+    <span class="ident">ZERO_HANDLE</span>,
 };
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">info</span>, <span class="ident">trace</span>, <span class="ident">warn</span>};
 
@@ -190,11 +193,10 @@
     <span class="kw">match</span> <span class="ident">number</span> {
         <span class="ident">syscall</span>::<span class="ident">SYSCALL_YIELD</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">yield_syscall</span>(),
         <span class="ident">syscall</span>::<span class="ident">SYSCALL_EARLY_LOG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">status_to_syscall_repr</span>(<span class="ident">early_log</span>(<span class="ident">a</span>, <span class="ident">b</span>)),
-        <span class="comment">// TODO: I think we can replace this with a one-off syscall just for the framebuffer?</span>
-        <span class="comment">// syscall::SYSCALL_REQUEST_SYSTEM_OBJECT =&gt; request_system_object(a, b, c, d, e),</span>
-        <span class="comment">// syscall::SYSCALL_MY_ADDRESS_SPACE =&gt; my_address_space(),</span>
+        <span class="ident">syscall</span>::<span class="ident">SYSCALL_GET_FRAMEBUFFER</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">handle_to_syscall_repr</span>(<span class="ident">get_framebuffer</span>(<span class="ident">a</span>)),
         <span class="comment">// syscall::SYSCALL_CREATE_MEMORY_OBJECT =&gt; result_to_syscall_repr(create_memory_object(a, b, c)),</span>
-        <span class="comment">// syscall::SYSCALL_MAP_MEMORY_OBJECT =&gt; status_to_syscall_repr(map_memory_object(a, b)),</span>
+        <span class="ident">syscall</span>::<span class="ident">SYSCALL_MAP_MEMORY_OBJECT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">status_to_syscall_repr</span>(<span class="ident">map_memory_object</span>(<span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">c</span>)),
+
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// TODO: unsupported system call number, kill process or something?</span>
             <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;Process made system call with invalid syscall number: {}&quot;</span>, <span class="ident">number</span>);
@@ -234,61 +236,26 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="comment">// fn request_system_object(id: usize, b: usize, c: usize, d: usize, e: usize) -&gt; usize {</span>
-<span class="comment">//     use libpebble::syscall::system_object::*;</span>
+<span class="kw">fn</span> <span class="ident">get_framebuffer</span>(<span class="ident">info_address</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Handle</span>, <span class="ident">GetFramebufferError</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">HalImpl</span>::<span class="ident">per_cpu</span>() }.<span class="ident">kernel_data</span>().<span class="ident">scheduler</span>().<span class="ident">running_task</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
 
-<span class="comment">//     result_to_syscall_repr(match id {</span>
-<span class="comment">//         SYSTEM_OBJECT_BACKUP_FRAMEBUFFER_ID =&gt; {</span>
-<span class="comment">//             /*</span>
-<span class="comment">//              * Check that the task has the correct capability. It&#39;s important to do this first, so we don&#39;t leak</span>
-<span class="comment">//              * the fact that a system object doesn&#39;t exist to an unprivileged task.</span>
-<span class="comment">//              */</span>
-<span class="comment">//             if unsafe { common_per_cpu_data() }</span>
-<span class="comment">//                 .running_task()</span>
-<span class="comment">//                 .object</span>
-<span class="comment">//                 .task()</span>
-<span class="comment">//                 .unwrap()</span>
-<span class="comment">//                 .read()</span>
-<span class="comment">//                 .capabilities</span>
-<span class="comment">//                 .contains(&amp;Capability::AccessBackupFramebuffer)</span>
-<span class="comment">//             {</span>
-<span class="comment">//                 match *COMMON.get().backup_framebuffer.lock() {</span>
-<span class="comment">//                     Some((id, info)) =&gt; {</span>
-<span class="comment">//                         /*</span>
-<span class="comment">//                          * `b` contains a userspace address that we write the framebuffer info back into.</span>
-<span class="comment">//                          */</span>
-<span class="comment">//                         unsafe {</span>
-<span class="comment">//                             // TODO: at the moment, userspace can trivially crash the kernel by passing an</span>
-<span class="comment">// address                             // in here that is either not mapped, or does not point into userspace</span>
-<span class="comment">// (potentially                             // overwriting important kernel info). We should validate that the</span>
-<span class="comment">// address passed is                             // both mapped and points into userspace, and provide some helpers</span>
-<span class="comment">// for doing so.                             *(b as *mut FramebufferSystemObjectInfo) = info;</span>
-<span class="comment">//                         }</span>
+    <span class="comment">/*
+     * Check that the task has the correct capability.
+     */</span>
+    <span class="kw">if</span> <span class="op">!</span><span class="ident">task</span>.<span class="ident">capabilities</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">Capability</span>::<span class="ident">GetFramebuffer</span>) {
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">GetFramebufferError</span>::<span class="ident">AccessDenied</span>);
+    }
 
-<span class="comment">//                         Ok(id)</span>
-<span class="comment">//                     }</span>
-<span class="comment">//                     None =&gt; Err(RequestSystemObjectError::ObjectDoesNotExist),</span>
-<span class="comment">//                 }</span>
-<span class="comment">//             } else {</span>
-<span class="comment">//                 Err(RequestSystemObjectError::AccessDenied)</span>
-<span class="comment">//             }</span>
-<span class="comment">//         }</span>
+    <span class="kw">let</span> (<span class="ident">info</span>, <span class="ident">memory_object</span>) <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">FRAMEBUFFER</span>.<span class="ident">try_get</span>().<span class="ident">ok_or</span>(<span class="ident">GetFramebufferError</span>::<span class="ident">NoFramebufferCreated</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">task</span>.<span class="ident">add_handle</span>(<span class="ident">memory_object</span>.<span class="ident">clone</span>());
 
-<span class="comment">//         _ =&gt; Err(RequestSystemObjectError::NotAValidId),</span>
-<span class="comment">//     })</span>
-<span class="comment">// }</span>
+    <span class="comment">// TODO: validate the info pointer before we do this</span>
+    <span class="kw">unsafe</span> {
+        <span class="kw-2">*</span>(<span class="ident">info_address</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FramebufferInfo</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">info</span>;
+    }
 
-<span class="comment">// fn my_address_space() -&gt; usize {</span>
-<span class="comment">//     unsafe { common_per_cpu_data() }</span>
-<span class="comment">//         .running_task()</span>
-<span class="comment">//         .object</span>
-<span class="comment">//         .task()</span>
-<span class="comment">//         .unwrap()</span>
-<span class="comment">//         .read()</span>
-<span class="comment">//         .address_space</span>
-<span class="comment">//         .id</span>
-<span class="comment">//         .to_syscall_repr()</span>
-<span class="comment">// }</span>
+    <span class="prelude-val">Ok</span>(<span class="ident">handle</span>)
+}
 
 <span class="comment">// fn create_memory_object(</span>
 <span class="comment">//     virtual_address: usize,</span>
@@ -301,29 +268,52 @@
 <span class="comment">//     unimplemented!()</span>
 <span class="comment">// }</span>
 
-<span class="comment">// fn map_memory_object(memory_object_id: usize, address_space_id: usize) -&gt; Result&lt;(), MemoryObjectError&gt; {</span>
-<span class="comment">//     /*</span>
-<span class="comment">//      * TODO: enforce that the calling task must have access to the AddressSpace and MemoryObject</span>
-<span class="comment">//      * for this to work (we need to build the owning / access system first).</span>
-<span class="comment">//      */</span>
-<span class="comment">//     let memory_object =</span>
-<span class="comment">//         match COMMON.get().object_map.read().get(KernelObjectId::from_syscall_repr(memory_object_id)) {</span>
-<span class="comment">//             Some(object) =&gt; object.clone(),</span>
-<span class="comment">//             None =&gt; return Err(MemoryObjectError::NotAMemoryObject),</span>
-<span class="comment">//         };</span>
+<span class="kw">fn</span> <span class="ident">map_memory_object</span>(
+    <span class="ident">memory_object_handle</span>: <span class="ident">usize</span>,
+    <span class="ident">address_space_handle</span>: <span class="ident">usize</span>,
+    <span class="ident">address_pointer</span>: <span class="ident">usize</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">MapMemoryObjectError</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">memory_object_handle</span> <span class="op">=</span>
+        <span class="ident">Handle</span>::<span class="ident">try_from</span>(<span class="ident">memory_object_handle</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">MapMemoryObjectError</span>::<span class="ident">InvalidHandle</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">address_space_handle</span> <span class="op">=</span>
+        <span class="ident">Handle</span>::<span class="ident">try_from</span>(<span class="ident">address_space_handle</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">MapMemoryObjectError</span>::<span class="ident">InvalidHandle</span>)<span class="question-mark">?</span>;
 
-<span class="comment">//     // Check it&#39;s a MemoryObject</span>
-<span class="comment">//     if memory_object.object.memory_object().is_none() {</span>
-<span class="comment">//         return Err(MemoryObjectError::NotAMemoryObject);</span>
-<span class="comment">//     }</span>
+    <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">HalImpl</span>::<span class="ident">per_cpu</span>() }.<span class="ident">kernel_data</span>().<span class="ident">scheduler</span>().<span class="ident">running_task</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
 
-<span class="comment">//     match COMMON.get().object_map.read().get(KernelObjectId::from_syscall_repr(address_space_id)) {</span>
-<span class="comment">//         Some(address_space) =&gt; match address_space.object.address_space() {</span>
-<span class="comment">//             Some(address_space) =&gt; address_space.write().map_memory_object(memory_object),</span>
-<span class="comment">//             None =&gt; Err(MemoryObjectError::NotAnAddressSpace),</span>
-<span class="comment">//         },</span>
-<span class="comment">//         None =&gt; Err(MemoryObjectError::NotAnAddressSpace),</span>
-<span class="comment">//     }</span>
-<span class="comment">// }</span>
+    <span class="kw">let</span> <span class="ident">memory_object</span> <span class="op">=</span> <span class="ident">task</span>
+        .<span class="ident">handles</span>
+        .<span class="ident">read</span>()
+        .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">memory_object_handle</span>)
+        .<span class="ident">ok_or</span>(<span class="ident">MapMemoryObjectError</span>::<span class="ident">InvalidHandle</span>)<span class="question-mark">?</span>
+        .<span class="ident">clone</span>()
+        .<span class="ident">downcast_arc</span>::<span class="op">&lt;</span><span class="ident">MemoryObject</span><span class="op">&gt;</span>()
+        .<span class="ident">ok</span>()
+        .<span class="ident">ok_or</span>(<span class="ident">MapMemoryObjectError</span>::<span class="ident">NotAMemoryObject</span>)<span class="question-mark">?</span>;
+
+    <span class="kw">if</span> <span class="ident">address_space_handle</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ZERO_HANDLE</span> {
+        <span class="comment">/*
+         * If the AddressSpace handle is the zero handle, we map the MemoryObject into the calling task&#39;s
+         * address space.
+         */</span>
+        <span class="ident">task</span>.<span class="ident">address_space</span>.<span class="ident">clone</span>()
+    } <span class="kw">else</span> {
+        <span class="ident">task</span>.<span class="ident">handles</span>
+            .<span class="ident">read</span>()
+            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">memory_object_handle</span>)
+            .<span class="ident">ok_or</span>(<span class="ident">MapMemoryObjectError</span>::<span class="ident">InvalidHandle</span>)<span class="question-mark">?</span>
+            .<span class="ident">clone</span>()
+            .<span class="ident">downcast_arc</span>::<span class="op">&lt;</span><span class="ident">AddressSpace</span><span class="op">&lt;</span><span class="ident">HalImpl</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+            .<span class="ident">ok</span>()
+            .<span class="ident">ok_or</span>(<span class="ident">MapMemoryObjectError</span>::<span class="ident">NotAnAddressSpace</span>)<span class="question-mark">?</span>
+    }
+    .<span class="ident">map_memory_object</span>(<span class="ident">memory_object</span>.<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="kw">crate</span>::<span class="ident">PHYSICAL_MEMORY_MANAGER</span>.<span class="ident">get</span>())<span class="question-mark">?</span>;
+
+    <span class="comment">// TODO: validate the user pointer</span>
+    <span class="kw">unsafe</span> {
+        <span class="kw-2">*</span>(<span class="ident">address_pointer</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">VirtualAddress</span>) <span class="op">=</span> <span class="ident">memory_object</span>.<span class="ident">virtual_address</span>;
+    }
+
+    <span class="prelude-val">Ok</span>(())
+}
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "kernel";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>
