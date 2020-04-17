@@ -25,12 +25,38 @@
 <span id="25">25</span>
 <span id="26">26</span>
 <span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">no_std</span>]</span>
 <span class="attribute">#![<span class="ident">feature</span>(<span class="ident">asm</span>, <span class="ident">decl_macro</span>, <span class="ident">const_generics</span>)]</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">caps</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">syscall</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;can_alloc&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">early_logger</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;can_alloc&quot;</span>)]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
 
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">convert</span>::<span class="ident">TryFrom</span>, <span class="ident">num</span>::<span class="ident">TryFromIntError</span>};
 
@@ -51,6 +77,20 @@
 
     <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">value</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">Handle</span>(<span class="ident">u32</span>::<span class="ident">try_from</span>(<span class="ident">value</span>)<span class="question-mark">?</span>))
+    }
+}
+
+<span class="ident">bitflags</span>::<span class="macro">bitflags</span><span class="macro">!</span> {
+    <span class="kw">struct</span> <span class="ident">HandleRights</span>: <span class="ident">u32</span> {
+        <span class="doccomment">/// Whether the handle&#39;s owner can use it to modify the kernel object it points to. What is means to</span>
+        <span class="doccomment">/// &quot;modify&quot; a kernel object differs depending on the type of the kernel object.</span>
+        <span class="kw">const</span> <span class="ident">MODIFY</span> <span class="op">=</span> <span class="number">0b1</span>;
+        <span class="doccomment">/// Whether the handle can be duplicated.</span>
+        <span class="kw">const</span> <span class="ident">DUPLICATE</span> <span class="op">=</span> <span class="number">0b10</span>;
+        <span class="doccomment">/// Whether the handle can be transferred over a `Channel`.</span>
+        <span class="kw">const</span> <span class="ident">TRANSFER</span> <span class="op">=</span> <span class="number">0b100</span>;
+        <span class="doccomment">/// For `MemoryObject`s, whether the memory can be mapped into the handle owner&#39;s `AddressSpace`.</span>
+        <span class="kw">const</span> <span class="ident">MAP</span> <span class="op">=</span> <span class="number">0x1000</span>;
     }
 }
 </pre></div>
