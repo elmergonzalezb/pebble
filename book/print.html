@@ -192,6 +192,8 @@ a register.</p>
 <tr><td><code>2</code></td><td><code>get_framebuffer</code></td><td>Get the framebuffer that the kernel has created, if it has.</td></tr>
 <tr><td><code>3</code></td><td><code>create_memory_object</code></td><td>Create a MemoryObject kernel object.</td></tr>
 <tr><td><code>4</code></td><td><code>map_memory_object</code></td><td>Map a MemoryObject into an AddressSpace.</td></tr>
+<tr><td><code>5</code></td><td><code>create_channel</code></td><td>Create a channel, returning handles to the two ends.</td></tr>
+<tr><td><code>6</code></td><td><code>send_message</code></td><td>Send a message down a channel.</td></tr>
 </tbody></table>
 <h3><a class="header" href="#making-a-system-call-on-x86_64" id="making-a-system-call-on-x86_64">Making a system call on x86_64</a></h3>
 <p>To make a system call on x86_64, populate these registers:</p>
