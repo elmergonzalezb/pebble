@@ -210,6 +210,7 @@
 <span id="210">210</span>
 <span id="211">211</span>
 <span id="212">212</span>
+<span id="213">213</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">no_std</span>]</span>
 <span class="attribute">#![<span class="ident">feature</span>(<span class="ident">asm</span>, <span class="ident">decl_macro</span>, <span class="ident">const_fn</span>, <span class="ident">global_asm</span>, <span class="ident">naked_functions</span>, <span class="ident">type_ascription</span>)]</span>
@@ -303,7 +304,7 @@
                 <span class="kw">let</span> <span class="ident">acpi_info</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">boot_info</span>.<span class="ident">rsdp_address</span> {
                     <span class="prelude-val">Some</span>(<span class="ident">rsdp_address</span>) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handler</span> <span class="op">=</span> <span class="ident">PebbleAcpiHandler</span>;
-                        <span class="kw">match</span> <span class="ident">acpi</span>::<span class="ident">parse_rsdp</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">handler</span>, <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">rsdp_address</span>)) {
+                        <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="ident">acpi</span>::<span class="ident">parse_rsdp</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">handler</span>, <span class="ident">usize</span>::<span class="ident">from</span>(<span class="ident">rsdp_address</span>)) } {
                             <span class="prelude-val">Ok</span>(<span class="ident">acpi_info</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">acpi_info</span>),
 
                             <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -344,6 +345,7 @@
                  * the BSP&#39;s per-CPU data.
                  * NOTE: Installing the GDT zeros the `gs` segment descriptor so it&#39;s important we do it before
                  * installing the per-CPU data.
+                 * TODO: create a TSS for each AP here so we can load the GDT all in one go.
                  */</span>
                 <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">bsp_percpu</span>, <span class="ident">bsp_tss_selector</span>) <span class="op">=</span> <span class="ident">per_cpu</span>::<span class="ident">PerCpuImpl</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>::<span class="ident">new</span>(<span class="ident">per_cpu_data</span>);
                 <span class="kw">unsafe</span> {

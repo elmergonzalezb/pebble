@@ -243,6 +243,9 @@
 <span id="243">243</span>
 <span id="244">244</span>
 <span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A library for parsing ACPI tables. This crate can be used by bootloaders and kernels for</span>
 <span class="doccomment">//! architectures that support ACPI. The crate is far from feature-complete, but can still be used</span>
@@ -286,6 +289,7 @@
 <span class="kw">mod</span> <span class="ident">sdt</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">fadt</span>::<span class="ident">PowerProfile</span>,
     <span class="ident">handler</span>::{<span class="ident">AcpiHandler</span>, <span class="ident">PhysicalMapping</span>},
     <span class="ident">hpet</span>::<span class="ident">HpetInfo</span>,
     <span class="ident">interrupt</span>::<span class="ident">InterruptModel</span>,
@@ -388,6 +392,7 @@
     <span class="doccomment">/// just error in cases that the tables detail more than one.</span>
     <span class="kw">pub</span> <span class="ident">interrupt_model</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">InterruptModel</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">hpet</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HpetInfo</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">power_profile</span>: <span class="ident">PowerProfile</span>,
 
     <span class="doccomment">/// Info about the DSDT, if we find it.</span>
     <span class="kw">pub</span> <span class="ident">dsdt</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AmlTable</span><span class="op">&gt;</span>,
@@ -402,11 +407,11 @@
 <span class="doccomment">/// This is the entry point of `acpi` if you have the **physical** address of the RSDP. It maps</span>
 <span class="doccomment">/// the RSDP, works out what version of ACPI the hardware supports, and passes the physical</span>
 <span class="doccomment">/// address of the RSDT/XSDT to `parse_rsdt`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_rsdp</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>, <span class="ident">rsdp_address</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Acpi</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">parse_rsdp</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>, <span class="ident">rsdp_address</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Acpi</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">H</span>: <span class="ident">AcpiHandler</span>,
 {
-    <span class="kw">let</span> <span class="ident">rsdp_mapping</span> <span class="op">=</span> <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">Rsdp</span><span class="op">&gt;</span>(<span class="ident">rsdp_address</span>, <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">Rsdp</span><span class="op">&gt;</span>());
+    <span class="kw">let</span> <span class="ident">rsdp_mapping</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">Rsdp</span><span class="op">&gt;</span>(<span class="ident">rsdp_address</span>, <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">Rsdp</span><span class="op">&gt;</span>()) };
     (<span class="kw-2">*</span><span class="ident">rsdp_mapping</span>).<span class="ident">validate</span>()<span class="question-mark">?</span>;
 
     <span class="ident">parse_validated_rsdp</span>(<span class="ident">handler</span>, <span class="ident">rsdp_mapping</span>)
@@ -424,7 +429,7 @@
          */</span>
         <span class="kw">let</span> <span class="ident">rsdt_address</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">rsdp_mapping</span>).<span class="ident">rsdt_address</span>();
         <span class="ident">handler</span>.<span class="ident">unmap_physical_region</span>(<span class="ident">rsdp_mapping</span>);
-        <span class="ident">parse_rsdt</span>(<span class="ident">handler</span>, <span class="ident">revision</span>, <span class="ident">rsdt_address</span> <span class="kw">as</span> <span class="ident">usize</span>)
+        <span class="kw">unsafe</span> { <span class="ident">parse_rsdt</span>(<span class="ident">handler</span>, <span class="ident">revision</span>, <span class="ident">rsdt_address</span> <span class="kw">as</span> <span class="ident">usize</span>) }
     } <span class="kw">else</span> {
         <span class="comment">/*
          * We&#39;re running on ACPI Version 2.0+. We should use the 64-bit XSDT address, truncated
@@ -432,7 +437,7 @@
          */</span>
         <span class="kw">let</span> <span class="ident">xsdt_address</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">rsdp_mapping</span>).<span class="ident">xsdt_address</span>();
         <span class="ident">handler</span>.<span class="ident">unmap_physical_region</span>(<span class="ident">rsdp_mapping</span>);
-        <span class="ident">parse_rsdt</span>(<span class="ident">handler</span>, <span class="ident">revision</span>, <span class="ident">xsdt_address</span> <span class="kw">as</span> <span class="ident">usize</span>)
+        <span class="kw">unsafe</span> { <span class="ident">parse_rsdt</span>(<span class="ident">handler</span>, <span class="ident">revision</span>, <span class="ident">xsdt_address</span> <span class="kw">as</span> <span class="ident">usize</span>) }
     }
 }
 
@@ -442,7 +447,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// If the given revision is 0, an address to the RSDT is expected. Otherwise, an address to</span>
 <span class="doccomment">/// the XSDT is expected.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_rsdt</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>, <span class="ident">revision</span>: <span class="ident">u8</span>, <span class="ident">physical_address</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Acpi</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">parse_rsdt</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">handler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>, <span class="ident">revision</span>: <span class="ident">u8</span>, <span class="ident">physical_address</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Acpi</span>, <span class="ident">AcpiError</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">H</span>: <span class="ident">AcpiHandler</span>,
 {
@@ -452,13 +457,14 @@
         <span class="ident">application_processors</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
         <span class="ident">interrupt_model</span>: <span class="prelude-val">None</span>,
         <span class="ident">hpet</span>: <span class="prelude-val">None</span>,
+        <span class="ident">power_profile</span>: <span class="ident">PowerProfile</span>::<span class="ident">Unspecified</span>,
         <span class="ident">dsdt</span>: <span class="prelude-val">None</span>,
         <span class="ident">ssdts</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
         <span class="ident">pci_config_regions</span>: <span class="prelude-val">None</span>,
     };
 
     <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">sdt</span>::<span class="ident">peek_at_sdt_header</span>(<span class="ident">handler</span>, <span class="ident">physical_address</span>);
-    <span class="kw">let</span> <span class="ident">mapping</span> <span class="op">=</span> <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">SdtHeader</span><span class="op">&gt;</span>(<span class="ident">physical_address</span>, <span class="ident">header</span>.<span class="ident">length</span> <span class="kw">as</span> <span class="ident">usize</span>);
+    <span class="kw">let</span> <span class="ident">mapping</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">handler</span>.<span class="ident">map_physical_region</span>::<span class="op">&lt;</span><span class="ident">SdtHeader</span><span class="op">&gt;</span>(<span class="ident">physical_address</span>, <span class="ident">header</span>.<span class="ident">length</span> <span class="kw">as</span> <span class="ident">usize</span>) };
 
     <span class="kw">if</span> <span class="ident">revision</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
         <span class="comment">/*

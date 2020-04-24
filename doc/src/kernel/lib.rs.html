@@ -187,6 +187,8 @@
 <span id="187">187</span>
 <span id="188">188</span>
 <span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">test</span>), <span class="ident">no_std</span>)]</span>
 <span class="attribute">#![<span class="ident">feature</span>(
@@ -236,8 +238,10 @@
 <span class="kw">use</span> <span class="ident">scheduler</span>::<span class="ident">Scheduler</span>;
 
 <span class="macro">cfg_if</span><span class="macro">!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arch_x86_64&quot;</span>)]</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;platform_x86_64&quot;</span>)]</span> {
         <span class="kw">type</span> <span class="ident">HalImpl</span> <span class="op">=</span> <span class="ident">hal_x86_64</span>::<span class="ident">HalImpl</span><span class="op">&lt;</span><span class="ident">KernelPerCpu</span><span class="op">&gt;</span>;
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span><span class="string">&quot;platform_rpi4&quot;</span>)]</span> {
+        <span class="kw">type</span> <span class="ident">HalImpl</span> <span class="op">=</span> <span class="ident">hal_arm64</span>::<span class="ident">HalImpl</span><span class="op">&lt;</span><span class="ident">KernelPerCpu</span><span class="op">&gt;</span>;
     } <span class="kw">else</span> {
         <span class="macro">compile_error</span><span class="macro">!</span>(<span class="string">&quot;No architecture supplied, or target arch does not have a HAL implementation configured!&quot;</span>);
     }

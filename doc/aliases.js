@@ -6,6 +6,7 @@ ALIASES["bitflags"] = {};
 ALIASES["byteorder"] = {};
 ALIASES["cfg_if"] = {};
 ALIASES["hal"] = {};
+ALIASES["hal_arm64"] = {};
 ALIASES["hal_x86_64"] = {};
 ALIASES["kernel"] = {};
 ALIASES["libpebble"] = {};
